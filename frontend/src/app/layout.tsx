@@ -1,22 +1,30 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import Header from "../components/ui/header";
 import Main from "../components/ui/main";
 import Footer from "../components/ui/footer";
+import { ToastProvider } from "@/components/ui/toast-provider";
+import { CookieBanner } from "@/components/ui/cookie-banner";
 import "./globals.css";
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
+  const pathname = usePathname();
+  const isAuthPage = pathname === "/login";
+
   return (
     <html lang="pt-br" className="h-full">
       <body className="min-h-screen h-full flex flex-col">
+        <ToastProvider />
         <Header />
         <main className="flex-grow">
-          <Main />
+          {!isAuthPage && <Main />}
           {children}
         </main>
         <Footer />
+        <CookieBanner />
       </body>
     </html>
   );
