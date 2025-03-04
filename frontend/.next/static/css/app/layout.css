@@ -655,6 +655,9 @@ video {
 .h-12 {
   height: 3rem;
 }
+.h-16 {
+  height: 4rem;
+}
 .h-2 {
   height: 0.5rem;
 }
@@ -709,6 +712,9 @@ video {
 .w-10 {
   width: 2.5rem;
 }
+.w-16 {
+  width: 4rem;
+}
 .w-2\.5 {
   width: 0.625rem;
 }
@@ -751,8 +757,8 @@ video {
 .w-\[1px\] {
   width: 1px;
 }
-.w-\[30\%\] {
-  width: 30%;
+.w-\[300px\] {
+  width: 300px;
 }
 .w-auto {
   width: auto;
@@ -1266,6 +1272,10 @@ video {
   --tw-text-opacity: 1;
   color: rgb(46 64 73 / var(--tw-text-opacity, 1));
 }
+.text-black {
+  --tw-text-opacity: 1;
+  color: rgb(0 0 0 / var(--tw-text-opacity, 1));
+}
 .text-card-foreground {
   color: hsl(var(--card-foreground));
 }
@@ -1360,6 +1370,11 @@ video {
   --tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
+.shadow-xl {
+  --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --tw-shadow-colored: 0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
 .outline-none {
   outline: 2px solid transparent;
   outline-offset: 2px;
@@ -1427,9 +1442,6 @@ video {
 .duration-300 {
   transition-duration: 300ms;
 }
-.ease-in {
-  transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
-}
 .ease-in-out {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1474,9 +1486,6 @@ video {
 .delay-150 {
   animation-delay: 150ms;
 }
-.ease-in {
-  animation-timing-function: cubic-bezier(0.4, 0, 1, 1);
-}
 .ease-in-out {
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1486,35 +1495,6 @@ video {
 
 body {
   font-family: Arial, Helvetica, sans-serif;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes progressBar {
-  from {
-    width: 100%;
-  }
-  to {
-    width: 0%;
-  }
 }
 
 .file\:border-0::file-selector-button {
@@ -1611,6 +1591,11 @@ body {
 
 .hover\:bg-primary\/90:hover {
   background-color: hsl(var(--primary) / 0.9);
+}
+
+.hover\:bg-red-600:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(220 38 38 / var(--tw-bg-opacity, 1));
 }
 
 .hover\:bg-secondary\/80:hover {
@@ -2140,6 +2125,10 @@ body {
     display: flex;
   }
 
+  .sm\:w-\[350px\] {
+    width: 350px;
+  }
+
   .sm\:max-w-sm {
     max-width: 24rem;
   }
@@ -2183,6 +2172,10 @@ body {
 
   .md\:flex {
     display: flex;
+  }
+
+  .md\:w-\[400px\] {
+    width: 400px;
   }
 
   .md\:basis-1\/2 {
@@ -2301,4 +2294,5 @@ body {
 [data-side=right] .\[\[data-side\=right\]_\&\]\:cursor-e-resize {
   cursor: e-resize;
 }
+
 

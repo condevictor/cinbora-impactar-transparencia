@@ -7,7 +7,7 @@ export default function Footer() {
   return (
     <footer className="bg-[#00B3FF] text-white py-28 px-20 animate-slide-up">
       <div className="max-w-[1728px] mx-auto flex flex-col md:flex-row items-start gap-20">
-        {/* Agrupando todas as colunas próximas ao lado esquerdo */}
+        {/* Todas as colunas próximas ao lado esquerdo */}
         <div className="flex flex-col md:flex-row items-start gap-24">
           
           {/* Coluna 1 - Logo e Descrição */}

@@ -19,7 +19,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("https://api.exemplo.com/auth/login", {
+      const response = await fetch("http://127.0.0.1:3333/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -29,21 +29,21 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      if (Cookies.get("cookie_consent") === "accepted") {
-        Cookies.set("auth_token", data.token, { expires: 7, secure: true, sameSite: "Strict" });
-        Cookies.set("user_name", data.user.name);
-        Cookies.set("user_email", data.user.email);
-      } else {
-        toast.warning("Login bem-sucedido, mas sem armazenamento de cookies.", {
-          duration: 4000,
-        });
-      }
+      // Salva os cookies
+      Cookies.set("auth_token", data.token, { expires: 7, secure: true, sameSite: "Strict" });
+      Cookies.set("user_name", data.user.name);
 
-      toast.success("Login bem-sucedido! Redirecionando...", {
-        duration: 4000,
-      });
+      toast.success("Login bem-sucedido! Redirecionando...", { duration: 4000 });
 
-      setTimeout(() => router.push("/dashboard"), 1000);
+      router.push("/");
+
+      setTimeout(() => {
+        if (window.location.pathname === "/") {
+          window.scrollTo(0, 0);
+          window.location.reload();
+        }
+      }, 500);
+      
     } catch (error) {
       toast.error(`Erro ao fazer login: ${error instanceof Error ? error.message : "Erro desconhecido"}`, {
         duration: 4000,
@@ -60,20 +60,8 @@ export default function LoginPage() {
         <p className="text-gray-500 text-center">Acesse sua conta</p>
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-          <Input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <Input
-            type="password"
-            placeholder="Senha"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <Input type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} required />
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? <Loader2 className="animate-spin w-5 h-5" /> : "Entrar"}
           </Button>
