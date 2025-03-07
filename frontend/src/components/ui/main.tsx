@@ -87,7 +87,7 @@ export default function Main() {
           {slides.map((slide, index) => (
             <CarouselItem
               key={index}
-              className="md:basis-1/2 lg:basis-1/4 border-none shadow-none"
+              className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 border-none shadow-none"
             >
               <div className="p-1">
                 <CardContent className="relative p-4">

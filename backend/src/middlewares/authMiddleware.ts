@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { JWTService } from "@modules/user/infrastructure/jwtService";
+import { JWTService } from "@shared/jwtService";
 
 const jwtService = new JWTService();
 
@@ -28,11 +28,19 @@ async function authMiddleware(request: FastifyRequest, reply: FastifyReply) {
 
   try {
     const decoded = jwtService.verifyToken(token);
+
     if (typeof decoded === 'string') {
       reply.status(401).send({ error: "Invalid token" });
       return;
     }
-    request.user = decoded as User;
+
+    request.user = {
+      id: decoded.userId,
+      name: decoded.name,
+      email: decoded.email,
+      ngoId: decoded.ngoId,
+    };
+    
   } catch (error) {
     reply.status(401).send({ error: "Invalid token" });
   }

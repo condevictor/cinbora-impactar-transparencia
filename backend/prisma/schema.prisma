@@ -7,31 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Ngo {
-  id                          Int      @id @map("_id")
-  name                        String
-  description                 String?
-  is_formalized               Boolean
-  start_year                  Int?
-  contact_phone               String?
-  instagram_link              String?
-  x_link                      String?
-  facebook_link               String?
-  pix_qr_code_link            String?
-  site                        String?
-  gallery_images_url          String[] 
-  skills                      Json[]
-  causes                      Json[]    
-  sustainable_development_goals Json[]  
-  files                       File[] 
-  users                       User[]
-  actions                     Action[]
-  ngoGrafic                   NgoGraphic?  
-  createdAt                   DateTime @default(now())
-  updatedAt                   DateTime @updatedAt
-
-  @@map("ngos") 
-}
+// User
 
 model User {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -45,45 +21,47 @@ model User {
   @@map("users")
 }
 
-model File {
+// Ngo
+
+model Ngo {
+  id                          Int      @id @map("_id")
+  name                        String
+  description                 String
+  is_formalized               Boolean
+  start_year                  Int?
+  contact_phone               String
+  instagram_link              String
+  x_link                      String
+  facebook_link               String
+  pix_qr_code_link            String
+  site                        String?
+  gallery_images_url          String[] 
+  skills                      Json
+  causes                      Json    
+  sustainable_development_goals Json  
+  files                       OngFile[]
+  users                       User[]
+  actions                     Action[]
+  ngoGrafic                   NgoGraphic?  
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @default(now())
+
+  @@map("ngos") 
+}
+
+model OngFile {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
+  category  String   // Nota fiscal, relatório, other, image, video
   aws_url   String
   ngoId     Int      // ID da ONG associada
-  type      String   // Tipo MIME do arquivo (ex: 'application/pdf')
+  mime_type String   // Tipo MIME do arquivo
   size      Int      // Tamanho do arquivo em bytes
   ngo       Ngo      @relation(fields: [ngoId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
-  @@map("files") // Nome da coleção no MongoDB
-}
-
-model Action {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  type          String
-  ngoId         Int      // ID da ONG associada
-  current_value Float
-  goal          Float
-  expenses      ExpenseGrafic[]
-  ngo           Ngo      @relation(fields: [ngoId], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now())
-
-  @@map("actions") 
-}
-
-model ExpenseGrafic {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  category      String   // Categoria do gasto (ex: Esportes, Alimentação)
-  amount        Float    
-  actionId      String   @db.ObjectId
-  action        Action   @relation(fields: [actionId], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("expenses") 
+  @@map("ngo_files") // Nome da coleção no MongoDB
 }
 
 model NgoGraphic {
@@ -96,4 +74,52 @@ model NgoGraphic {
   updatedAt     DateTime @updatedAt
 
   @@map("ngo_graphics") 
+}
+
+// Action
+
+model Action {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  type          String
+  ngoId         Int      // ID da ONG associada
+  spent         Float
+  goal          Float
+  colected      Float
+  files         ActionFile[]
+  expenses      ActionExpensesGrafic[]
+  ngo           Ngo      @relation(fields: [ngoId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  @@map("actions") 
+  @@index([ngoId])
+}
+
+model ActionFile {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  category  String   // Nota fiscal, relatório, other, image, video
+  aws_url   String
+  mime_type String   // Tipo MIME do arquivo
+  size      Int      // Tamanho do arquivo em bytes
+  actionId  String   @db.ObjectId
+  action    Action   @relation(fields: [actionId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  @@map("action_files") // Nome da coleção no MongoDB
+}
+
+model ActionExpensesGrafic {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  categorysExpenses Json     // Gastos por categoria (ex: { "Esportes": 1000, "Alimentação": 500 })    
+  actionId          String   @db.ObjectId
+  ngoId             Int      
+  action            Action   @relation(fields: [actionId], references: [id])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("action_expenses") 
+  @@index([actionId])
 }

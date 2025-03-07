@@ -13,7 +13,7 @@ server.setValidatorCompiler(validatorCompiler);
 server.setSerializerCompiler(serializerCompiler);
 
 server.setErrorHandler((error, request, reply) => {
-    reply.code(400).send({ message: error.message });
+    reply.code(400).send({ message: error.message || "Erro desconhecido" });
 });
 
 const start = async () => {

@@ -1,11 +1,4 @@
-import { UserRepository } from "../domain/UserRepository";
-import { User } from "../domain/UserEntity";
-
-interface CreateUserProps {
-  name: string;
-  email: string;
-  ngoId: number;
-}
+import { User, UserProps, UserRepository } from "@modules/user";
 
 class CreateUserUseCase {
   private userRepository: UserRepository;
@@ -14,8 +7,8 @@ class CreateUserUseCase {
     this.userRepository = userRepository;
   }
 
-  async execute({ name, email, ngoId }: CreateUserProps): Promise<User> {
-    const user = new User({ name, email, ngoId });
+  async execute(data: UserProps): Promise<User> {
+    const user = new User(data);
     return this.userRepository.create(user);
   }
 }

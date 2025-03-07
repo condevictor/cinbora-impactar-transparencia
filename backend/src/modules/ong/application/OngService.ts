@@ -1,5 +1,4 @@
-import { OngRepository } from "../domain/OngRepository";
-import { Ong } from "../domain/OngEntity";
+import { Ong, OngProps, OngRepository } from "@modules/ong";
 
 class GetOngUseCase {
   private ongRepository: OngRepository;
@@ -12,27 +11,13 @@ class GetOngUseCase {
     return this.ongRepository.findAll();
   }
 
-  async executeById(id: number): Promise<Ong | null> {
+  async executeById(id: string): Promise<Ong | null> {
     return this.ongRepository.findById(id);
   }
-}
 
-interface CreateOngProps {
-  id: number;
-  name: string;
-  description: string;
-  is_formalized: boolean;
-  start_year: number;
-  contact_phone: string;
-  instagram_link: string;
-  x_link: string;
-  facebook_link: string;
-  pix_qr_code_link: string;
-  site: string;
-  gallery_images_url: string[];
-  skills: Skill[];
-  causes: Cause[];
-  sustainable_development_goals: SustainableDevelopmentGoal[];
+  async getGraficByNgoId(ngoId: string): Promise<any> {
+    return this.ongRepository.findGraficByNgoId(ngoId);
+  }
 }
 
 class CreateOngUseCase {
@@ -42,14 +27,14 @@ class CreateOngUseCase {
     this.ongRepository = ongRepository;
   }
 
-  async execute(data: CreateOngProps): Promise<Ong> {
+  async execute(data: OngProps): Promise<Ong> {
     const ong = new Ong(data);
     return this.ongRepository.create(ong);
   }
 }
 
 interface DeleteOngProps {
-  id: number;
+  id: string;
 }
 
 class DeleteOngUseCase {
@@ -73,4 +58,28 @@ class DeleteOngUseCase {
   }
 }
 
-export { CreateOngUseCase, GetOngUseCase, DeleteOngUseCase };
+class UpdateOngUseCase {
+  private ongRepository: OngRepository;
+
+  constructor(ongRepository: OngRepository) {
+    this.ongRepository = ongRepository;
+  }
+
+  async execute(ngoId: number, data: Partial<OngProps>): Promise<OngProps> {
+    return this.ongRepository.update(ngoId, data);
+  }
+}
+
+class UpdateNgoGraficUseCase {
+  private ongRepository: OngRepository;
+
+  constructor(ongRepository: OngRepository) {
+    this.ongRepository = ongRepository;
+  }
+
+  async execute(ngoId: number, data: Partial<{ totalExpenses: number; expensesByCategory: Record<string, number> }>): Promise<any> {
+    return this.ongRepository.updateNgoGrafic(ngoId, data);
+  }
+}
+
+export { CreateOngUseCase, GetOngUseCase, DeleteOngUseCase, UpdateOngUseCase, UpdateNgoGraficUseCase };

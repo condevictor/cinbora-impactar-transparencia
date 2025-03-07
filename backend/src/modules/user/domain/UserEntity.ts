@@ -1,10 +1,16 @@
+interface UserProps {
+  name: string;
+  email: string;
+  ngoId: number;
+}
+
 class User {
   id!: string;
   name!: string;
   email!: string;
   ngoId!: number;
 
-  constructor(props: Omit<User, 'id'>, id?: string) {
+  constructor(props: UserProps, id?: string) {
     Object.assign(this, props);
     if (id) {
       this.id = id;
@@ -12,4 +18,4 @@ class User {
   }
 }
 
-export { User };
+export { User, UserProps };

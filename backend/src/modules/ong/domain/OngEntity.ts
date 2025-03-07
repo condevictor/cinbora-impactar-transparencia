@@ -1,39 +1,39 @@
-interface Skill {
-  id: number;
-  name: string;
-}
-
-interface Cause {
+interface OngProps {
   id: number;
   name: string;
   description: string;
-}
-
-interface SustainableDevelopmentGoal {
-  id: number;
-  name: string;
-  url_ods: string;
-  logo_url: string;
+  is_formalized: boolean;
+  start_year: number | null;
+  contact_phone: string;
+  instagram_link: string;
+  x_link: string;
+  facebook_link: string;
+  pix_qr_code_link: string;
+  site: string | null;
+  gallery_images_url: string[];
+  skills: any;
+  causes: any;
+  sustainable_development_goals: any;
 }
 
 class Ong {
   id!: number;
   name!: string;
-  description?: string;
-  is_formalized?: boolean;
-  start_year?: number;
-  contact_phone?: string;
-  instagram_link?: string;
-  x_link?: string;
-  facebook_link?: string;
-  pix_qr_code_link?: string;
-  site?: string;
-  gallery_images_url?: string[];
-  skills?: Skill[];
-  causes?: Cause[];
-  sustainable_development_goals?: SustainableDevelopmentGoal[];
+  description!: string;
+  is_formalized!: boolean;
+  start_year!: number | null;
+  contact_phone!: string;
+  instagram_link!: string;
+  x_link!: string;
+  facebook_link!: string;
+  pix_qr_code_link!: string;
+  site!: string | null;
+  gallery_images_url!: string[];
+  skills!: any;
+  causes!: any;
+  sustainable_development_goals!: any;
 
-  constructor(props: Omit<Ong, 'id'>, id?: number) {
+  constructor(props: OngProps, id?: number) {
     Object.assign(this, props);
     if (id) {
       this.id = id;
@@ -41,4 +41,4 @@ class Ong {
   }
 }
 
-export { Ong, Skill, Cause, SustainableDevelopmentGoal };
+export { Ong, OngProps };

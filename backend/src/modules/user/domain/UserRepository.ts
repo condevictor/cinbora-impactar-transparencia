@@ -1,5 +1,5 @@
-import prismaClient from "@config/prismaClient";
-import { User } from "./UserEntity";
+import prismaClient from "@shared/prismaClient";
+import { User } from "@modules/user";
 
 class UserRepository {
   async findById(id: string): Promise<User | null> {

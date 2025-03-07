@@ -1,7 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { CreateUserUseCase, DeleteUserUseCase } from "../application/UserService";
-import { UserRepository } from "../domain/UserRepository";
-import prismaClient from "@config/prismaClient";
+import { UserRepository, CreateUserUseCase, DeleteUserUseCase, UserProps } from "@modules/user";
+import prismaClient from "@shared/prismaClient";
 
 class UserController {
   private createUserUseCase: CreateUserUseCase;
@@ -14,7 +13,7 @@ class UserController {
   }
 
   async create(request: FastifyRequest, reply: FastifyReply) {
-    const { name, email, ngoId } = request.body as { name: string; email: string; ngoId: number };
+    const { name, email, ngoId } = request.body as UserProps;
 
     try {
       const existingUser = await prismaClient.user.findUnique({ where: { email } });
@@ -26,7 +25,6 @@ class UserController {
       const user = await this.createUserUseCase.execute({ name, email, ngoId });
       reply.send({ message: "Usuário criado com sucesso", user });
     } catch (error) {
-      console.error("Erro ao criar usuário:", error);
       reply.status(500).send({ error: "Erro ao criar usuário" });
     }
   }
@@ -38,7 +36,6 @@ class UserController {
       await this.deleteUserUseCase.execute({ id });
       reply.send({ message: "Usuário deletado com sucesso" });
     } catch (error) {
-      console.error("Erro ao deletar usuário:", error);
       reply.status(500).send({ error: "Erro ao deletar usuário" });
     }
   }
@@ -48,7 +45,6 @@ class UserController {
       const users = await prismaClient.user.findMany();
       reply.send(users);
     } catch (error) {
-      console.error("Erro ao obter usuários:", error);
       reply.status(500).send({ error: "Erro ao obter usuários" });
     }
   }
