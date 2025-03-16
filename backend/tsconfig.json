@@ -31,7 +31,8 @@
       "@modules/*": ["modules/*"],                       /* Alias para a pasta modules */
       "@shared/*": ["shared/*"],                         /* Alias para a pasta shared */
       "@config/*": ["config/*"],                         /* Alias para a pasta config */
-      "@middlewares/*": ["middlewares/*"]                /* Alias para a pasta middlewares */
+      "@middlewares/*": ["middlewares/*"],                /* Alias para a pasta middlewares */
+      "@routeParams/*": ["routeParams/*"] 
     },
     // "rootDir": "./",                                  /* Specify the root folder within your source files. */
     // "moduleResolution": "node10",                     /* Specify how TypeScript looks up a file from a given module specifier. */

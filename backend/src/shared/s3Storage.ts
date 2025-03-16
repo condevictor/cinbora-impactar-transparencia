@@ -1,21 +1,22 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import mime from 'mime';
+import { config } from '@config/dotenv';
+import { v4 as uuidv4 } from 'uuid'; 
 
 class S3Storage {
   private client: S3Client;
 
   constructor() {
     this.client = new S3Client({
-      region: process.env.AWS_REGION,
+      region: config.awsRegion,
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+        accessKeyId: config.awsAccessKeyId!,
+        secretAccessKey: config.awsSecretAccessKey!,
       },
     });
   }
 
-  async saveFile(fileBuffer: Buffer, filename: string): Promise<void> {
+  async saveFile(fileBuffer: Buffer, filename: string): Promise<string> {
     const ContentType = mime.getType(filename);
 
     if (!ContentType) {
@@ -25,9 +26,12 @@ class S3Storage {
     console.log('File buffer size:', fileBuffer.length);
     console.log('File content type:', ContentType);
 
+    // Generate a unique filename
+    const uniqueFilename = `${uuidv4()}-${filename}`;
+
     const params = {
-      Bucket: process.env.AWS_S3_BUCKET_NAME!,
-      Key: filename,
+      Bucket: config.awsS3BucketName!,
+      Key: uniqueFilename,
       Body: fileBuffer,
       ContentType,
     };
@@ -37,6 +41,7 @@ class S3Storage {
       console.log('Uploading file to S3:', params);
       await this.client.send(command);
       console.log('File uploaded successfully');
+      return `https://${config.awsS3BucketName}.s3.${config.awsRegion}.amazonaws.com/${uniqueFilename}`;
     } catch (error) {
       console.error('Error uploading file to S3:', error);
       throw error;
@@ -45,7 +50,7 @@ class S3Storage {
 
   async deleteFile(filename: string): Promise<void> {
     const params = {
-      Bucket: process.env.AWS_S3_BUCKET_NAME!,
+      Bucket: config.awsS3BucketName!,
       Key: filename,
     };
 
@@ -56,22 +61,6 @@ class S3Storage {
       console.log('File deleted successfully');
     } catch (error) {
       console.error('Error deleting file from S3:', error);
-      throw error;
-    }
-  }
-
-  async getFileUrl(filename: string): Promise<string> {
-    const command = new GetObjectCommand({
-      Bucket: process.env.AWS_S3_BUCKET_NAME!,
-      Key: filename,
-    });
-
-    try {
-      const url = await getSignedUrl(this.client, command, { expiresIn: 3600 });
-      console.log('Generated signed URL:', url);
-      return url;
-    } catch (error) {
-      console.error('Error generating signed URL:', error);
       throw error;
     }
   }

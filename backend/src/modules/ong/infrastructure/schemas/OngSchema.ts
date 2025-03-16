@@ -8,7 +8,7 @@ const SkillSchema = z.object({
 const CauseSchema = z.object({
   id: z.number(),
   name: z.string(),
-  description: z.string(),
+  description: z.string().nullable(),
 });
 
 const SustainableDevelopmentGoalSchema = z.object({
@@ -33,40 +33,13 @@ const NgoSchema = z.object({
   gallery_images_url: z.array(z.string()).optional(),
   skills: z.array(SkillSchema).optional(),
   causes: z.array(CauseSchema).optional(),
-  sustainable_development_goals: z.array(SustainableDevelopmentGoalSchema).optional(), 
+  sustainable_development_goals: z.array(SustainableDevelopmentGoalSchema).optional(),
 });
 
 const createOngSchema = {
   body: NgoSchema,
   response: {
     200: NgoSchema,
-    400: z.object({
-      error: z.string().default("Requisição inválida"),
-    }),
-    500: z.object({
-      error: z.string().default("Erro interno do servidor"),
-    }),
-  },
-};
-
-const getOngsSchema = {
-  response: {
-    200: z.array(NgoSchema),
-    500: z.object({
-      error: z.string().default("Erro interno do servidor"),
-    }),
-  },
-};
-
-const getOneOngSchema = {
-  params: z.object({
-    id: z.coerce.number(), // Convertendo o id de entrada da req http em number
-  }),
-  response: {
-    200: NgoSchema,
-    500: z.object({
-      error: z.string().default("Erro interno do servidor"),
-    }),
   },
 };
   
@@ -77,9 +50,6 @@ const deleteOngSchema = {
   response: {
     200: z.object({
       message: z.string(),
-    }),
-    500: z.object({
-      error: z.string().default("Erro interno do servidor"),
     }),
   },
 };
@@ -97,27 +67,20 @@ const updateOngSchema = {
     pix_qr_code_link: z.string().optional(),
     site: z.string().optional(),
     gallery_images_url: z.array(z.string()).optional(),
-    skills: z.array(z.any()).optional(),
-    causes: z.array(z.any()).optional(),
-    sustainable_development_goals: z.array(z.any()).optional(),
+    skills: z.array(SkillSchema).optional(),
+    causes: z.array(CauseSchema).optional(),
+    sustainable_development_goals: z.array(SustainableDevelopmentGoalSchema).optional(),
   }),
   response: {
     200: z.object({
       message: z.string(),
-      ngo: z.any(),
-    }),
-    400: z.object({
-      error: z.string().default("Requisição inválida"),
-    }),
-    500: z.object({
-      error: z.string().default("Erro interno do servidor"),
+      ngo: NgoSchema,
     }),
   },
 };
 
 const updateNgoGraficSchema = {
   body: z.object({
-    totalExpenses: z.number().optional(),
     expensesByCategory: z.record(z.number()).optional(),
   }),
   response: {
@@ -126,10 +89,42 @@ const updateNgoGraficSchema = {
       totalExpenses: z.number(),
       expensesByCategory: z.record(z.number()),
     }),
-    500: z.object({
-      error: z.string().default("Erro interno do servidor"),
+  },
+};
+
+const expensesByCategory = z.object({
+  category1: z.number().optional(),
+  catrgory2: z.number().optional(),
+});
+
+const ngoGraficSchema = z.object({
+  id: z.string(),
+  ngoId: z.number(),
+  totalExpenses: z.number(),
+  expensesByCategory: z.array(expensesByCategory).optional(),
+  createdAt: z.union([z.string(), z.date()]).optional(), 
+  updatedAt: z.union([z.string(), z.date()]).optional(), 
+});
+
+const getNgoAndGraficSchema = {
+  response: {
+    200: z.object({
+      ngo: NgoSchema,
+      ngoGrafic: ngoGraficSchema
     }),
   },
 };
 
-export { createOngSchema, deleteOngSchema, getOngsSchema, getOneOngSchema, updateOngSchema, updateNgoGraficSchema };
+const NgoResponseSchema = NgoSchema.extend({
+  createdAt: z.union([z.string(), z.date()]), 
+  updatedAt: z.union([z.string(), z.date()]), 
+});
+
+
+const getNgosSchema = {
+  response: {
+    200: z.array(NgoResponseSchema),
+  },
+};
+
+export { createOngSchema, deleteOngSchema, updateOngSchema, updateNgoGraficSchema, getNgoAndGraficSchema, getNgosSchema };

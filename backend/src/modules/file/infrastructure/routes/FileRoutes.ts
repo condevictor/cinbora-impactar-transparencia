@@ -1,41 +1,26 @@
 import { FastifyInstance } from "fastify";
-import { FileController } from "@modules/file";
-import fastifyMultipart from "@fastify/multipart";
+import { fileController } from "@config/dependencysInjection/fileDependencyInjection"
 import { authMiddleware } from "@middlewares/authMiddleware";
-
-const fileController = new FileController();
-
-interface ActionParams {
-  actionId: string;
-}
-
-interface DeleteParams {
-  id: string;
-}
+import { cacheMiddleware } from "@middlewares/cacheMiddleware";
+import { OngParams, ActionParams, DeleteParams } from "@routeParams/RouteParams";
+import { deleteFileSchema, getOngFilesSchema, getActionFilesSchema } from "@modules/file"
 
 async function fileRoutes(fastify: FastifyInstance) {
-  fastify.register(fastifyMultipart, {
-    limits: {
-      fileSize: 10 * 1024 * 1024, // Limite de tamanho de arquivo de 10 MB
-    },
-  });
-
   fastify.post("/ongs/files/upload", { preHandler: [authMiddleware] }, fileController.uploadOngFile.bind(fileController));
   fastify.post<{ Params: ActionParams }>("/ongs/actions/:actionId/files/upload", { preHandler: [authMiddleware] }, fileController.uploadActionFile.bind(fileController));
-  fastify.delete<{ Params: DeleteParams }>("/files/:id", { preHandler: [authMiddleware] }, fileController.delete.bind(fileController));
+  fastify.delete<{ Params: DeleteParams }>("/files/:id", { preHandler: [authMiddleware], schema: deleteFileSchema }, fileController.delete.bind(fileController));
 
-  fastify.get("/ongs/:ngoId/files/images", fileController.getOngImages.bind(fileController));
-  fastify.get("/ongs/:ngoId/files/videos", fileController.getOngVideos.bind(fileController));
-  fastify.get("/ongs/:ngoId/files/reports", fileController.getOngReportFiles.bind(fileController));
-  fastify.get("/ongs/:ngoId/files/tax_invoices", fileController.getOngTaxInvoicesFiles.bind(fileController));
-  fastify.get("/ongs/:ngoId/files/others", fileController.getOngOtherFiles.bind(fileController));
+  fastify.get<{ Params: OngParams }>("/ongs/:ngoId/files/images", { preHandler: cacheMiddleware(300), schema: getOngFilesSchema }, fileController.getOngImages.bind(fileController));
+  fastify.get<{ Params: OngParams }>("/ongs/:ngoId/files/videos", { preHandler: cacheMiddleware(300), schema: getOngFilesSchema }, fileController.getOngVideos.bind(fileController));
+  fastify.get<{ Params: OngParams }>("/ongs/:ngoId/files/reports", { preHandler: cacheMiddleware(300), schema: getOngFilesSchema }, fileController.getOngReportFiles.bind(fileController));
+  fastify.get<{ Params: OngParams }>("/ongs/:ngoId/files/tax_invoices", { preHandler: cacheMiddleware(300), schema: getOngFilesSchema }, fileController.getOngTaxInvoicesFiles.bind(fileController));
+  fastify.get<{ Params: OngParams }>("/ongs/:ngoId/files/others", { preHandler: cacheMiddleware(300), schema: getOngFilesSchema }, fileController.getOngOtherFiles.bind(fileController));
 
-  fastify.get("/ongs/actions/:actionId/files/images", fileController.getActionImages.bind(fileController));
-  fastify.get("/ongs/actions/:actionId/files/videos", fileController.getActionVideos.bind(fileController));
-  fastify.get("/ongs/actions/:actionId/files/reports", fileController.getActionReportFiles.bind(fileController));
-  fastify.get("/ongs/actions/:actionId/files/tax_invoices", fileController.getActionTaxInvoicesFiles.bind(fileController));
-  fastify.get("/ongs/actions/:actionId/files/others", fileController.getActionOtherFiles.bind(fileController));
+  fastify.get<{ Params: ActionParams }>("/ongs/actions/:actionId/files/images", { preHandler: cacheMiddleware(300), schema: getActionFilesSchema }, fileController.getActionImages.bind(fileController));
+  fastify.get<{ Params: ActionParams }>("/ongs/actions/:actionId/files/videos", { preHandler: cacheMiddleware(300), schema: getActionFilesSchema }, fileController.getActionVideos.bind(fileController));
+  fastify.get<{ Params: ActionParams }>("/ongs/actions/:actionId/files/reports", { preHandler: cacheMiddleware(300), schema: getActionFilesSchema }, fileController.getActionReportFiles.bind(fileController));
+  fastify.get<{ Params: ActionParams }>("/ongs/actions/:actionId/files/tax_invoices", { preHandler: cacheMiddleware(300), schema: getActionFilesSchema }, fileController.getActionTaxInvoicesFiles.bind(fileController));
+  fastify.get<{ Params: ActionParams }>("/ongs/actions/:actionId/files/others", { preHandler: cacheMiddleware(300), schema: getActionFilesSchema }, fileController.getActionOtherFiles.bind(fileController));
 }
 
 export { fileRoutes };
-

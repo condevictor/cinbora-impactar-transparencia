@@ -40,6 +40,7 @@ model Ngo {
   causes                      Json    
   sustainable_development_goals Json  
   files                       OngFile[]
+  actionFiles                 ActionFile[]
   users                       User[]
   actions                     Action[]
   ngoGrafic                   NgoGraphic?  
@@ -51,6 +52,7 @@ model Ngo {
 
 model OngFile {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  aws_name String  // nome pra deletar na aws
   name      String
   category  String   // Nota fiscal, relatório, other, image, video
   aws_url   String
@@ -62,6 +64,7 @@ model OngFile {
   updatedAt DateTime @default(now())
 
   @@map("ngo_files") // Nome da coleção no MongoDB
+  @@index([ngoId, category])
 }
 
 model NgoGraphic {
@@ -69,9 +72,9 @@ model NgoGraphic {
   ngoId         Int      @unique
   ngo           Ngo      @relation(fields: [ngoId], references: [id])
   totalExpenses Float    
-  expensesByCategory Json // Gastos por categoria (ex: { "Esportes": 1000, "Alimentação": 500 })
+  expensesByCategory Json @default("[]") // Gastos por categoria (ex: { "Esportes": 1000, "Alimentação": 500 })
   createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  updatedAt     DateTime @default(now())
 
   @@map("ngo_graphics") 
 }
@@ -86,6 +89,7 @@ model Action {
   spent         Float
   goal          Float
   colected      Float
+  aws_url   String    // foto da ong
   files         ActionFile[]
   expenses      ActionExpensesGrafic[]
   ngo           Ngo      @relation(fields: [ngoId], references: [id])
@@ -98,24 +102,28 @@ model Action {
 
 model ActionFile {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  aws_name String  // nome pra deletar na aws
   name      String
   category  String   // Nota fiscal, relatório, other, image, video
   aws_url   String
   mime_type String   // Tipo MIME do arquivo
   size      Int      // Tamanho do arquivo em bytes
   actionId  String   @db.ObjectId
+  ngoId     Int    
   action    Action   @relation(fields: [actionId], references: [id])
+  ngo       Ngo      @relation(fields: [ngoId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
   @@map("action_files") // Nome da coleção no MongoDB
+  @@index([actionId, category])
 }
 
 model ActionExpensesGrafic {
   id                String   @id @default(auto()) @map("_id") @db.ObjectId
-  categorysExpenses Json     // Gastos por categoria (ex: { "Esportes": 1000, "Alimentação": 500 })    
+  categorysExpenses Json     @default("[]")// Gastos por categoria (ex: { "Esportes": 1000, "Alimentação": 500 })    
   actionId          String   @db.ObjectId
-  ngoId             Int      
+  ngoId             Int
   action            Action   @relation(fields: [actionId], references: [id])
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

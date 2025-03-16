@@ -11,13 +11,7 @@ const loginSchema = {
       token: z.string(),
       user: z.any(),
       ngo: z.any(),
-      actions: z.array(z.any()), // Adicionando ações na resposta
-    }),
-    400: z.object({
-      error: z.string().default("Requisição inválida"),
-    }),
-    500: z.object({
-      error: z.string().default("Erro interno do servidor"),
+      actions: z.array(z.any()), 
     }),
   },
 };

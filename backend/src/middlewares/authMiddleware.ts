@@ -41,7 +41,7 @@ async function authMiddleware(request: FastifyRequest, reply: FastifyReply) {
       ngoId: decoded.ngoId,
     };
     
-  } catch (error) {
+  } catch {
     reply.status(401).send({ error: "Invalid token" });
   }
 }
