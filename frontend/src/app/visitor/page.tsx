@@ -1,3 +1,4 @@
+"use client";
 import { CardContent } from "@/components/ui/card"
 import {
   Carousel,
@@ -6,15 +7,21 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import shareButton from "../../assets/share.svg"
 import capa from "../../assets/capa.svg"
-import Link from "next/link";
+import Link from "next/link"
+
+import { useState } from "react"
+import VisitorGallery from "@/components/ui/visitorGallery"
+import VisitorBalance from "@/components/ui/visitorBalance"
+import VisitorDocuments from "@/components/ui/visitorDocuments"
 
 export default function Main() {
+
+  const [activeTab, setActiveTab] = useState("gallery");
   const slides = [
     {
       category: "SAÚDE",
@@ -75,7 +82,7 @@ export default function Main() {
   ]
 
   return (
-    <div className="flex flex-col items-center">
+    <main className="flex flex-col items-center">
       <h1 className="text-center text-5xl font-bold text-[#2E4049] mt-20">
         Transparência
       </h1>
@@ -152,8 +159,32 @@ export default function Main() {
         </div>
       </Carousel>
       
-    </div>
-  )
+      <div className="w-full flex justify-center border-b border-gray-300 mt-6">
+        <div className="flex space-x-6">
+          {["gallery", "balance", "documents"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 text-sm font-medium transition-all ${
+                activeTab === tab
+                  ? "text-[#294BB6] border-b-2 border-[#294BB6]"
+                  : "text-gray-500 hover:text-[#2E4049]"
+              }`}
+            >
+              {tab === "gallery" && "Galeria"}
+              {tab === "balance" && "Balanço de Gastos"}
+              {tab === "documents" && "Documentos"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Conteúdo das Tabs */}
+      <div className="w-full mt-6">
+        {activeTab === "gallery" && <VisitorGallery />}
+        {activeTab === "balance" && <VisitorBalance />}
+        {activeTab === "documents" && <VisitorDocuments />}
+      </div>
+    </main>
+  );
 }
-
-
