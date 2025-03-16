@@ -53,48 +53,12 @@ export default function ActionsPage() {
       setNgoName("Nome não encontrado");
     }
   }, []);
-
+  
   useEffect(() => {
-    const ngoId = Cookies.get("ngo_id");
-    const authToken = Cookies.get("auth_token");
-
-    if (!ngoId || !authToken) {
-      console.log("Erro: NGO ID ou Token não encontrado.");
-      return;
-    }
-
-    console.log("Buscando ações da ONG...");
-    fetch(`http://127.0.0.1:3333/ongs/${ngoId}/actions`, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Erro ${res.status}: ${res.statusText}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (!Array.isArray(data)) {
-          console.log("Erro: Resposta de ações não é um array.");
-          return;
-        }
-
-        console.log("Ações recebidas:", data);
-        setSlides(data);
-
-        const urls = {};
-        data.forEach((slide) => {
-          urls[slide.id] = slide.aws_url || "";
-        });
-
-        console.log("URLs de imagens carregadas:", urls);
-        setImageUrls(urls);
-      })
-      .catch((error) => {
-        console.log("Erro ao buscar ações:", error);
-      });
+    // Busca as ações sem forçar a requisição (usa cache)
+    fetchActions();
   }, []);
-
+  
   const openModal = (slide = null) => {
     if (slide) {
       setEditingSlide({
@@ -104,9 +68,9 @@ export default function ActionsPage() {
         spent: slide.spent || 0,
         goal: slide.goal || 0,
         colected: slide.colected || 0,
-        aws_url: slide.aws_url || "", 
+        aws_url: slide.aws_url || "",
       });
-      setImagePreview(slide.aws_url || null); 
+      setImagePreview(slide.aws_url || null);
     } else {
       setEditingSlide({ name: "", type: "", spent: 0, goal: 0, colected: 0, aws_url: "" });
       setImagePreview(null);
@@ -116,14 +80,13 @@ export default function ActionsPage() {
     setIsOpen(true);
   };
   
-
   const closeModal = () => {
     setIsOpen(false);
     setEditingSlide(null);
     setImagePreview(null);
     setImageFile(null);
   };
-
+  
   const handleImageUpload = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -142,68 +105,114 @@ export default function ActionsPage() {
     }
   };
   
+  const fetchActions = async (forceFetch = false) => {
+    const ngoId = Cookies.get("ngo_id");
+  
+    if (!ngoId) {
+      console.log("Erro: NGO ID não encontrado.");
+      return;
+    }
+  
+    // Adiciona um parâmetro de cache-busting, se necessário
+    const url = forceFetch
+      ? `http://127.0.0.1:3333/ongs/${ngoId}/actions?nocache=${Date.now()}` // Força nova requisição
+      : `http://127.0.0.1:3333/ongs/${ngoId}/actions`; // Usa cache
+  
+    console.log("Fazendo requisição GET:", url);
+  
+    try {
+      const response = await fetch(url);
+  
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+  
+      const data = await response.json();
+      console.log("Resposta do backend (GET):", data);
+  
+      if (!Array.isArray(data)) {
+        console.log("Erro: Resposta de ações não é um array.");
+        return;
+      }
+  
+      console.log("Ações recebidas:", data);
+      setSlides(data);
+  
+      const urls = {};
+      data.forEach((slide) => {
+        urls[slide.id] = slide.aws_url || "";
+      });
+  
+      console.log("URLs de imagens carregadas:", urls);
+      setImageUrls(urls);
+    } catch (error) {
+      console.log("Erro ao buscar ações:", error);
+    }
+  };
+  
   const handleSave = async () => {
     if (!editingSlide.name || !editingSlide.type) {
       console.log("Erro: Campos obrigatórios não preenchidos.");
       return;
     }
-  
+
     const token = Cookies.get("auth_token");
     const isUpdate = !!editingSlide.id;
     const method = isUpdate ? "PUT" : "POST";
     const url = isUpdate
-      ? `http://127.0.0.1:3333/ongs/actions/${editingSlide.id}`
+      ? `http://127.0.0.1:3333/ongs/actions/${editingSlide.id}` // corrected: use backticks  
       : "http://127.0.0.1:3333/ongs/actions";
-  
-    // Enviar os dados como JSON em vez de FormData
-    const payload = {
-      name: editingSlide.name ?? "",
-      type: editingSlide.type ?? "",
-      spent: editingSlide.spent ?? 0,
-      goal: editingSlide.goal ?? 0,
-      colected: editingSlide.colected ?? 0,
-    };
-  
-    try {
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+
+    let body;
+    let headers = { Authorization: `Bearer ${token}` }; // corrected: use backticks
+
+    if (imageFile) {
+      body = new FormData();
+      body.append("file", imageFile);
+      body.append("name", editingSlide.name);
+      body.append("type", editingSlide.type);
+      body.append("spent", editingSlide.spent);
+      body.append("goal", editingSlide.goal);
+      body.append("colected", editingSlide.colected);
+    } else {
+      body = JSON.stringify({
+        name: editingSlide.name,
+        type: editingSlide.type,
+        spent: editingSlide.spent,
+        goal: editingSlide.goal,
+        colected: editingSlide.colected,
       });
-  
+      headers["Content-Type"] = "application/json";
+    }
+
+    try {
+      const response = await fetch(url, { method, headers, body });
+
       if (!response.ok) {
         console.log("Erro ao salvar a ação:", response.statusText);
         return;
       }
-  
+
       const updatedSlide = await response.json();
       console.log("Ação salva com sucesso:", updatedSlide);
-  
-      if (imageFile && updatedSlide.id) {
-        await updateSlideImage(updatedSlide.id);
+
+      if (!imageFile && updatedSlide.aws_url) {
+        setImageUrls((prevUrls) => ({ ...prevUrls, [updatedSlide.id]: updatedSlide.aws_url }));
       }
-  
+
       closeModal();
-  
+
       setSlides((prevSlides) =>
         prevSlides.some((slide) => slide.id === updatedSlide.id)
           ? prevSlides.map((slide) => (slide.id === updatedSlide.id ? updatedSlide : slide))
           : [...prevSlides, updatedSlide]
       );
-  
-      if (updatedSlide.aws_url) {
-        setImageUrls((prevUrls) => ({ ...prevUrls, [updatedSlide.id]: updatedSlide.aws_url }));
-      }
     } catch (error) {
       console.log("Erro ao salvar a ação:", error);
     }
   };
   
-
-  const updateSlideImage = async (slideId) => {
+  const updateSlideImage = async (slideId) => { // Não é para usar essa rota para salvar a foto da ação como imagem não
     const token = Cookies.get("auth_token");
   
     if (!imageFile) return;
@@ -214,7 +223,7 @@ export default function ActionsPage() {
     try {
       const response = await fetch(`http://127.0.0.1:3333/ongs/actions/${slideId}/image`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` }, // Mantém o cabeçalho de autenticação para rotas privadas
         body: formData,
       });
   
@@ -231,9 +240,6 @@ export default function ActionsPage() {
       console.log("Erro ao atualizar a imagem:", error);
     }
   };
-  
-  
-  
 
   return (
     <main className="flex flex-col items-center bg-gray-100 min-h-screen py-10">

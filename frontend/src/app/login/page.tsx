@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import Image from "next/image";
 import boraImpactar from "../../assets/bora_impactar.svg"
 
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,6 +35,8 @@ export default function LoginPage() {
       // Salva os cookies
       Cookies.set("auth_token", data.token, { expires: 7, secure: true, sameSite: "Strict" });
       Cookies.set("user_name", data.user.name);
+      Cookies.set("ngo_name", data.ngo.name);
+      Cookies.set("ngo_id", data.ngo.id);
 
       toast.success("Login bem-sucedido! Redirecionando...", { duration: 4000 });
 
