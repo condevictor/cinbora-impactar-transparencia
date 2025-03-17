@@ -46,12 +46,16 @@ export default function Header() {
       </div>
       <Menubar className="border-none shadow-none text-white justify-between max-lg:hidden">
         <MenubarMenu>
-          <MenubarTrigger className="px-20 pl-0 text-xl font-semibold text-white transition-all duration-300 hover:text-[#d4dbf0] hover:scale-110">
-            Início
-          </MenubarTrigger>
-          <MenubarTrigger className="px-20 pr-0 text-xl font-semibold text-white transition-all duration-300 hover:text-[#d4dbf0] hover:scale-110">
-            Ongs
-          </MenubarTrigger>
+          <Link href="/">
+            <MenubarTrigger className="px-20 pl-0 text-xl font-semibold text-white transition-all duration-300 hover:text-[#d4dbf0] hover:scale-110">
+              Início
+            </MenubarTrigger>
+          </Link>
+          <Link href="/partners">
+            <MenubarTrigger className="px-20 pr-0 text-xl font-semibold text-white transition-all duration-300 hover:text-[#d4dbf0] hover:scale-110">
+              Parceiros
+            </MenubarTrigger>
+          </Link>
         </MenubarMenu>
       </Menubar>
 
@@ -67,8 +71,12 @@ export default function Header() {
               ☰
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-[#00B3FF] rounded-xl border-solid border-2 border-white">
-              <DropdownMenuItem className="block text-center text-8 font-semibold text-white hover:scale-110">Início</DropdownMenuItem>
-              <DropdownMenuItem className="block text-center text-8 font-semibold text-white hover:scale-110">Ongs</DropdownMenuItem>
+              <Link href="/">
+                <DropdownMenuItem className="block text-center text-8 font-semibold text-white hover:scale-110">Início</DropdownMenuItem>
+              </Link>
+              <Link href="/partners">
+                <DropdownMenuItem className="block text-center text-8 font-semibold text-white hover:scale-110">Ongs</DropdownMenuItem>
+              </Link>
               <DropdownMenuItem className="px-4 py-2 hover:bg-gray-200">
                 <Link href="/login">
                   <Button className="bg-[#294BB6] text-8 font-semibold text-white rounded-xl px-14 py-3 transition-colors duration-300 delay-150 hover:bg-white hover:text-[#294BB6]">Entrar como Ong</Button>
