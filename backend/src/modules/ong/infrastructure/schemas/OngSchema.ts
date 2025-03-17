@@ -1,0 +1,114 @@
+import { z } from "zod";
+
+const SkillSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+
+const CauseSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  description: z.string(),
+});
+
+const SustainableDevelopmentGoalSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  url_ods: z.string(),
+  logo_url: z.string(),
+});
+
+const NgoSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  description: z.string().optional(),
+  is_formalized: z.boolean().optional(),
+  start_year: z.number().optional(),
+  contact_phone: z.string().optional(),
+  instagram_link: z.string().optional(),
+  x_link: z.string().optional(),
+  facebook_link: z.string().optional(),
+  pix_qr_code_link: z.string().optional(),
+  site: z.string().optional(),
+  gallery_images_url: z.array(z.string()).optional(),
+  skills: z.array(SkillSchema).optional(),
+  causes: z.array(CauseSchema).optional(),
+  sustainable_development_goals: z.array(SustainableDevelopmentGoalSchema).optional(), 
+});
+
+const createOngSchema = {
+  body: NgoSchema,
+  response: {
+    200: NgoSchema,
+    400: z.object({
+      error: z.string().default("Requisição inválida"),
+    }),
+    500: z.object({
+      error: z.string().default("Erro interno do servidor"),
+    }),
+  },
+};
+  
+const deleteOngSchema = {
+  params: z.object({
+    id: z.coerce.number(), // Convertendo o id de entrada da req http em number
+  }),
+  response: {
+    200: z.object({
+      message: z.string(),
+    }),
+    500: z.object({
+      error: z.string().default("Erro interno do servidor"),
+    }),
+  },
+};
+
+const updateOngSchema = {
+  body: z.object({
+    name: z.string().optional(),
+    description: z.string().optional(),
+    is_formalized: z.boolean().optional(),
+    start_year: z.number().optional(),
+    contact_phone: z.string().optional(),
+    instagram_link: z.string().optional(),
+    x_link: z.string().optional(),
+    facebook_link: z.string().optional(),
+    pix_qr_code_link: z.string().optional(),
+    site: z.string().optional(),
+    gallery_images_url: z.array(z.string()).optional(),
+    skills: z.array(z.any()).optional(),
+    causes: z.array(z.any()).optional(),
+    sustainable_development_goals: z.array(z.any()).optional(),
+  }),
+  response: {
+    200: z.object({
+      message: z.string(),
+      ngo: z.any(),
+    }),
+    400: z.object({
+      error: z.string().default("Requisição inválida"),
+    }),
+    500: z.object({
+      error: z.string().default("Erro interno do servidor"),
+    }),
+  },
+};
+
+const updateNgoGraficSchema = {
+  body: z.object({
+    totalExpenses: z.number().optional(),
+    expensesByCategory: z.record(z.number()).optional(),
+  }),
+  response: {
+    200: z.object({
+      ngoId: z.number(),
+      totalExpenses: z.number(),
+      expensesByCategory: z.record(z.number()),
+    }),
+    500: z.object({
+      error: z.string().default("Erro interno do servidor"),
+    }),
+  },
+};
+
+export { createOngSchema, deleteOngSchema, updateOngSchema, updateNgoGraficSchema };
