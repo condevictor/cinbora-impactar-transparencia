@@ -37,14 +37,14 @@ export default function Ongs() {
 
   return (
     <div>
-      <div className="flex mt-10">
+      <div className="flex mt-10 justify-between">
         <div className="flex flex-col w-3/5 text-[#294BB6] p-12 max-xl:p-3">
           <h1 className="font-semibold text-5xl max-lg:text-4xl max-md:text-3xl max-sm:text-xl">Portal da Transparência</h1>
           <h2 className="font-semibold text-3xl max-w-96 mt-auto max-lg:text-2xl max-md:text-xl max-sm:text-sm">
-            Transparência gera confiança, acompanhe cada passo das nossas atuações.
+            Transparência gera confiança, aitems-endcompanhe cada passo das nossas atuações.
           </h2>
         </div>
-        <div className="flex flex-col items-end">
+        <div className="flex flex-col ">
           <Image
             className="self-center mb-4 max-lg:w-48 max-md:w-32 max-sm:w-24"
             src={boraImpactar}
