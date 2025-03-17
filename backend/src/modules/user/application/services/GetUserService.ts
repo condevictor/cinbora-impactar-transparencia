@@ -1,6 +1,5 @@
 import { User } from "@modules/user";
 import { UserRepository } from "@modules/user";
-import { CustomError } from "@shared/customError";
 
 class GetUserService {
   private userRepository: UserRepository;

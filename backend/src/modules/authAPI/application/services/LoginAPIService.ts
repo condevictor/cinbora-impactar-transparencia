@@ -23,12 +23,13 @@ class GetExternalDataService {
       }
 
       return response.data;
-    } catch (error: any) {
-
-      if (error.response) {
-        throw new CustomError(error.response.data.message || "Erro ao buscar dados da API externa.", error.response.status);
-      } else {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw new CustomError(error.response?.data.message || "Erro ao buscar dados da API externa com axios", error.response?.status || 500);
+      } else if (error instanceof Error) {
         throw new CustomError(error.message || "Erro ao buscar dados da API externa.", 500);
+      } else {
+        throw new CustomError("Erro desconhecido ao buscar dados da API externa.", 500);
       }
     }
   }

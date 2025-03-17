@@ -1,7 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { AuthController } from "@modules/authAPI";
 import { CustomError } from "@shared/customError";
-import { config } from "@config/dotenv";
 
 class LoginAPIController {
   private authController: AuthController;

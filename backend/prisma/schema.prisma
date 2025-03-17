@@ -29,11 +29,11 @@ model Ngo {
   description                 String
   is_formalized               Boolean
   start_year                  Int?
-  contact_phone               String
-  instagram_link              String
-  x_link                      String
-  facebook_link               String
-  pix_qr_code_link            String
+  contact_phone               String?
+  instagram_link              String?
+  x_link                      String?
+  facebook_link               String?
+  pix_qr_code_link            String?
   site                        String?
   gallery_images_url          String[] 
   skills                      Json
