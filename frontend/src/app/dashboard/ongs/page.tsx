@@ -183,12 +183,7 @@ export default function ActionsPage() {
         },
         body: formData,
       });
-      headers["Content-Type"] = "application/json";
-    }
-
-    try {
-      const response = await fetch(url, { method, headers, body });
-
+  
       if (!response.ok) {
         console.log("Erro ao salvar a ação:", response.statusText);
         return;
