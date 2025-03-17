@@ -55,7 +55,6 @@ export default function ActionsPage() {
   }, []);
   
   useEffect(() => {
-    // Busca as ações sem forçar a requisição (usa cache)
     fetchActions();
   }, []);
   
@@ -116,7 +115,7 @@ export default function ActionsPage() {
     // Adiciona um parâmetro de cache-busting, se necessário
     const url = forceFetch
       ? `http://127.0.0.1:3333/ongs/${ngoId}/actions?nocache=${Date.now()}` // Força nova requisição
-      : `http://127.0.0.1:3333/ongs/${ngoId}/actions`; // Usa cache
+      : `http://127.0.0.1:3333/ongs/${ngoId}/actions`; 
   
     console.log("Fazendo requisição GET:", url);
   
@@ -162,25 +161,27 @@ export default function ActionsPage() {
     const url = isUpdate
       ? `http://127.0.0.1:3333/ongs/actions/${editingSlide.id}` // corrected: use backticks  
       : "http://127.0.0.1:3333/ongs/actions";
-
-    let body;
-    let headers = { Authorization: `Bearer ${token}` }; // corrected: use backticks
-
+  
+    const formData = new FormData();
+    formData.append("name", editingSlide.name);
+    formData.append("type", editingSlide.type);
+    formData.append("spent", editingSlide.spent.toString());
+    formData.append("goal", editingSlide.goal.toString());
+    formData.append("colected", editingSlide.colected.toString());
+  
     if (imageFile) {
-      body = new FormData();
-      body.append("file", imageFile);
-      body.append("name", editingSlide.name);
-      body.append("type", editingSlide.type);
-      body.append("spent", editingSlide.spent);
-      body.append("goal", editingSlide.goal);
-      body.append("colected", editingSlide.colected);
-    } else {
-      body = JSON.stringify({
-        name: editingSlide.name,
-        type: editingSlide.type,
-        spent: editingSlide.spent,
-        goal: editingSlide.goal,
-        colected: editingSlide.colected,
+      formData.append("file", imageFile);
+    }
+  
+    console.log("Enviando requisição:", { method, url, body: formData });
+  
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+        body: formData,
       });
       headers["Content-Type"] = "application/json";
     }
@@ -192,21 +193,26 @@ export default function ActionsPage() {
         console.log("Erro ao salvar a ação:", response.statusText);
         return;
       }
-
+  
+      // Recebe os dados atualizados do backend
       const updatedSlide = await response.json();
-      console.log("Ação salva com sucesso:", updatedSlide);
-
-      if (!imageFile && updatedSlide.aws_url) {
+      console.log("Resposta do backend:", updatedSlide);
+  
+      closeModal();
+  
+      // Atualiza o estado local com os dados retornados
+      setSlides((prevSlides) => {
+        const newSlides = isUpdate
+          ? prevSlides.map((slide) => (slide.id === updatedSlide.id ? updatedSlide : slide)) // Atualiza a ação existente
+          : [...prevSlides, updatedSlide]; // Adiciona a nova ação
+  
+        console.log("Estado local atualizado:", newSlides);
+        return newSlides;
+      });
+  
+      if (updatedSlide.aws_url) {
         setImageUrls((prevUrls) => ({ ...prevUrls, [updatedSlide.id]: updatedSlide.aws_url }));
       }
-
-      closeModal();
-
-      setSlides((prevSlides) =>
-        prevSlides.some((slide) => slide.id === updatedSlide.id)
-          ? prevSlides.map((slide) => (slide.id === updatedSlide.id ? updatedSlide : slide))
-          : [...prevSlides, updatedSlide]
-      );
     } catch (error) {
       console.log("Erro ao salvar a ação:", error);
     }
