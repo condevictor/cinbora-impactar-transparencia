@@ -21,14 +21,15 @@ export default function Gallery() {
   useEffect(() => {
     const ngoId = Cookies.get("ngo_id");
     const authToken = Cookies.get("auth_token");
-
+  
     if (!ngoId || !authToken) {
       console.log("Erro: NGO ID ou Token não encontrado.");
       return;
     }
-
+  
     console.log("Buscando imagens e vídeos...");
-
+  
+    // Busca as imagens
     fetch(`http://127.0.0.1:3333/ongs/${ngoId}/files/images`, {
       headers: { Authorization: `Bearer ${authToken}` },
     })
@@ -50,7 +51,8 @@ export default function Gallery() {
         console.log("Erro ao buscar imagens:", error);
         setImages([]);
       });
-
+  
+    // Busca os vídeos
     fetch(`http://127.0.0.1:3333/ongs/${ngoId}/files/videos`, {
       headers: { Authorization: `Bearer ${authToken}` },
     })
@@ -73,63 +75,69 @@ export default function Gallery() {
         setVideos([]);
       });
   }, []);
-
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>, type: "image" | "video") => {
+  
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>, // Define o tipo do evento
+    type: "image" | "video" // Define o tipo do parâmetro "type"
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
+  
     setUploadType(type);
     setFile(file);
     setPreview(URL.createObjectURL(file));
     setPreviewType(type);
-
+  
     // Define a categoria padrão com base no tipo do arquivo
     setCategory(type === "image" ? "image" : "video");
-
+  
     setIsDialogOpen(true);
   };
-
+  
   const handleUpload = async () => {
     if (!file || !uploadType) {
       toast.warning("Selecione um arquivo antes de confirmar o upload.");
       return;
     }
-
+  
     const ngoId = Cookies.get("ngo_id");
     const authToken = Cookies.get("auth_token");
-
+  
     if (!ngoId || !authToken) {
       toast.error("Erro de autenticação. Faça login novamente.");
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("file", file);
     formData.append("category", category);
-
+  
     try {
       const response = await fetch(`http://127.0.0.1:3333/ongs/files/upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${authToken}` },
         body: formData,
       });
-
+  
       if (!response.ok) {
         throw new Error("Erro ao enviar o arquivo.");
       }
-
-      const uploadedFileUrl = await response.json();
-
+  
+      // Recebe os dados do arquivo enviado
+      const uploadedFile = await response.json();
+      console.log("Resposta do backend:", uploadedFile);
+  
       toast.success("Upload concluído com sucesso!");
-
+  
       setIsDialogOpen(false);
       setFile(null);
       setPreview(null);
-
+  
+      // Atualiza o estado local com base no tipo de arquivo enviado
       if (uploadType === "image") {
-        setImages((prev) => [...prev, uploadedFileUrl]);
+        setImages((prev) => [...prev, uploadedFile.aws_url]);
       } else {
-        setVideos((prev) => [...prev, uploadedFileUrl]);
+        setVideos((prev) => [...prev, uploadedFile.aws_url]);
       }
     } catch (error) {
       console.log("Erro no upload:", error);
