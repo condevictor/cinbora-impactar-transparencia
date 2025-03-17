@@ -1,0 +1,218 @@
+import { FastifyRequest, FastifyReply } from "fastify";
+import { MultipartFile } from "@fastify/multipart";
+import { CustomError } from "@shared/customError";
+import { OngParams, ActionParams, DeleteParams } from "@routeParams/RouteParams";
+import { UploadOngFileService, 
+         UploadActionFileService, 
+         DeleteFileService, 
+         GetActionFilesByCategoryService, 
+         GetOngFilesByCategoryService 
+       } from "@modules/file";
+
+interface CustomMultipartFile extends MultipartFile {
+  size: number;
+}
+
+class FileController {
+  private uploadOngFileService: UploadOngFileService;
+  private uploadActionFileService: UploadActionFileService;
+  private deleteFileService: DeleteFileService;
+  private getActionFilesByCategoryService: GetActionFilesByCategoryService;
+  private getOngFilesByCategoryService: GetOngFilesByCategoryService;
+
+  // Construtor recebe as instâncias de serviço injetadas
+  constructor(
+    uploadOngFileService: UploadOngFileService,
+    uploadActionFileService: UploadActionFileService,
+    deleteFileService: DeleteFileService,
+    getActionFilesByCategoryService: GetActionFilesByCategoryService,
+    getOngFilesByCategoryService: GetOngFilesByCategoryService
+  ) {
+    this.uploadOngFileService = uploadOngFileService;
+    this.uploadActionFileService = uploadActionFileService;
+    this.deleteFileService = deleteFileService;
+    this.getActionFilesByCategoryService = getActionFilesByCategoryService;
+    this.getOngFilesByCategoryService = getOngFilesByCategoryService;
+  }
+
+  private validateFileRequest(reply: FastifyReply, fileBuffer: Buffer | null, category: string, user: any): boolean {
+    if (!fileBuffer) {
+      reply.status(400).send({ error: "Nenhum arquivo enviado" });
+      return false;
+    }
+  
+    if (!category) {
+      reply.status(400).send({ error: "Categoria do arquivo é obrigatória" });
+      return false;
+    }
+  
+    if (!user || !user.ngoId) {
+      reply.status(401).send({ error: "Usuário não autenticado ou sem permissão" });
+      return false;
+    }
+  
+    return true;
+  }
+
+  private async extractFileData(request: FastifyRequest) {
+    const parts = request.parts();
+    let fileBuffer: Buffer | null = null;
+    let filename = '';
+    let mimetype = '';
+    let size = 0;
+    let category = '';
+  
+    for await (const part of parts) {
+      if (part.type === 'file') {
+        const filePart = part as CustomMultipartFile;
+        fileBuffer = await filePart.toBuffer();
+        filename = filePart.filename;
+        mimetype = filePart.mimetype;
+        size = filePart.file.bytesRead;
+      } else if (part.type === 'field' && part.fieldname === 'category') {
+        category = part.value as string;
+      }
+    }
+  
+    return { fileBuffer, filename, mimetype, size, category };
+  }
+
+  async uploadOngFile(request: FastifyRequest, reply: FastifyReply) {
+    const { fileBuffer, filename, mimetype, size, category } = await this.extractFileData(request);
+
+    if (!this.validateFileRequest(reply, fileBuffer, category, request.user)) {
+      return;
+    }
+
+    try {
+      if (!fileBuffer || !request.user) {
+        reply.status(400).send({ error: "Dados inválidos ou usuário não autenticado" });
+        return;
+      }
+      const fileEntity = await this.uploadOngFileService.execute(fileBuffer, filename, category, mimetype, size, request.user.ngoId);
+      reply.send(fileEntity); 
+    } catch (error) {
+      console.error("Erro ao fazer upload do arquivo:", error);
+      if (error instanceof CustomError) {
+        reply.status(error.statusCode).send({ error: error.message });
+      } else {
+        reply.status(500).send({ error: "Erro interno ao fazer upload do arquivo" });
+      }
+    }
+  }
+
+  async uploadActionFile(request: FastifyRequest<{ Params: ActionParams }>, reply: FastifyReply) {
+    const { fileBuffer, filename, mimetype, size, category } = await this.extractFileData(request);
+
+    if (!this.validateFileRequest(reply, fileBuffer, category, request.user)) {
+      return;
+    }
+
+    try {
+      if (!fileBuffer || !request.user) {
+        reply.status(400).send({ error: "Dados inválidos ou usuário não autenticado" });
+        return;
+      }
+      const fileEntity = await this.uploadActionFileService.execute(fileBuffer, filename, category, mimetype, size, request.params.actionId, request.user.ngoId);
+      reply.send(fileEntity); 
+    } catch (error) {
+      console.error("Erro ao fazer upload do arquivo:", error);
+      if (error instanceof CustomError) {
+        reply.status(error.statusCode).send({ error: error.message });
+      } else {
+        reply.status(500).send({ error: "Erro interno ao fazer upload do arquivo" });
+      }
+    }
+  }
+
+  async delete(request: FastifyRequest<{ Params: DeleteParams }>, reply: FastifyReply) {
+    const { id } = request.params;
+
+    try {
+      await this.deleteFileService.execute(id);
+      reply.send({ message: "Arquivo deletado com sucesso" });
+    } catch (error) {
+      console.error("Erro ao deletar arquivo:", error);
+      if (error instanceof CustomError) {
+        reply.status(error.statusCode).send({ error: error.message });
+      } else {
+        reply.status(500).send({ error: "Erro interno ao deletar arquivo" });
+      }
+    }
+  }
+
+  async getActionFilesByCategory(request: FastifyRequest<{ Params: ActionParams }>, reply: FastifyReply, category: string) {
+    const { actionId } = request.params;
+
+    try {
+      const files = await this.getActionFilesByCategoryService.execute(actionId, category);
+      reply.send(files);
+    } catch (error) {
+      console.error(`Erro ao buscar arquivos da categoria ${category}:`, error);
+      if (error instanceof CustomError) {
+        reply.status(error.statusCode).send({ error: error.message });
+      } else {
+        reply.status(500).send({ error: `Erro interno ao buscar arquivos da categoria ${category}` });
+      }
+    }
+  }
+
+  async getOngFilesByCategory(request: FastifyRequest<{ Params: OngParams }>, reply: FastifyReply, category: string) {
+    const { ngoId } = request.params;
+
+    try {
+      const files = await this.getOngFilesByCategoryService.execute(ngoId, category);
+      reply.send(files);
+    } catch (error) {
+      console.error(`Erro ao buscar arquivos da categoria ${category}:`, error);
+      if (error instanceof CustomError) {
+        reply.status(error.statusCode).send({ error: error.message });
+      } else {
+        reply.status(500).send({ error: `Erro interno ao buscar arquivos da categoria ${category}` });
+      }
+    }
+  }
+
+  // Métodos para buscar diferentes tipos de arquivos
+  async getActionImages(request: FastifyRequest<{ Params: ActionParams }>, reply: FastifyReply) {
+    return this.getActionFilesByCategory(request, reply, 'image');
+  }
+
+  async getActionVideos(request: FastifyRequest<{ Params: ActionParams }>, reply: FastifyReply) {
+    return this.getActionFilesByCategory(request, reply, 'video');
+  }
+
+  async getActionReportFiles(request: FastifyRequest<{ Params: ActionParams }>, reply: FastifyReply) {
+    return this.getActionFilesByCategory(request, reply, 'report');
+  }
+
+  async getActionTaxInvoicesFiles(request: FastifyRequest<{ Params: ActionParams }>, reply: FastifyReply) {
+    return this.getActionFilesByCategory(request, reply, 'tax invoice');
+  }
+
+  async getActionOtherFiles(request: FastifyRequest<{ Params: ActionParams }>, reply: FastifyReply) {
+    return this.getActionFilesByCategory(request, reply, 'other');
+  }
+
+  async getOngImages(request: FastifyRequest<{ Params: OngParams }>, reply: FastifyReply) {
+    return this.getOngFilesByCategory(request, reply, 'image');
+  }
+
+  async getOngVideos(request: FastifyRequest<{ Params: OngParams }>, reply: FastifyReply) {
+    return this.getOngFilesByCategory(request, reply, 'video');
+  }
+
+  async getOngReportFiles(request: FastifyRequest<{ Params: OngParams }>, reply: FastifyReply) {
+    return this.getOngFilesByCategory(request, reply, 'report');
+  }
+
+  async getOngTaxInvoicesFiles(request: FastifyRequest<{ Params: OngParams }>, reply: FastifyReply) {
+    return this.getOngFilesByCategory(request, reply, 'tax invoice');
+  }
+
+  async getOngOtherFiles(request: FastifyRequest<{ Params: OngParams }>, reply: FastifyReply) {
+    return this.getOngFilesByCategory(request, reply, 'other');
+  }
+}
+
+export { FileController };
