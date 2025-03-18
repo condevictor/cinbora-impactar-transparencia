@@ -103,7 +103,7 @@ class ActionController {
         return;
       }
       const updatedGrafic = await this.updateActionExpensesGraficService.execute(actionId, categorysExpenses);
-      await logService.logAction(request.user.id.toString(), request.user.name, "ATUALIZAR", "Gráfico de Despesas da Ação", actionId, categorysExpenses, "Gráfico de despesas da ação atualizado");
+      await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "ATUALIZAR", "Gráfico de Despesas da Ação", actionId, categorysExpenses, "Gráfico de despesas da ação atualizado");
       reply.send(updatedGrafic);
     } catch (error) {
       console.error("Erro ao atualizar gráfico de despesas da ação:", error);
@@ -167,7 +167,7 @@ class ActionController {
         aws_url,
       });
 
-      await logService.logAction(request.user.id.toString(), request.user.name, "CRIAR", "Ação", action.id.toString(), { name, type, spent, goal, colected, aws_url }, "Ação criada");
+      await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "CRIAR", "Ação", action.id.toString(), { name, type, spent, goal, colected, aws_url }, "Ação criada");
       reply.send(action);
     } catch (error) {
       console.error("Error creating action:", error);
@@ -189,7 +189,7 @@ class ActionController {
         return;
       }
       const updatedAction = await this.updateActionService.execute(id, data);
-      await logService.logAction(request.user.id.toString(), request.user.name, "ATUALIZAR", "Ação", id, data, "Ação atualizada");
+      await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "ATUALIZAR", "Ação", id, data, "Ação atualizada");
       reply.send(updatedAction);
     } catch (error) {
       console.error("Error updating action:", error);
@@ -238,7 +238,7 @@ class ActionController {
 
       const aws_url = await this.createFileAwsService.uploadFile(fileBuffer, filename);
       const updatedAction = await this.updateActionService.execute(id, { aws_url });
-      await logService.logAction(request.user.id.toString(), request.user.name, "ATUALIZAR", "Ação", id, { aws_url }, "Imagem da ação atualizada");
+      await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "ATUALIZAR", "Ação", id, { aws_url }, "Imagem da ação atualizada");
 
       reply.send({ message: "Imagem da ação atualizada com sucesso", aws_url: updatedAction.aws_url });
     } catch (error) {
@@ -261,7 +261,7 @@ class ActionController {
 
     try {
       await this.deleteActionService.execute({ id });
-      await logService.logAction(request.user.id.toString(), request.user.name, "DELETAR", "Ação", id, {}, "Ação deletada");
+      await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "DELETAR", "Ação", id, {}, "Ação deletada");
       reply.send({ message: "Ação deletada com sucesso" });
     } catch (error) {
       console.error("Error deleting action:", error);

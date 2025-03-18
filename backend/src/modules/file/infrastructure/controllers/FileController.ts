@@ -91,7 +91,7 @@ class FileController {
         return;
       }
       const fileEntity = await this.uploadOngFileService.execute(fileBuffer, filename, category, mimetype, size, request.user.ngoId);
-      await logService.logAction(request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, "Arquivo da ONG criado");
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, "Arquivo da ONG criado");
       reply.send(fileEntity); 
     } catch (error) {
       console.error("Erro ao fazer upload do arquivo:", error);
@@ -116,7 +116,7 @@ class FileController {
         return;
       }
       const fileEntity = await this.uploadActionFileService.execute(fileBuffer, filename, category, mimetype, size, request.params.actionId, request.user.ngoId);
-      await logService.logAction(request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, "Arquivo da ação criado");
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, "Arquivo da ação criado");
       reply.send(fileEntity); 
     } catch (error) {
       console.error("Erro ao fazer upload do arquivo:", error);
@@ -138,7 +138,7 @@ class FileController {
 
     try {
       await this.deleteFileService.execute(id);
-      await logService.logAction(request.user.id, request.user.name, "DELETAR", "Arquivo", id, {}, "Arquivo deletado");
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "DELETAR", "Arquivo", id, {}, "Arquivo deletado");
       reply.send({ message: "Arquivo deletado com sucesso" });
     } catch (error) {
       console.error("Erro ao deletar arquivo:", error);

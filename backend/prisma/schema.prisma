@@ -134,6 +134,7 @@ model ActionExpensesGrafic {
 
 model Log {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  ngoId     Int
   userId      String   @db.ObjectId
   userName String 
   action      String // A ação realizada (ex: "CREATE", "UPDATE", "DELETE").

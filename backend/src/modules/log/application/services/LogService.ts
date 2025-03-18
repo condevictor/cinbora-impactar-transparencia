@@ -1,4 +1,4 @@
-import { LogRepository } from "../../domain/repositories/LogRepository";
+import { LogRepository } from "@modules/log/domain/repositories/LogRepository";
 import { Log } from "../../domain/entities/Log";
 
 class LogService {
@@ -8,8 +8,9 @@ class LogService {
     this.logRepository = logRepository;
   }
 
-  async logAction(userId: string, userName: string, action: string, model: string, modelId: string, changes: any, description: string) {
+  async logAction(ngoId: number, userId: string, userName: string, action: string, model: string, modelId: string, changes: any, description: string) {
     const log: Log = {
+      ngoId,
       userId,
       userName,
       action,
@@ -21,6 +22,14 @@ class LogService {
     };
 
     await this.logRepository.create(log);
+  }
+
+  async getAllLogs() {
+    return this.logRepository.findAll();
+  }
+
+  async getLogsByNgoId(ngoId: number) {
+    return this.logRepository.findByNgoId(ngoId);
   }
 }
 

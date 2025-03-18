@@ -68,7 +68,7 @@ class OngController {
         return;
       }
       const updatedOng = await this.updateOngService.execute(request.user.ngoId, data);
-      await logService.logAction(request.user.id, request.user.name, "ATUALIZAR", "ONG", request.user.ngoId.toString(), data, "ONG atualizada");
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "ATUALIZAR", "ONG", request.user.ngoId.toString(), data, "ONG atualizada");
       reply.send({ message: "ONG atualizada com sucesso", ngo: updatedOng });
     } catch (error) {
       console.error("Erro ao atualizar ONG:", error);
@@ -91,7 +91,7 @@ class OngController {
         return;
       }
       const updatedGrafic = await this.updateNgoGraficService.execute(request.user.ngoId, { totalExpenses, expensesByCategory });
-      await logService.logAction(request.user.id, request.user.name, "ATUALIZAR", "Gráfico ONG", request.user.ngoId.toString(), { totalExpenses, expensesByCategory }, "Gráfico da ONG atualizado");
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "ATUALIZAR", "Gráfico ONG", request.user.ngoId.toString(), { totalExpenses, expensesByCategory }, "Gráfico da ONG atualizado");
       reply.send(updatedGrafic);
     } catch (error) {
       console.error("Erro ao atualizar gráfico da ONG:", error);
@@ -112,7 +112,7 @@ class OngController {
     const { id } = request.params as { id: string };
     try {
       await this.deleteOngService.execute({ id });
-      await logService.logAction(request.user.id, request.user.name, "DELETAR", "ONG", id, {}, "ONG deletada");
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "DELETAR", "ONG", id, {}, "ONG deletada");
       reply.send({ message: "ONG deletada com sucesso" });
     } catch (error) {
       console.error("Erro ao deletar ONG:", error);
@@ -133,7 +133,7 @@ class OngController {
     const data = request.body as OngProps;
     try {
       const ong = await this.createOngService.execute(data);
-      await logService.logAction(request.user.id, request.user.name, "CRIAR", "ONG", ong.id.toString(), data, "ONG criada");
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "ONG", ong.id.toString(), data, "ONG criada");
       reply.status(201).send(ong);
     } catch (error) {
       console.error("Erro ao criar ONG:", error);

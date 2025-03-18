@@ -24,7 +24,7 @@ class UserController {
     try {
       const { name, email, ngoId } = request.body as UserProps;
       const user = await this.createUserService.execute({ name, email, ngoId });
-      await logService.logAction(request.user.id, request.user.name, "CRIAR", "Usuário", user.id, request.body, "Usuário criado");
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Usuário", user.id, request.body, "Usuário criado");
       reply.send({ message: "Usuário criado com sucesso", user });
     } catch (error) {
       console.error("Erro ao criar usuário:", error);
@@ -45,7 +45,7 @@ class UserController {
     try {
       const { id } = request.params as { id: string };
       await this.deleteUserService.execute({ id });
-      await logService.logAction(request.user.id, request.user.name, "DELETAR", "Usuário", id, {}, "Usuário deletado");
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "DELETAR", "Usuário", id, {}, "Usuário deletado");
       reply.send({ message: "Usuário deletado com sucesso" });
     } catch (error) {
       console.error("Erro ao deletar usuário:", error);
