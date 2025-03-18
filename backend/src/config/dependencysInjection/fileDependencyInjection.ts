@@ -1,5 +1,4 @@
-import { FileRepository, UploadOngFileService, UploadActionFileService, DeleteFileService, GetActionFilesByCategoryService, GetOngFilesByCategoryService } from "@modules/file";
-import { FileController } from "@modules/file";
+import { FileRepository, UploadOngFileService, UploadActionFileService, DeleteFileService, GetActionFilesByCategoryService, GetOngFilesByCategoryService, FileController } from "@modules/file";
 
 const fileRepository = new FileRepository();
 const uploadOngFileService = new UploadOngFileService(fileRepository);

@@ -115,7 +115,7 @@ model ActionFile {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
-  @@map("action_files") // Nome da coleção no MongoDB
+  @@map("action_files")
   @@index([actionId, category])
 }
 
@@ -130,4 +130,19 @@ model ActionExpensesGrafic {
 
   @@map("action_expenses") 
   @@index([actionId])
+}
+
+model Log {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  userName String 
+  action      String // A ação realizada (ex: "CREATE", "UPDATE", "DELETE").
+  model       String // O modelo que foi alterado (ex: "User", "Ngo", "Action").
+  modelId     String   @db.ObjectId
+  changes     Json
+  description String
+  timestamp   DateTime @default(now())
+
+  @@map("logs") // Nome da coleção no MongoDB
+  @@index([model, modelId, timestamp])
 }

@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { CreateActionService, DeleteActionService, GetActionService, UpdateActionService, UpdateActionExpensesGraficService, ActionProps } from "@modules/action";
 import { CreateFileAwsService } from "@modules/file";
+import { logService } from "@config/dependencysInjection/logDependencyInjection";
 import { MultipartFile } from "@fastify/multipart";
 import { CustomError } from "@shared/customError";
 
@@ -97,7 +98,12 @@ class ActionController {
     }
 
     try {
+      if (!request.user) {
+        reply.status(401).send({ error: "Usuário não autenticado" });
+        return;
+      }
       const updatedGrafic = await this.updateActionExpensesGraficService.execute(actionId, categorysExpenses);
+      await logService.logAction(request.user.id.toString(), request.user.name, "ATUALIZAR", "Gráfico de Despesas da Ação", actionId, categorysExpenses, "Gráfico de despesas da ação atualizado");
       reply.send(updatedGrafic);
     } catch (error) {
       console.error("Erro ao atualizar gráfico de despesas da ação:", error);
@@ -110,7 +116,6 @@ class ActionController {
   }
 
   async create(request: FastifyRequest, reply: FastifyReply) {
-    console.log("Request received:", request);
     const parts = request.parts();
     let name = '';
     let type = '';
@@ -129,7 +134,6 @@ class ActionController {
         filename = filePart.filename;
         mimetype = filePart.mimetype;
         size = filePart.file.bytesRead;
-        console.log("File part received:", { filename, mimetype, size });
       } else if (part.type === 'field') {
         const fieldPart = part as { fieldname: string, value: string };
         if (fieldPart.fieldname === 'name') name = fieldPart.value;
@@ -137,11 +141,8 @@ class ActionController {
         if (fieldPart.fieldname === 'spent') spent = parseFloat(fieldPart.value);
         if (fieldPart.fieldname === 'goal') goal = parseFloat(fieldPart.value);
         if (fieldPart.fieldname === 'colected') colected = parseFloat(fieldPart.value);
-        console.log("Field part received:", { fieldname: fieldPart.fieldname, value: fieldPart.value });
       }
     }
-
-    console.log("Parsed fields:", { name, type, spent, goal, colected });
 
     if (!fileBuffer) {
       reply.status(400).send({ error: "No file uploaded" });
@@ -155,7 +156,6 @@ class ActionController {
 
     try {
       const aws_url = await this.createFileAwsService.uploadFile(fileBuffer, filename);
-      console.log("File uploaded successfully:", aws_url);
 
       const action = await this.createActionService.execute({
         name,
@@ -167,6 +167,7 @@ class ActionController {
         aws_url,
       });
 
+      await logService.logAction(request.user.id.toString(), request.user.name, "CRIAR", "Ação", action.id.toString(), { name, type, spent, goal, colected, aws_url }, "Ação criada");
       reply.send(action);
     } catch (error) {
       console.error("Error creating action:", error);
@@ -183,7 +184,12 @@ class ActionController {
     const data = request.body as Partial<ActionProps>;
 
     try {
+      if (!request.user) {
+        reply.status(401).send({ error: "Usuário não autenticado" });
+        return;
+      }
       const updatedAction = await this.updateActionService.execute(id, data);
+      await logService.logAction(request.user.id.toString(), request.user.name, "ATUALIZAR", "Ação", id, data, "Ação atualizada");
       reply.send(updatedAction);
     } catch (error) {
       console.error("Error updating action:", error);
@@ -215,9 +221,13 @@ class ActionController {
     }
 
     try {
+      if (!request.user) {
+        reply.status(401).send({ error: "Usuário não autenticado" });
+        return;
+      }
       const action = await this.getActionService.executeById(id);
       if (!action) {
-        reply.status(404).send({ error: "Action not found" });
+        reply.status(404).send({ error: "Ação não encontrada" });
         return;
       }
 
@@ -228,23 +238,30 @@ class ActionController {
 
       const aws_url = await this.createFileAwsService.uploadFile(fileBuffer, filename);
       const updatedAction = await this.updateActionService.execute(id, { aws_url });
+      await logService.logAction(request.user.id.toString(), request.user.name, "ATUALIZAR", "Ação", id, { aws_url }, "Imagem da ação atualizada");
 
-      reply.send({ message: "Action image updated successfully", aws_url: updatedAction.aws_url });
+      reply.send({ message: "Imagem da ação atualizada com sucesso", aws_url: updatedAction.aws_url });
     } catch (error) {
       console.error("Error updating action image:", error);
       if (error instanceof CustomError) {
         reply.status(error.statusCode).send({ error: error.message });
       } else {
-        reply.status(500).send({ error: "Internal server error" });
+        reply.status(500).send({ error: "Erro ao atualizar imagem da ação" });
       }
     }
   }
 
   async delete(request: FastifyRequest, reply: FastifyReply) {
+    if (!request.user) {
+      reply.status(401).send({ error: "Usuário não autenticado" });
+      return;
+    }
+
     const { id } = request.params as { id: string };
 
     try {
       await this.deleteActionService.execute({ id });
+      await logService.logAction(request.user.id.toString(), request.user.name, "DELETAR", "Ação", id, {}, "Ação deletada");
       reply.send({ message: "Ação deletada com sucesso" });
     } catch (error) {
       console.error("Error deleting action:", error);

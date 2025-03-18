@@ -8,6 +8,7 @@ import { UploadOngFileService,
          GetActionFilesByCategoryService, 
          GetOngFilesByCategoryService 
        } from "@modules/file";
+import { logService } from "@config/dependencysInjection/logDependencyInjection";
 
 interface CustomMultipartFile extends MultipartFile {
   size: number;
@@ -90,6 +91,7 @@ class FileController {
         return;
       }
       const fileEntity = await this.uploadOngFileService.execute(fileBuffer, filename, category, mimetype, size, request.user.ngoId);
+      await logService.logAction(request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, "Arquivo da ONG criado");
       reply.send(fileEntity); 
     } catch (error) {
       console.error("Erro ao fazer upload do arquivo:", error);
@@ -114,6 +116,7 @@ class FileController {
         return;
       }
       const fileEntity = await this.uploadActionFileService.execute(fileBuffer, filename, category, mimetype, size, request.params.actionId, request.user.ngoId);
+      await logService.logAction(request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, "Arquivo da ação criado");
       reply.send(fileEntity); 
     } catch (error) {
       console.error("Erro ao fazer upload do arquivo:", error);
@@ -126,10 +129,16 @@ class FileController {
   }
 
   async delete(request: FastifyRequest<{ Params: DeleteParams }>, reply: FastifyReply) {
+    if (!request.user) {
+      reply.status(401).send({ error: "Usuário não autenticado" });
+      return;
+    }
+
     const { id } = request.params;
 
     try {
       await this.deleteFileService.execute(id);
+      await logService.logAction(request.user.id, request.user.name, "DELETAR", "Arquivo", id, {}, "Arquivo deletado");
       reply.send({ message: "Arquivo deletado com sucesso" });
     } catch (error) {
       console.error("Erro ao deletar arquivo:", error);

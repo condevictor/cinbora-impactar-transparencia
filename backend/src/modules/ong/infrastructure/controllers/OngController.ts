@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { OngProps, GetOngService, CreateOngService, DeleteOngService, UpdateOngService, UpdateNgoGraficService } from "@modules/ong";
 import { getOngService, deleteOngService, createOngService, updateOngService, updateNgoGraficService } from "@config/dependencysInjection/ongDependencyInjection";
+import { logService } from "@config/dependencysInjection/logDependencyInjection";
 import { CustomError } from "@shared/customError";
 
 class OngController {
@@ -67,6 +68,7 @@ class OngController {
         return;
       }
       const updatedOng = await this.updateOngService.execute(request.user.ngoId, data);
+      await logService.logAction(request.user.id, request.user.name, "ATUALIZAR", "ONG", request.user.ngoId.toString(), data, "ONG atualizada");
       reply.send({ message: "ONG atualizada com sucesso", ngo: updatedOng });
     } catch (error) {
       console.error("Erro ao atualizar ONG:", error);
@@ -89,6 +91,7 @@ class OngController {
         return;
       }
       const updatedGrafic = await this.updateNgoGraficService.execute(request.user.ngoId, { totalExpenses, expensesByCategory });
+      await logService.logAction(request.user.id, request.user.name, "ATUALIZAR", "Gráfico ONG", request.user.ngoId.toString(), { totalExpenses, expensesByCategory }, "Gráfico da ONG atualizado");
       reply.send(updatedGrafic);
     } catch (error) {
       console.error("Erro ao atualizar gráfico da ONG:", error);
@@ -101,9 +104,15 @@ class OngController {
   }
 
   async delete(request: FastifyRequest, reply: FastifyReply) {
+    if (!request.user) {
+      reply.status(401).send({ error: "Usuário não autenticado" });
+      return;
+    }
+
     const { id } = request.params as { id: string };
     try {
       await this.deleteOngService.execute({ id });
+      await logService.logAction(request.user.id, request.user.name, "DELETAR", "ONG", id, {}, "ONG deletada");
       reply.send({ message: "ONG deletada com sucesso" });
     } catch (error) {
       console.error("Erro ao deletar ONG:", error);
@@ -116,9 +125,15 @@ class OngController {
   }
 
   async create(request: FastifyRequest, reply: FastifyReply) {
+    if (!request.user) {
+      reply.status(401).send({ error: "Usuário não autenticado" });
+      return;
+    }
+
     const data = request.body as OngProps;
     try {
       const ong = await this.createOngService.execute(data);
+      await logService.logAction(request.user.id, request.user.name, "CRIAR", "ONG", ong.id.toString(), data, "ONG criada");
       reply.status(201).send(ong);
     } catch (error) {
       console.error("Erro ao criar ONG:", error);
