@@ -49,25 +49,10 @@ class GetActionService {
     }
   }
 
-  async executeByNgoIdAndActionId(ngoId: string, actionId: string): Promise<Action | null> {
+  async getExpensesByActionId(actionId: string): Promise<any> {
     try {
-      const action = await this.actionRepository.findByNgoIdAndActionId(ngoId, actionId);
-      if (!action) {
-        throw new CustomError("Ação não encontrada", 404);
-      }
-      return action;
-    } catch (error) {
-      console.error("Erro ao obter ação por ONG ID e Ação ID:", error);
-      if (error instanceof CustomError) {
-        throw error;
-      }
-      throw new CustomError("Erro ao obter ação por ONG ID e Ação ID", 500);
-    }
-  }
-
-  async getExpensesByActionId(actionId: string): Promise<NgoExpensesGrafic | null> {
-    try {
-      return this.actionRepository.findExpensesByActionId(actionId);
+      const expenses = await this.actionRepository.findExpensesByActionId(actionId);
+      return expenses;
     } catch (error) {
       console.error("Erro ao obter despesas por ID da ação:", error);
       if (error instanceof CustomError) {

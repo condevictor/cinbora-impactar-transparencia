@@ -72,7 +72,7 @@ model NgoGraphic {
   ngoId         Int      @unique
   ngo           Ngo      @relation(fields: [ngoId], references: [id])
   totalExpenses Float    
-  expensesByCategory Json @default("[]") // Gastos por categoria (ex: { "Esportes": 1000, "Alimentação": 500 })
+  expensesByAction Json @default("[]") // Gastos por categoria (ex: { "Esportes": 1000, "Alimentação": 500 })
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now())
 

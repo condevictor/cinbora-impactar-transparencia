@@ -61,7 +61,7 @@ class OngRepository {
           data: {
             ngoId: data.id,
             totalExpenses: 0,
-            expensesByCategory: [{}],
+            expensesByAction: [],
           },
         });
 
@@ -160,7 +160,7 @@ class OngRepository {
         where: { ngoId },
         data: {
           totalExpenses: data.totalExpenses ?? existingGrafic.totalExpenses,
-          expensesByCategory: updatedExpensesByCategory,
+          expensesByAction: updatedExpensesByCategory,
         },
       });
 

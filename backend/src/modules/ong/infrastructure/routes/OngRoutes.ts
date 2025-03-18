@@ -7,7 +7,7 @@ const ongController = new OngController();
 
 async function ongRoutes(fastify: FastifyInstance) {
   fastify.get("/ongs", { schema: getNgosSchema }, ongController.getAll.bind(ongController));
-  fastify.get("/ongs/:id", { schema: getNgoAndGraficSchema }, ongController.getOneWithGrafic.bind(ongController));
+  fastify.get("/ongs/:id", ongController.getOneWithGrafic.bind(ongController));
   fastify.delete("/ongs/:id", { preHandler: [authMiddleware], schema: deleteOngSchema }, ongController.delete.bind(ongController));
   fastify.post("/ongs", { preHandler: [authMiddleware], schema: createOngSchema }, ongController.create.bind(ongController));
   fastify.put("/ongs", { preHandler: [authMiddleware], schema: updateOngSchema }, ongController.update.bind(ongController));

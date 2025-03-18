@@ -48,9 +48,9 @@ class ActionController {
   }
 
   async getOne(request: FastifyRequest, reply: FastifyReply) {
-    const { id: ngoId, actionId } = request.params as { id: string, actionId: string };
+    const { id: actionId } = request.params as { id: string, actionId: string };
     try {
-      const action = await this.getActionService.executeByNgoIdAndActionId(ngoId, actionId);
+      const action = await this.getActionService.executeById(actionId);
       if (!action) {
         reply.status(404).send({ error: "Ação não encontrada" });
         return;
@@ -67,15 +67,15 @@ class ActionController {
   }
 
   async getOneWithExpenses(request: FastifyRequest, reply: FastifyReply) {
-    const { id: ngoId, actionId } = request.params as { id: string, actionId: string };
+    const { actionId } = request.params as { actionId: string };
     try {
-      const action = await this.getActionService.executeByNgoIdAndActionId(ngoId, actionId);
+      const action = await this.getActionService.executeById(actionId);
       if (!action) {
         reply.status(404).send({ error: "Ação não encontrada" });
         return;
       }
-      const ngoExpensesGrafic = await this.getActionService.getExpensesByActionId(actionId);
-      reply.send({ action, ngoExpensesGrafic });
+      const actionGrafic = await this.getActionService.getExpensesByActionId(actionId);
+      reply.send({ action, actionGrafic });
     } catch (error) {
       console.error("Erro ao obter Ação:", error);
       if (error instanceof CustomError) {
@@ -111,6 +111,21 @@ class ActionController {
         reply.status(error.statusCode).send({ error: error.message });
       } else {
         reply.status(500).send({ error: "Erro ao atualizar gráfico de despesas da ação" });
+      }
+    }
+  }
+
+  async getActionExpensesGrafic(request: FastifyRequest, reply: FastifyReply) {
+    const { id: ngoId, actionId } = request.params as { id: string, actionId: string };
+    try {
+      const expensesGrafic = await this.getActionService.getExpensesByActionId(actionId);
+      reply.send(expensesGrafic);
+    } catch (error) {
+      console.error("Erro ao obter gráfico de despesas da ação:", error);
+      if (error instanceof CustomError) {
+        reply.status(error.statusCode).send({ error: error.message });
+      } else {
+        reply.status(500).send({ error: "Erro ao obter gráfico de despesas da ação" });
       }
     }
   }

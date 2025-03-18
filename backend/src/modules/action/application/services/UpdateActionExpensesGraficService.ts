@@ -8,13 +8,9 @@ class UpdateActionExpensesGraficService {
     this.actionRepository = actionRepository;
   }
 
-  async execute(actionId: string, newExpense: Record<string, number>): Promise<Record<string, number>[]> {
+  async execute(actionId: string, newExpense: Record<string, number>): Promise<any> {
     try {
-      const updatedExpenses = await this.actionRepository.updateActionExpensesGrafic(actionId, newExpense);
-      if (!Array.isArray(updatedExpenses)) {
-        throw new CustomError("Invalid response format", 500);
-      }
-      return updatedExpenses;
+      return this.actionRepository.updateActionExpensesGrafic(actionId, newExpense);
     } catch (error) {
       console.error("Erro ao atualizar gráfico de despesas da ação:", error);
       if (error instanceof CustomError) {
