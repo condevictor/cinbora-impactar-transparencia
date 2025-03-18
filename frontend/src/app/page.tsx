@@ -102,7 +102,7 @@ export default function Ongs() {
                 </a>
               </div>
               <div className="h-12 flex justify-between">
-                <Link className="w-4/5 h-full font-bold rounded-[34px] bg-[#294BB6] text-white border-solid border-[#2E4049] border" href={`/visitor?ngo_id=${ong.id}`}>
+                <Link href={`/visitor?ngo_id=${ong.id}`} className="w-4/5 h-full font-bold rounded-[34px] bg-[#294BB6] text-white border-solid border-[#2E4049] border">
                   <Button className="w-full h-full font-bold rounded-[34px] bg-[#294BB6] text-white border-solid border-[#2E4049] border hover:text-[#294BB6] hover:bg-white">
                     TRANSPARÊNCIA
                   </Button>

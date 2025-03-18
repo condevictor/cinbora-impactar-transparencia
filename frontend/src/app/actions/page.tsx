@@ -1,38 +1,34 @@
 "use client"
 
-import ActionsGallery from "@/components/ui/actionsGallery";
-import ActionsBalance from "@/components/ui/actionsBalance";
-import ActionsDocuments from "@/components/ui/actionsDocuments";
+import { useSearchParams } from "next/navigation"
+import { useEffect, useState } from "react"
+import { Card } from "@/components/ui/card"
 
-import { useState } from "react";
-export default function Actions(){
+export default function ActionDetail() {
+  const searchParams = useSearchParams()
+  const ngoId = searchParams.get("ngo_Id")
+  const acaoId = searchParams.get("acao_id")
+  const [action, setAction] = useState(null)
 
-    const [activeTab, setActiveTab] = useState("gallery");
-    return(
-        <main>
-              <div></div>
-            
-            <div className="w-full flex justify-center border-b border-gray-300 mt-6">
-                <div className="flex space-x-6">
-                  {["gallery", "balance", "documents"].map((tab) => (
-                    <button 
-                      key={tab} 
-                      onClick={() => setActiveTab(tab)} 
-                      className={`px-4 py-2 text-sm font-medium transition-all ${activeTab === tab ? "text-[#294BB6] border-b-2 border-[#294BB6]" : "text-gray-500 hover:text-[#2E4049]"}`}
-                    >
-                      {tab === "gallery" && "Galeria"}
-                      {tab === "balance" && "Balanço de Gastos"}
-                      {tab === "documents" && "Documentos"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="w-full mt-6">
-                {activeTab === "gallery" && <ActionsGallery />}
-                {activeTab === "balance" && <ActionsBalance />}
-                {activeTab === "documents" && <ActionsDocuments />}
-            </div>
-            
-        </main>
-    )
+  useEffect(() => {
+    if (ngoId && acaoId) {
+      fetch(`http://127.0.0.1:3333/ongs/${ngoId}/actions/${acaoId}`)
+        .then(res => res.json())
+        .then(data => {
+        
+          setAction(data.action)
+        })
+        .catch(err => console.error("Erro ao buscar ação:", err))
+    }
+  }, [ngoId, acaoId])
+
+  if (!action) return <p className="p-4">Carregando...</p>
+
+  return (
+    <Card>
+      <h2>{action.name}</h2>
+      <p>{action.type}</p>
+      
+    </Card>
+  )
 }

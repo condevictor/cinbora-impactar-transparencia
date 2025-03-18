@@ -86,7 +86,7 @@ export default function Visitor() {
                     
                       <hr className="border-solide border borde-gray-500" />
                       <div className="flex justify-between items-center h-10">
-                        <Link className="w-4/5 h-full font-bold rounded-[34px] bg-[#294BB6] text-white border-solid border-[#2E4049] border" href="/ongs">
+                        <Link href={`/actions?ngo_Id=${ngoId}&acao_id=${slide.id}`} className="w-4/5 h-full font-bold rounded-[34px] bg-[#294BB6] text-white border-solid border-[#2E4049] border">
                           <Button className="w-full h-full font-bold rounded-[34px] bg-[#294BB6] text-white border-solid border-[#2E4049] border hover:text-[#294BB6] hover:bg-white">
                             TRANSPARÊNCIA
                           </Button>
