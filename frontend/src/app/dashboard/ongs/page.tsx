@@ -154,34 +154,52 @@ export default function ActionsPage() {
       console.log("Erro: Campos obrigatórios não preenchidos.");
       return;
     }
-
+  
     const token = Cookies.get("auth_token");
     const isUpdate = !!editingSlide.id;
     const method = isUpdate ? "PUT" : "POST";
     const url = isUpdate
-      ? `http://127.0.0.1:3333/ongs/actions/${editingSlide.id}` // corrected: use backticks  
+      ? `http://127.0.0.1:3333/ongs/actions/${editingSlide.id}`
       : "http://127.0.0.1:3333/ongs/actions";
   
-    const formData = new FormData();
-    formData.append("name", editingSlide.name);
-    formData.append("type", editingSlide.type);
-    formData.append("spent", editingSlide.spent.toString());
-    formData.append("goal", editingSlide.goal.toString());
-    formData.append("colected", editingSlide.colected.toString());
+    let body;
+    let headers = {
+      "Authorization": `Bearer ${token}`,
+    };
   
-    if (imageFile) {
-      formData.append("file", imageFile);
+    if (isUpdate) {
+      // Para PUT, envie apenas o JSON de informações da ação
+      body = JSON.stringify({
+        name: editingSlide.name,
+        type: editingSlide.type,
+        spent: editingSlide.spent,
+        goal: editingSlide.goal,
+        colected: editingSlide.colected,
+      });
+      headers["Content-Type"] = "application/json";
+    } else {
+      // Para POST, envie o formData que inclui a imagem
+      const formData = new FormData();
+      formData.append("name", editingSlide.name);
+      formData.append("type", editingSlide.type);
+      formData.append("spent", editingSlide.spent.toString());
+      formData.append("goal", editingSlide.goal.toString());
+      formData.append("colected", editingSlide.colected.toString());
+  
+      if (imageFile) {
+        formData.append("file", imageFile);
+      }
+  
+      body = formData;
     }
   
-    console.log("Enviando requisição:", { method, url, body: formData });
+    console.log("Enviando requisição:", { method, url, body });
   
     try {
       const response = await fetch(url, {
         method,
-        headers: {
-          "Authorization": `Bearer ${token}`,
-        },
-        body: formData,
+        headers,
+        body,
       });
   
       if (!response.ok) {
