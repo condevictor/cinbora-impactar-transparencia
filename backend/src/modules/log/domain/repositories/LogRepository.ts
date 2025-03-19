@@ -4,7 +4,17 @@ import { Log } from "../entities/Log";
 class LogRepository {
   async create(log: Log): Promise<void> {
     await prismaClient.log.create({
-      data: log,
+      data: {
+        ngoId: log.ngoId,
+        userId: log.userId,
+        userName: log.userName,
+        action: log.action,
+        model: log.model,
+        modelId: log.modelId.toString(), // Converter para string para garantir
+        changes: log.changes,
+        description: log.description,
+        timestamp: log.timestamp,
+      },
     });
   }
 

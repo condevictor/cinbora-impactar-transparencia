@@ -139,7 +139,7 @@ model Log {
   userName String 
   action      String // A ação realizada (ex: "CREATE", "UPDATE", "DELETE").
   model       String // O modelo que foi alterado (ex: "User", "Ngo", "Action").
-  modelId     String   @db.ObjectId
+  modelId     String
   changes     Json
   description String
   timestamp   DateTime @default(now())
