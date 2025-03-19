@@ -2,14 +2,20 @@ import request from 'supertest';
 import Fastify from 'fastify';
 import { UserController } from '../UserController';
 import { deleteUserService } from '@config/dependencysInjection/userDependencyInjection';
+import { logService } from '@config/dependencysInjection/logDependencyInjection';
 import { CustomError } from '@shared/customError';
 
 jest.mock('@config/dependencysInjection/userDependencyInjection');
+jest.mock('@config/dependencysInjection/logDependencyInjection');
 
 const server = Fastify();
 const userController = new UserController();
 
-server.delete('/users/:id', userController.delete.bind(userController));
+server.delete('/users/:id', async (req, res) => {
+  // Mocka o request.user para incluir o ngoid do token
+  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+  await userController.delete(req, res);
+});
 
 describe('UserController - Delete', () => {
   beforeAll(async () => {
@@ -32,6 +38,7 @@ describe('UserController - Delete', () => {
     const userId = '1';
 
     (deleteUserService.execute as jest.Mock).mockResolvedValue({ message: 'Usuário deletado com sucesso' });
+    (logService.logAction as jest.Mock).mockResolvedValue(undefined);
 
     const response = await request(server.server)
       .delete(`/users/${userId}`);
@@ -44,6 +51,7 @@ describe('UserController - Delete', () => {
     const userId = '1';
 
     (deleteUserService.execute as jest.Mock).mockRejectedValue(new CustomError('Erro ao deletar usuário', 500));
+    (logService.logAction as jest.Mock).mockResolvedValue(undefined);
 
     const response = await request(server.server)
       .delete(`/users/${userId}`);

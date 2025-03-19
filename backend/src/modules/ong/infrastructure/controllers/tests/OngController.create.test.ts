@@ -2,14 +2,20 @@ import request from 'supertest';
 import Fastify from 'fastify';
 import { OngController } from '../OngController';
 import { createOngService } from '@config/dependencysInjection/ongDependencyInjection';
+import { logService } from '@config/dependencysInjection/logDependencyInjection';
 import { CustomError } from '@shared/customError';
 
 jest.mock('@config/dependencysInjection/ongDependencyInjection');
+jest.mock('@config/dependencysInjection/logDependencyInjection');
 
 const server = Fastify();
 const ongController = new OngController();
 
-server.post('/ongs', ongController.create.bind(ongController));
+server.post('/ongs', async (req, res) => {
+  // Mocka o request.user para incluir o ngoid do token
+  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+  await ongController.create(req, res);
+});
 
 describe('OngController - Create', () => {
   beforeAll(async () => {
@@ -30,6 +36,7 @@ describe('OngController - Create', () => {
 
   it('should create a new ONG', async () => {
     const newOng = {
+      id: 1,
       name: 'New ONG',
       description: 'New Description',
       is_formalized: true,
@@ -43,10 +50,11 @@ describe('OngController - Create', () => {
       gallery_images_url: [],
       skills: {},
       causes: {},
-      sustainable_development_goals: {}
+      sustainable_development_goals: {},
     };
 
     (createOngService.execute as jest.Mock).mockResolvedValue(newOng);
+    (logService.logAction as jest.Mock).mockResolvedValue(undefined);
 
     const response = await request(server.server)
       .post('/ongs')
@@ -58,6 +66,7 @@ describe('OngController - Create', () => {
 
   it('should return an error if creating the ONG fails', async () => {
     (createOngService.execute as jest.Mock).mockRejectedValue(new CustomError('Erro ao criar ONG', 500));
+    (logService.logAction as jest.Mock).mockResolvedValue(undefined);
 
     const response = await request(server.server)
       .post('/ongs')

@@ -2,14 +2,20 @@ import request from 'supertest';
 import Fastify from 'fastify';
 import { UserController } from '../UserController';
 import { createUserService } from '@config/dependencysInjection/userDependencyInjection';
+import { logService } from '@config/dependencysInjection/logDependencyInjection';
 import { CustomError } from '@shared/customError';
 
 jest.mock('@config/dependencysInjection/userDependencyInjection');
+jest.mock('@config/dependencysInjection/logDependencyInjection');
 
 const server = Fastify();
 const userController = new UserController();
 
-server.post('/users', userController.create.bind(userController));
+server.post('/users', async (req, res) => {
+  // Mocka o request.user para incluir o ngoid do token
+  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+  await userController.create(req, res);
+});
 
 describe('UserController - Create', () => {
   beforeAll(async () => {
@@ -39,6 +45,7 @@ describe('UserController - Create', () => {
       id: '1',
       ...userData,
     });
+    (logService.logAction as jest.Mock).mockResolvedValue(undefined);
 
     const response = await request(server.server)
       .post('/users')
@@ -57,6 +64,7 @@ describe('UserController - Create', () => {
     };
 
     (createUserService.execute as jest.Mock).mockRejectedValue(new CustomError('Erro ao criar usuário', 500));
+    (logService.logAction as jest.Mock).mockResolvedValue(undefined);
 
     const response = await request(server.server)
       .post('/users')

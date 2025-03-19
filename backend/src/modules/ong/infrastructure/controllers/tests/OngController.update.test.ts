@@ -2,9 +2,11 @@ import request from 'supertest';
 import Fastify from 'fastify';
 import { OngController } from '../OngController';
 import { updateOngService } from '@config/dependencysInjection/ongDependencyInjection';
+import { logService } from '@config/dependencysInjection/logDependencyInjection';
 import { CustomError } from '@shared/customError';
 
 jest.mock('@config/dependencysInjection/ongDependencyInjection');
+jest.mock('@config/dependencysInjection/logDependencyInjection');
 
 const server = Fastify();
 const ongController = new OngController();
@@ -51,6 +53,7 @@ describe('OngController - Update', () => {
     };
 
     (updateOngService.execute as jest.Mock).mockResolvedValue(updatedData);
+    (logService.logAction as jest.Mock).mockResolvedValue(undefined);
 
     const response = await request(server.server)
       .put('/ongs')
@@ -62,6 +65,7 @@ describe('OngController - Update', () => {
 
   it('should return an error if updating the ONG fails', async () => {
     (updateOngService.execute as jest.Mock).mockRejectedValue(new CustomError('Erro ao atualizar ONG', 500));
+    (logService.logAction as jest.Mock).mockResolvedValue(undefined);
 
     const response = await request(server.server)
       .put('/ongs')
