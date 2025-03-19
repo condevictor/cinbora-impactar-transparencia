@@ -11,7 +11,6 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-
 interface Ong {
   id: number;
   name: string;
@@ -24,6 +23,7 @@ interface Ong {
 export default function Ongs() {
   const [ongs, setOngs] = useState<Ong[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true); 
 
   useEffect(() => {
     fetch("http://127.0.0.1:3333/ongs")
@@ -31,8 +31,12 @@ export default function Ongs() {
       .then((data) => {
         const responseData = (Array.isArray(data) ? data : data.ongs || data.data || []) as Ong[];
         setOngs(responseData);
+        setIsLoading(false); 
       })
-      .catch((error) => console.error("Error fetching ongs:", error));
+      .catch((error) => {
+        console.error("Error fetching ongs:", error);
+        setIsLoading(false);
+      });
   }, []);
 
   return (
@@ -41,7 +45,7 @@ export default function Ongs() {
         <div className="flex flex-col w-3/5 text-[#294BB6] p-12 max-xl:p-3">
           <h1 className="font-semibold text-5xl max-lg:text-4xl max-md:text-3xl max-sm:text-xl">Portal da Transparência</h1>
           <h2 className="font-semibold text-3xl max-w-96 mt-auto max-lg:text-2xl max-md:text-xl max-sm:text-sm">
-            Transparência gera confiança, aitems-endcompanhe cada passo das nossas atuações.
+            Transparência gera confiança, acompanhe cada passo das nossas atuações.
           </h2>
         </div>
         <div className="flex flex-col ">
@@ -73,49 +77,55 @@ export default function Ongs() {
         />
       </div>
 
-      <div className="max-w-7xl grid grid-cols-3 m-auto mb-16 gap-2 justify-items-center max-h-[560px] overflow-y-scroll max-xl:grid-cols-2 max-lg:grid-cols-1">
-        {ongs
-          .filter((ong) =>
-            ong.name.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-          .map((ong) => (
-            <div key={ong.id} className="w-96 flex flex-col p-2 mb-4 shadow-[0_1px_4px_1px_rgba(16,24,40,0.1)] max-sm:w-80">
-              <h1 className="font-bold mb-2">{ong.name}</h1>
-              <p className="mb-2 h-48 pr-4 overflow-y-scroll break-words">{ong.description}</p>
-              <div className="flex mb-2">
-                <Image src={dateIcon} alt="data" />
-                <p className="ml-2 whitespace-nowrap overflow-hidden text-ellipsis">Ano: {ong.start_year || "N/A"}</p>
-              </div>
-              <div className="flex mb-2">
-                <Image src={phoneIcon} alt="telefone" />
-                <p className="ml-2 whitespace-nowrap overflow-hidden text-ellipsis">{ong.contact_phone || "N/A"}</p>
-              </div>
-              <div className="flex mb-2">
-                <Image src={instagramIcon} alt="instagram" />
-                <a
-                  href={ong.instagram_link && (ong.instagram_link.startsWith("http") ? ong.instagram_link : `https://${ong.instagram_link}`)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-2 whitespace-nowrap overflow-hidden">
+      {!isLoading && ongs.length === 0 && (
+        <div className="w-full text-center mt-4 mb-20 text-red-600">Nenhuma ONG encontrada.</div>
+      )}
 
-                <p className="overflow-hidden text-ellipsis"><span className="underline underline-offset-auto hover:text-[#294BB6]"> {ong.instagram_link|| "N/A"} </span></p>
-                </a>
-              </div>
-              <div className="h-12 flex justify-between">
-                <Link href={`/visitor?ngo_id=${ong.id}`} className="w-4/5 h-full font-bold rounded-[34px] bg-[#294BB6] text-white border-solid border-[#2E4049] border">
-                  <Button className="w-full h-full font-bold rounded-[34px] bg-[#294BB6] text-white border-solid border-[#2E4049] border hover:text-[#294BB6] hover:bg-white">
-                    TRANSPARÊNCIA
-                  </Button>
-                </Link>
-                <div className="w-2/12 rounded-full bg-[#F2F4F7] flex justify-center items-center">
-                  <Image className="w-6 h-6" src={shareButton} alt="share" />
+      {ongs.length > 0 && (
+        <div className="max-w-7xl grid grid-cols-3 m-auto mb-16 gap-2 justify-items-center max-h-[560px] overflow-y-scroll max-xl:grid-cols-2 max-lg:grid-cols-1">
+          {ongs
+            .filter((ong) =>
+              ong.name.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+            .map((ong) => (
+              <div key={ong.id} className="w-96 flex flex-col p-2 mb-4 shadow-[0_1px_4px_1px_rgba(16,24,40,0.1)] max-sm:w-80">
+                <h1 className="font-bold mb-2">{ong.name}</h1>
+                <p className="mb-2 h-48 pr-4 overflow-y-scroll break-words">{ong.description}</p>
+                <div className="flex mb-2">
+                  <Image src={dateIcon} alt="data" />
+                  <p className="ml-2 whitespace-nowrap overflow-hidden text-ellipsis">Ano: {ong.start_year || "N/A"}</p>
                 </div>
-              </div>   
-              
-              
-            </div>
-          ))}
-      </div>
+                <div className="flex mb-2">
+                  <Image src={phoneIcon} alt="telefone" />
+                  <p className="ml-2 whitespace-nowrap overflow-hidden text-ellipsis">{ong.contact_phone || "N/A"}</p>
+                </div>
+                <div className="flex mb-2">
+                  <Image src={instagramIcon} alt="instagram" />
+                  <a
+                    href={ong.instagram_link && (ong.instagram_link.startsWith("http") ? ong.instagram_link : `https://${ong.instagram_link}`)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-2 whitespace-nowrap overflow-hidden"
+                  >
+                    <p className="overflow-hidden text-ellipsis">
+                      <span className="underline underline-offset-auto hover:text-[#294BB6]"> {ong.instagram_link|| "N/A"} </span>
+                    </p>
+                  </a>
+                </div>
+                <div className="h-12 flex justify-between">
+                  <Link href={`/visitor?ngo_id=${ong.id}`} className="w-4/5 h-full font-bold rounded-[34px] bg-[#294BB6] text-white border-solid border-[#2E4049] border">
+                    <Button className="w-full h-full font-bold rounded-[34px] bg-[#294BB6] text-white border-solid border-[#2E4049] border hover:text-[#294BB6] hover:bg-white">
+                      TRANSPARÊNCIA
+                    </Button>
+                  </Link>
+                  <div className="w-2/12 rounded-full bg-[#F2F4F7] flex justify-center items-center">
+                    <Image className="w-6 h-6" src={shareButton} alt="share" />
+                  </div>
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
     </div>
   );
 }
