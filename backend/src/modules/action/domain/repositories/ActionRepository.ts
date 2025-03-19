@@ -3,7 +3,6 @@ import { Action } from "@modules/action";
 import s3StorageInstance from "@shared/s3Cliente";
 import { CustomError } from "@shared/customError";
 import { Prisma } from "@prisma/client";
-import { NgoExpensesGrafic } from "@routeParams/RouteParams"
 
 class ActionRepository {
   private s3Storage = s3StorageInstance;
@@ -174,31 +173,7 @@ class ActionRepository {
       const month = date.getMonth() + 1;
       const day = date.getDate();
   
-      // Função auxiliar para encontrar último registro de categorias
-      const findLatestCategoriesExpenses = (expensesArr: any[]): Record<string, number> => {
-        if (!expensesArr || expensesArr.length === 0) return {};
-        
-        // Percorrer a estrutura para encontrar o último registro
-        for (let i = expensesArr.length - 1; i >= 0; i--) {
-          const yearData = expensesArr[i];
-          if (!yearData.months || yearData.months.length === 0) continue;
-          
-          for (let j = yearData.months.length - 1; j >= 0; j--) {
-            const monthData = yearData.months[j];
-            if (!monthData.dailyRecords || monthData.dailyRecords.length === 0) continue;
-            
-            for (let k = monthData.dailyRecords.length - 1; k >= 0; k--) {
-              const dayRecord = monthData.dailyRecords[k];
-              if (dayRecord?.categorysExpenses) {
-                return dayRecord.categorysExpenses as Record<string, number>;
-              }
-            }
-          }
-        }
-        
-        return {};
-      };
-  
+      // Buscar os registros existentes no banco
       const existingExpenses = await prismaClient.actionExpensesGrafic.findFirst({
         where: { actionId },
       });
@@ -206,34 +181,28 @@ class ActionRepository {
       let expensesArray: any[] = [];
   
       if (existingExpenses) {
-        expensesArray = existingExpenses.categorysExpenses as Array<any>;
-        let yearData = expensesArray.find((entry: any) => entry.year === year);
+        expensesArray = existingExpenses.categorysExpenses as any[];
+        let yearData = expensesArray.find((entry) => entry.year === year);
   
         if (!yearData) {
           yearData = { year, months: [] };
           expensesArray.push(yearData);
         }
   
-        let monthData = yearData.months.find((m: any) => m.month === month);
+        let monthData = yearData.months.find((m: { month: number, dailyRecords: any[] }) => m.month === month);
   
         if (!monthData) {
           monthData = { month, dailyRecords: [] };
           yearData.months.push(monthData);
         }
   
-        let dayData = monthData.dailyRecords.find((d: any) => d.day === day);
+        let dayData = monthData?.dailyRecords.find((d: { day: number, categorysExpenses: Record<string, number> }) => d.day === day);
   
         if (dayData) {
-          // Atualiza as categorias mantendo as existentes e substituindo os valores enviados
-          dayData.categorysExpenses = { ...dayData.categorysExpenses, ...newExpense };
+          // Substitui os dados do dia atual
+          dayData.categorysExpenses = newExpense;
         } else {
-          // Encontrar o último registro com categorias para herdar
-          const latestCategories = findLatestCategoriesExpenses(expensesArray);
-          // Adicionar novo registro com a combinação das categorias antigas e novas
-          monthData.dailyRecords.push({ 
-            day, 
-            categorysExpenses: { ...latestCategories, ...newExpense } 
-          });
+          monthData.dailyRecords.push({ day, categorysExpenses: newExpense });
         }
   
         await prismaClient.actionExpensesGrafic.update({
@@ -253,18 +222,13 @@ class ActionRepository {
       }
   
       // Pegar a versão mais atual após as modificações
-      const updatedActionExpenses = await prismaClient.actionExpensesGrafic.findFirst({
-        where: { actionId },
-      });
-  
-      if (!updatedActionExpenses) {
-        throw new CustomError("Erro ao buscar despesas atualizadas", 500);
-      }
+      const updatedActionExpenses = await prismaClient.actionExpensesGrafic.findFirst({ where: { actionId } });
+      if (!updatedActionExpenses) throw new CustomError("Erro ao buscar despesas atualizadas", 500);
       
-      // Calcular o novo `spent` da ação (último dailyRecord)
+      // Ponto 4: Calcular corretamente o novo spent da ação (último dailyRecord)
       let latestSpent = 0;
       const currentExpensesArray = updatedActionExpenses.categorysExpenses as Array<any>;
-              
+      
       if (currentExpensesArray && currentExpensesArray.length > 0) {
         const latestYear = currentExpensesArray[currentExpensesArray.length - 1];
         if (latestYear?.months && latestYear.months.length > 0) {
@@ -285,73 +249,66 @@ class ActionRepository {
         include: { ngo: true },
       });
   
-      if (!updatedAction.ngo) {
-        throw new CustomError("Ação sem ONG associada", 404);
-      }
-  
+      if (!updatedAction.ngo) throw new CustomError("Ação sem ONG associada", 404);
       const ngoId = updatedAction.ngo.id;
   
-      // Atualizar dados da ONG - otimizado com uma única consulta
-      const [allActions, ngoGraphic] = await Promise.all([
-        prismaClient.action.findMany({ where: { ngoId } }),
-        prismaClient.ngoGraphic.findUnique({ where: { ngoId } })
-      ]);
+      // Ponto 5: Tratamento de erros Prisma mais robusto
+      try {
+        // Atualizar dados da ONG
+        const [allActions, ngoGraphic] = await Promise.all([
+          prismaClient.action.findMany({ where: { ngoId } }),
+          prismaClient.ngoGraphic.findUnique({ where: { ngoId } }),
+        ]);
   
-      if (!ngoGraphic) {
-        throw new CustomError("Gráfico da ONG não encontrado", 404);
+        if (!ngoGraphic) throw new CustomError("Gráfico da ONG não encontrado", 404);
+  
+        const allActionsExpenses = allActions.reduce<Record<string, number>>((acc, action) => {
+          acc[action.name] = action.spent || 0;
+          return acc;
+        }, {});
+  
+        let ngoExpensesArray = ngoGraphic.expensesByAction as any[];
+        let yearData = ngoExpensesArray.find((entry) => entry.year === year);
+  
+        if (!yearData) {
+          yearData = { year, months: [] };
+          ngoExpensesArray.push(yearData);
+        }
+  
+        let monthData = yearData.months.find((m: { month: number, dailyRecords: any[] }) => m.month === month);
+        if (!monthData) {
+          monthData = { month, dailyRecords: [] };
+          yearData.months.push(monthData);
+        }
+  
+        let dayData = monthData?.dailyRecords.find((d: { day: number, categorysExpenses: Record<string, number> }) => d.day === day);
+        if (dayData) {
+          dayData.expensesByAction = allActionsExpenses;
+        } else {
+          monthData.dailyRecords.push({ day, expensesByAction: allActionsExpenses });
+        }
+  
+        const totalExpenses = allActions.reduce((sum, action) => sum + (action.spent || 0), 0);
+  
+        await prismaClient.ngoGraphic.update({
+          where: { ngoId },
+          data: {
+            expensesByAction: ngoExpensesArray,
+            totalExpenses,
+          },
+        });
+      } catch (prismaError) {
+        console.error("Erro ao atualizar dados da ONG:", prismaError);
+        throw new CustomError("Erro ao atualizar dados da ONG", 500);
       }
   
-      // Criar um objeto para expensesByAction otimizado
-      const allActionsExpenses = allActions.reduce<Record<string, number>>((acc, action) => {
-        acc[action.name] = action.spent || 0;
-        return acc;
-      }, {});
-  
-      // Atualizar o gráfico da ONG
-      let ngoExpensesArray = ngoGraphic.expensesByAction as Array<any>;
-      let yearData = ngoExpensesArray.find((entry: any) => entry.year === year);
-  
-      if (!yearData) {
-        yearData = { year, months: [] };
-        ngoExpensesArray.push(yearData);
-      }
-  
-      let monthData = yearData.months.find((m: any) => m.month === month);
-  
-      if (!monthData) {
-        monthData = { month, dailyRecords: [] };
-        yearData.months.push(monthData);
-      }
-  
-      let dayData = monthData.dailyRecords.find((d: any) => d.day === day);
-  
-      if (dayData) {
-        dayData.expensesByAction = allActionsExpenses;
-      } else {
-        monthData.dailyRecords.push({ day, expensesByAction: allActionsExpenses });
-      }
-  
-      // Calcular o total de despesas
-      const totalExpenses = allActions.reduce((sum, action) => sum + (action.spent || 0), 0);
-  
-      await prismaClient.ngoGraphic.update({
-        where: { ngoId },
-        data: {
-          expensesByAction: ngoExpensesArray,
-          totalExpenses,
-        },
-      });
-  
-      // Retornar o registro atualizado
       return updatedActionExpenses;
     } catch (error) {
       console.error("Erro ao atualizar gráfico de despesas da ação:", error);
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        throw new CustomError("Erro ao atualizar gráfico de despesas da ação", 400);
-      }
       throw new CustomError("Erro ao atualizar gráfico de despesas da ação", 500);
     }
   }
+  
 
 
   async findExpensesByActionId(actionId: string): Promise<any> {
