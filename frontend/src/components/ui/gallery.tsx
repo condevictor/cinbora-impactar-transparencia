@@ -17,6 +17,7 @@ export default function Gallery() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploadType, setUploadType] = useState<"image" | "video" | null>(null);
   const [category, setCategory] = useState<"tax_invoice" | "report" | "image" | "video" | "other">("image");
+  const [expandedImage, setExpandedImage] = useState<string | null>(null);
 
   useEffect(() => {
     const ngoId = Cookies.get("ngo_id");
@@ -145,51 +146,55 @@ export default function Gallery() {
     }
   };
 
-
+  // Função para expandir a imagem
+  const handleExpandImage = (img: string) => {
+    setExpandedImage(img);
+  };
 
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="flex flex-col items-center w-5/6 m-auto">
       {/* Título da Galeria */}
-      <h2 className="text-3xl font-bold mb-6">Galeria de Fotos e Vídeos</h2>
+      <h2 className="text-2xl font-bold mb-6 mt-10 w-full">Galeria de Fotos e Vídeos</h2>
 
       {/* Separador */}
-      <div className="w-full border-b-2 border-gray-300 mb-6"></div>
+      <div className="w-full border-b border-black mb-6"></div>
 
-      <div className="flex flex-col w-full max-w-6xl mx-auto">
+      <div className="flex flex-col w-full">
         {/* Seção de Imagens */}
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-          <Camera className="text-blue-600" size={24} />
+          <Camera className="text-blue-600 mr-2" size={35} />
           Imagens
         </h2>
 
-        <div className="grid grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))] gap-6">
+        <div className="grid grid-cols-3 gap-10 max-lg:grid-cols-2 max-sm:grid-cols-1">
           {/* Botão de Upload de Imagens */}
-          <label className="border-2 border-dashed border-gray-300 w-[300px] h-[300px] flex flex-col justify-center items-center cursor-pointer rounded-lg">
+          <label className="border-2 border-dashed border-gray-300 w-full h-64 flex flex-col justify-center items-center cursor-pointer rounded-lg">
             <UploadCloud className="text-blue-600" size={32} />
             <span className="text-lg font-semibold">Carregar Imagem</span>
             <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileSelect(e, "image")} />
           </label>
 
-          {/* Grid de Imagens */}
+          {/* Grid de Imagens com onClick para expandir */}
           {images.map((img, index) => (
             <img
               key={index}
               src={img}
               alt={`Imagem ${index}`}
-              className="w-[300px] h-[300px] rounded-lg shadow object-cover"
+              className="w-full h-64 rounded-lg shadow cursor-pointer"
+              onClick={() => handleExpandImage(img)}
             />
           ))}
         </div>
 
         {/* Seção de Vídeos */}
         <h2 className="text-lg font-bold mt-10 mb-4 flex items-center gap-2">
-          <Video className="text-blue-600" size={24} />
+          <Video className="text-blue-600 mr-2" size={35} />
           Vídeos
         </h2>
 
-        <div className="grid grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))] gap-6">
+        <div className="grid grid-cols-3 gap-10 max-lg:grid-cols-2 max-sm:grid-cols-1 mb-20">
           {/* Botão de Upload de Vídeos */}
-          <label className="border-2 border-dashed border-gray-300 w-[300px] h-[300px] flex flex-col justify-center items-center cursor-pointer rounded-lg">
+          <label className="border-2 border-dashed border-gray-300 w-full h-64 flex flex-col justify-center items-center cursor-pointer rounded-lg">
             <UploadCloud className="text-blue-600" size={32} />
             <span className="text-lg font-semibold">Carregar Vídeo</span>
             <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileSelect(e, "video")} />
@@ -200,7 +205,7 @@ export default function Gallery() {
             <video
               key={index}
               src={vid}
-              className="w-[300px] h-[300px] rounded-lg shadow object-cover"
+              className="w-full h-64 rounded-lg shadow"
               controls
             />
           ))}
@@ -236,6 +241,14 @@ export default function Gallery() {
 
             <Button onClick={handleUpload}>Confirmar Upload</Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={expandedImage !== null} onOpenChange={() => setExpandedImage(null)}>
+        <DialogContent className="bg-white rounded-xl shadow-xl p-8 ">
+          {expandedImage && (
+            <img src={expandedImage} alt="Imagem Expandida" className="w-full h-auto rounded-lg" />
+          )}
         </DialogContent>
       </Dialog>
     </div>

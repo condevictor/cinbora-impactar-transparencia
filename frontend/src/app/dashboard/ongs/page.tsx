@@ -258,8 +258,8 @@ export default function ActionsPage() {
   };
 
   return (
-    <main className="flex flex-col items-center bg-gray-100 min-h-screen py-10">
-      <h1 className="text-center text-5xl font-bold text-[#2E4049] mt-20">{ngoName}</h1>
+    <main className="flex flex-col items-center bg-gray-100 min-h-screen">
+      <h1 className="text-center text-5xl font-bold text-[#2E4049] mt-20">Transparência</h1>
       <h1 className="text-center text-4xl font-bold text-[#2E4049] mt-20">Ações</h1>
 
       
