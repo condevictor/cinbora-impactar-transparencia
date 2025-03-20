@@ -24,8 +24,6 @@ import Gallery from "@/components/ui/gallery";
 import Balance from "@/components/ui/balance";
 import Documents from "@/components/ui/documents";
 
-
-
 export default function ActionsPage() {
   const [slides, setSlides] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -35,6 +33,7 @@ export default function ActionsPage() {
   const [imageFile, setImageFile] = useState(null);
   const [imageUrls, setImageUrls] = useState({});
   const [activeTab, setActiveTab] = useState("balance");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const generateHash = async (name) => {
     const encoder = new TextEncoder();
@@ -112,9 +111,9 @@ export default function ActionsPage() {
       return;
     }
   
-    // Adiciona um parâmetro de cache-busting, se necessário
+   
     const url = forceFetch
-      ? `http://127.0.0.1:3333/ongs/${ngoId}/actions?nocache=${Date.now()}` // Força nova requisição
+      ? `http://127.0.0.1:3333/ongs/${ngoId}/actions?nocache=${Date.now()}`
       : `http://127.0.0.1:3333/ongs/${ngoId}/actions`; 
   
     console.log("Fazendo requisição GET:", url);
@@ -168,7 +167,7 @@ export default function ActionsPage() {
     };
   
     if (isUpdate) {
-      // Para PUT, envie apenas o JSON de informações da ação
+    
       body = JSON.stringify({
         name: editingSlide.name,
         type: editingSlide.type,
@@ -178,7 +177,7 @@ export default function ActionsPage() {
       });
       headers["Content-Type"] = "application/json";
     } else {
-      // Para POST, envie o formData que inclui a imagem
+     
       const formData = new FormData();
       formData.append("name", editingSlide.name);
       formData.append("type", editingSlide.type);
@@ -207,17 +206,17 @@ export default function ActionsPage() {
         return;
       }
   
-      // Recebe os dados atualizados do backend
+
       const updatedSlide = await response.json();
       console.log("Resposta do backend:", updatedSlide);
   
       closeModal();
   
-      // Atualiza o estado local com os dados retornados
+      
       setSlides((prevSlides) => {
         const newSlides = isUpdate
           ? prevSlides.map((slide) => (slide.id === updatedSlide.id ? updatedSlide : slide)) // Atualiza a ação existente
-          : [...prevSlides, updatedSlide]; // Adiciona a nova ação
+          : [...prevSlides, updatedSlide]; 
   
         console.log("Estado local atualizado:", newSlides);
         return newSlides;
@@ -226,34 +225,32 @@ export default function ActionsPage() {
       if (updatedSlide.aws_url) {
         setImageUrls((prevUrls) => ({ ...prevUrls, [updatedSlide.id]: updatedSlide.aws_url }));
       }
+
+    
+      if (isUpdate && imageFile) {
+        await updateSlideImage(updatedSlide.id);
+      }
     } catch (error) {
       console.log("Erro ao salvar a ação:", error);
     }
   };
-  
-  const updateSlideImage = async (slideId) => { // Não é para usar essa rota para salvar a foto da ação como imagem não
+
+  const updateSlideImage = async (slideId) => {
     const token = Cookies.get("auth_token");
-  
     if (!imageFile) return;
-  
     const formData = new FormData();
     formData.append("file", imageFile);
-  
     try {
       const response = await fetch(`http://127.0.0.1:3333/ongs/actions/${slideId}/image`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` }, // Mantém o cabeçalho de autenticação para rotas privadas
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-  
       if (!response.ok) {
         console.log("Erro ao atualizar a imagem:", response.statusText);
         return;
       }
-  
       const updatedImage = await response.json();
-      console.log("Imagem atualizada com sucesso:", updatedImage);
-  
       setImageUrls((prevUrls) => ({ ...prevUrls, [slideId]: updatedImage.aws_url }));
     } catch (error) {
       console.log("Erro ao atualizar a imagem:", error);
@@ -265,105 +262,98 @@ export default function ActionsPage() {
       <h1 className="text-center text-5xl font-bold text-[#2E4049] mt-20">{ngoName}</h1>
       <h1 className="text-center text-4xl font-bold text-[#2E4049] mt-20">Ações</h1>
 
-      <Carousel opts={{ align: "start" }} className="w-[100%] p-4 mt-16">
-        <CarouselContent>
-          {[...slides, { isAddCard: true }].map((slide, index) => (
-            <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 max-w-[400px] border-none shadow-none">
-              {slide.isAddCard ? (
-                <div
-                  className="p-1 flex items-center justify-center bg-gray-200 rounded-lg h-64 cursor-pointer"
-                  onClick={() => openModal()}
-                >
-                  <p className="text-lg font-semibold text-gray-600">+ Adicionar Ação</p>
-                </div>
-              ) : (
-                <div className="p-1">
-                  <div className="relative w-full">
-                    {/* Container da Imagem */}
-                    <div className="relative w-full h-[180px] overflow-hidden rounded-t-lg">
-                      <Image
-                        src={imageUrls[slide.id] || capa.src}
-                        alt="Imagem da ação"
-                        layout="fill"
-                        objectFit="cover"
-                        className="absolute top-0 left-0 w-full h-full"
-                      />
+      
+      <div className="w-full max-w-md mx-auto mt-6 px-4">
+        <Input
+          placeholder="Buscar por nome ou meta"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      {(() => {
+        const filteredSlides = slides.filter((slide) =>
+          slide.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          slide.type.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        const displaySlides = searchTerm ? filteredSlides : [{ isAddCard: true }, ...filteredSlides];
+        
+        return searchTerm && filteredSlides.length === 0 ? (
+          <div className="mt-10 text-red-600">
+            ação não encontrada
+          </div>
+        ) : (
+          <Carousel opts={{ align: "start" }} className="mt-16 w-full p-4">
+            <CarouselContent>
+              {displaySlides.map((slide, index) => (
+                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 border-none shadow-none">
+                  {slide.isAddCard ? (
+                    <div
+                      className="p-1 flex items-center justify-center bg-gray-200 rounded-lg h-64 cursor-pointer"
+                      onClick={() => openModal()}
+                    >
+                      <p className="text-lg font-semibold text-gray-600">+ Adicionar Ação</p>
                     </div>
-
-                    {/* Container do Card */}
-                    <div className="relative z-10 -mt-12 bg-white p-6 border border-gray-200 rounded-lg shadow-lg w-[90%] mx-auto">
-                      {/* Botão Editar */}
-                      <button
-                        onClick={() => openModal(slide)}
-                        className="absolute top-3 right-3 bg-[#0056D2] text-white text-xs font-bold px-4 py-1 rounded shadow-sm hover:bg-[#003C99] transition-all"
-                      >
-                        Editar
-                      </button>
-
-                      {/* Tag do Tipo */}
-                      <p className="inline-block text-xs font-semibold text-[#0056D2] bg-[#E9F2FF] px-3 py-1 rounded-lg uppercase tracking-wide">
-                        {slide.type}
-                      </p>
-
-                      {/* Título */}
-                      <h2 className="text-lg font-semibold mt-3 text-gray-900">{slide.name}</h2>
-
-                      {/* Barra de Progresso */}
-                      <Progress
-                        className="w-full bg-gray-200 mt-3"
-                        indicatorClass="bg-[#0056D2]"
-                        value={(slide.spent / slide.goal) * 100}
+                  ) : (
+                    <CardContent className="relative p-4 min-w-72">
+                      <div
+                        className="absolute inset-0 bg-no-repeat bg-center bg-cover max-h-48"
+                        style={{ backgroundImage: `url(${imageUrls[slide.id] || capa.src})` }}
                       />
-
-                      {/* Valores numéricos */}
-                      <div className="flex justify-between text-sm font-semibold text-gray-700 mt-4">
-                        <div className="text-center">
-                          <p className="text-xs text-gray-500">Arrecadado</p>
-                          <p className="text-lg font-bold whitespace-nowrap">
-                            R${" "}
-                            {new Intl.NumberFormat("pt-BR", { notation: "compact", compactDisplay: "short" }).format(slide.colected)}
-                          </p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs text-gray-500">Gasto</p>
-                          <p className="text-lg font-bold text-red-500 whitespace-nowrap">
-                            R${" "}
-                            {new Intl.NumberFormat("pt-BR", { notation: "compact", compactDisplay: "short" }).format(slide.spent)}
-                          </p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs text-gray-500">Meta</p>
-                          <p className="text-lg font-bold whitespace-nowrap">
-                            R${" "}
-                            {new Intl.NumberFormat("pt-BR", { notation: "compact", compactDisplay: "short" }).format(slide.goal)}
-                          </p>
+                      <div className="relative z-10 bg-white mt-32 w-full">
+                        <div className="flex flex-col justify-between p-4 w-full h-64 border border-white rounded shadow-[0_1px_4px_1px_rgba(16,24,40,0.1)]">
+                          <div className="relative">
+                            <button
+                              onClick={() => openModal(slide)}
+                              className="absolute  right-3 bg-[#0056D2] text-white text-xs font-bold px-4 py-1 rounded shadow-sm hover:bg-[#003C99] transition-all"
+                            >
+                              Editar
+                            </button>
+                            <p className="inline text-sm font-semibold text-[#294BB6] px-2 py-1 bg-[#2BAFF1] bg-opacity-20 rounded">
+                              {slide.type}
+                            </p>
+                          </div>
+                          <div className="font-semibold">{slide.name}</div>
+                          <div>
+                            <Progress className="w-full bg-[#EAECF0]" indicatorClass="bg-[#2BAFF150]" value={(slide.colected / slide.goal) * 100} />
+                          </div>
+                          <div className="flex justify-between font-semibold">
+                            <div className="flex flex-col">
+                              <p className="text-xs font-light text-gray-600">Gasto</p>
+                              <p>R${slide.spent}</p>
+                            </div>
+                            <div className="flex flex-col">
+                              <p className="text-xs font-light text-gray-600">Coletado</p>
+                              <p>R${slide.colected}</p>
+                            </div>
+                            <div className="flex flex-col">
+                              <p className="text-xs font-light text-gray-600">Meta</p>
+                              <p>R${slide.goal}</p>
+                            </div>
+                          </div>
+                          <hr className="border-solide border borde-gray-500" />
+                          <div className="flex justify-between items-center h-10">
+                            <Button className="w-4/5 h-full font-bold rounded-[34px] bg-[#294BB6] text-white border-solid border-[#2E4049] border hover:text-[#294BB6] hover:bg-white">
+                              TRANSPARÊNCIA
+                            </Button>
+                            <div className="w-2/12 rounded-full h-full bg-[#F2F4F7] flex justify-center items-center">
+                              <Image className="w-6 h-6" src={shareButton} alt="share" />
+                            </div>
+                          </div>
                         </div>
                       </div>
-
-
-                      {/* Botão de Ação */}
-                      <div className="mt-5 flex justify-between items-center">
-                        <Button className="w-full h-12 font-semibold rounded-full bg-[#0056D2] text-white hover:bg-[#003C99] transition-all">
-                          TRANSPARÊNCIA
-                        </Button>
-                        <div className="ml-2 w-10 h-10 rounded-full bg-gray-100 flex justify-center items-center cursor-pointer">
-                          <Image className="w-6 h-6" src={shareButton} alt="share" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-
-                </div>
-              )}
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <div className="flex justify-center mt-4 gap-4 pb-4 w-full">
-          <CarouselPrevious />
-          <CarouselNext />
-        </div>
-      </Carousel>
+                    </CardContent>
+                  )}
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <div className="flex justify-center mt-4 gap-4 pb-4 w-full">
+              <CarouselPrevious />
+              <CarouselNext />
+            </div>
+          </Carousel>
+        );
+      })()}
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="bg-white rounded-xl shadow-2xl p-8 border b border-[#2E4049] text-[#2E4049] w-[500px]">
