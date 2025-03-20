@@ -68,41 +68,146 @@ class ActionRepository {
     }
   }
 
-  async create(data: Omit<Action, 'id'>): Promise<Action> {
+  async create(data: Omit<Action, 'id'> & { categorysExpenses: Record<string, number> }): Promise<Action> {
     try {
-      const action = await prismaClient.$transaction(async (prisma) => {
-        const createdAction = await prisma.action.create({
-          data: {
-            name: data.name,
-            type: data.type,
-            ngoId: data.ngoId,
-            spent: data.spent,
-            goal: data.goal,
-            colected: data.colected,
-            aws_url: data.aws_url,
-          },
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+
+        const expensesArray = [
+            {
+                year,
+                months: [
+                    {
+                        month,
+                        dailyRecords: [
+                            {
+                                day,
+                                categorysExpenses: data.categorysExpenses,
+                            },
+                        ],
+                    },
+                ],
+            },
+        ];
+
+        const action = await prismaClient.$transaction(async (prisma) => {
+            const createdAction = await prisma.action.create({
+                data: {
+                    name: data.name,
+                    type: data.type,
+                    ngoId: data.ngoId,
+                    spent: data.spent,
+                    goal: data.goal,
+                    colected: data.colected,
+                    aws_url: data.aws_url,
+                },
+            });
+
+            await prisma.actionExpensesGrafic.create({
+                data: {
+                    actionId: createdAction.id,
+                    ngoId: data.ngoId,
+                    categorysExpenses: expensesArray,
+                },
+            });
+
+            // Update NGO graphic with the new action data
+            try {
+                // Get all actions for this NGO including the newly created one
+                const allActions = await prisma.action.findMany({ 
+                    where: { ngoId: data.ngoId } 
+                });
+                
+                // Get or create NGO graphic
+                let ngoGraphic = await prisma.ngoGraphic.findUnique({ 
+                    where: { ngoId: data.ngoId } 
+                });
+                
+                // Calculate all actions expenses
+                const allActionsExpenses = allActions.reduce<Record<string, number>>((acc, action) => {
+                    acc[action.name] = action.spent || 0;
+                    return acc;
+                }, {});
+                
+                let ngoExpensesArray = [];
+                
+                if (ngoGraphic) {
+                    // Update existing NGO graphic
+                    ngoExpensesArray = ngoGraphic.expensesByAction as any[];
+                    let yearData = ngoExpensesArray.find((entry) => entry.year === year);
+                    
+                    if (!yearData) {
+                        yearData = { year, months: [] };
+                        ngoExpensesArray.push(yearData);
+                    }
+                    
+                    let monthData = yearData.months.find((m: { month: number, dailyRecords: any[] }) => m.month === month);
+                    if (!monthData) {
+                        monthData = { month, dailyRecords: [] };
+                        yearData.months.push(monthData);
+                    }
+                    
+                    let dayData = monthData?.dailyRecords.find((d: { day: number, expensesByAction: Record<string, number> }) => d.day === day);
+                    if (dayData) {
+                        dayData.expensesByAction = allActionsExpenses;
+                    } else {
+                        monthData.dailyRecords.push({ day, expensesByAction: allActionsExpenses });
+                    }
+                } else {
+                    // Create new NGO graphic structure
+                    ngoExpensesArray = [
+                        {
+                            year,
+                            months: [
+                                {
+                                    month,
+                                    dailyRecords: [
+                                        { 
+                                            day, 
+                                            expensesByAction: allActionsExpenses 
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ];
+                }
+                
+                // Calculate total expenses from all actions
+                const totalExpenses = allActions.reduce((sum, action) => sum + (action.spent || 0), 0);
+                
+                // Update or create the NGO graphic
+                await prisma.ngoGraphic.upsert({
+                    where: { ngoId: data.ngoId },
+                    update: {
+                        expensesByAction: ngoExpensesArray,
+                        totalExpenses,
+                    },
+                    create: {
+                        ngoId: data.ngoId,
+                        expensesByAction: ngoExpensesArray,
+                        totalExpenses,
+                    }
+                });
+            } catch (ngoGraphicError) {
+                console.error("Erro ao atualizar gráfico da ONG durante criação da ação:", ngoGraphicError);
+            }
+
+            return createdAction;
         });
 
-        await prisma.actionExpensesGrafic.create({
-          data: {
-            actionId: createdAction.id,
-            ngoId: data.ngoId,
-            categorysExpenses: [],
-          },
-        });
-
-        return createdAction;
-      });
-
-      return new Action(action, action.id);
+        return new Action(action, action.id);
     } catch (error) {
-      console.error("Erro ao criar ação:", error);
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        throw new CustomError("Erro ao criar ação", 400);
-      }
-      throw new CustomError("Erro ao criar ação", 500);
+        console.error("Erro ao criar ação:", error);
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            throw new CustomError("Erro ao criar ação", 400);
+        }
+        throw new CustomError("Erro ao criar ação", 500);
     }
   }
+
 
   async update(id: string, data: Partial<Omit<Action, 'id'>>): Promise<Action> {
     try {

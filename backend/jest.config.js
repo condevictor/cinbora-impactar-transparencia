@@ -4,10 +4,11 @@ module.exports = {
   testEnvironment: 'node',
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
-    '^.+\\.jsx?$': 'babel-jest', // Adicione esta linha para suportar ES Modules
+    '^.+\\.jsx?$': 'babel-jest',
+    '^.+\\.js$': 'babel-jest',
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!mime/)', // Adicione esta linha para transformar o módulo mime
+    '/node_modules/(?!@aws-sdk|mime)',
   ],
   moduleNameMapper: {
     "^@modules/(.*)$": "<rootDir>/src/modules/$1",
