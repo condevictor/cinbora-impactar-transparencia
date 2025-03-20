@@ -141,6 +141,7 @@ class ActionController {
     let filename = '';
     let mimetype = '';
     let size = 0;
+    let categorysExpenses: Record<string, number> = {};
 
     for await (const part of parts) {
       if (part.type === 'file') {
@@ -156,6 +157,13 @@ class ActionController {
         if (fieldPart.fieldname === 'spent') spent = parseFloat(fieldPart.value);
         if (fieldPart.fieldname === 'goal') goal = parseFloat(fieldPart.value);
         if (fieldPart.fieldname === 'colected') colected = parseFloat(fieldPart.value);
+        
+        // Handle categorysExpenses fields
+        const categoryMatch = fieldPart.fieldname.match(/^categorysExpenses\[(.*?)\]$/);
+        if (categoryMatch && categoryMatch[1]) {
+          const category = decodeURIComponent(categoryMatch[1].replace(/\+/g, " ")); // Garante que os espaços sejam mantidos
+          categorysExpenses[category] = parseFloat(fieldPart.value);
+        }
       }
     }
 
@@ -180,9 +188,10 @@ class ActionController {
         goal,
         colected,
         aws_url,
+        categorysExpenses,
       });
 
-      await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "CRIAR", "Ação", action.id.toString(), { name, type, spent, goal, colected, aws_url }, "Ação criada");
+      await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "CRIAR", "Ação", action.id.toString(), { name, type, spent, goal, colected, aws_url, categorysExpenses }, "Ação criada");
       reply.send(action);
     } catch (error) {
       console.error("Error creating action:", error);
