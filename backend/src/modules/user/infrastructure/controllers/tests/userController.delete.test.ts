@@ -1,7 +1,7 @@
 import request from 'supertest';
 import Fastify from 'fastify';
 import { UserController } from '../UserController';
-import { deleteUserService } from '@config/dependencysInjection/userDependencyInjection';
+import { createUserService, deleteUserService, getUserService, updateUserProfileService } from '@config/dependencysInjection/userDependencyInjection';
 import { logService } from '@config/dependencysInjection/logDependencyInjection';
 import { CustomError } from '@shared/customError';
 
@@ -9,7 +9,12 @@ jest.mock('@config/dependencysInjection/userDependencyInjection');
 jest.mock('@config/dependencysInjection/logDependencyInjection');
 
 const server = Fastify();
-const userController = new UserController();
+const userController = new UserController(
+  createUserService, 
+  deleteUserService, 
+  getUserService,
+  updateUserProfileService
+);
 
 server.delete('/users/:id', async (req, res) => {
   // Mocka o request.user para incluir o ngoid do token

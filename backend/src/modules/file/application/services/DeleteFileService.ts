@@ -8,12 +8,13 @@ class DeleteFileService {
     this.fileRepository = fileRepository;
   }
 
-  async execute(id: string): Promise<void> {
+  async execute(id: string): Promise<{ category: string }> {
     try {
-      await this.fileRepository.delete(id);
+      const deleteResult = await this.fileRepository.delete(id);
+      return deleteResult;
     } catch (error) {
       console.error("Erro no serviço de deletar arquivo:", error);
-      throw new CustomError("Errono serviço de deletar arquivo", 500);
+      throw new CustomError("Erro no serviço de deletar arquivo", 500);
     }
   }
 }

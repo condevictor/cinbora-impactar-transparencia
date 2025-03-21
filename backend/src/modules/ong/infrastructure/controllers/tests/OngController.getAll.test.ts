@@ -1,13 +1,19 @@
 import request from 'supertest';
 import Fastify from 'fastify';
 import { OngController } from '../OngController';
-import { getOngService } from '@config/dependencysInjection/ongDependencyInjection';
+import { createOngService, getOngService, updateOngService, deleteOngService, updateNgoGraficService } from '@config/dependencysInjection/ongDependencyInjection';
 import { CustomError } from '@shared/customError';
 
 jest.mock('@config/dependencysInjection/ongDependencyInjection');
 
 const server = Fastify();
-const ongController = new OngController();
+const ongController = new OngController(
+  createOngService,
+  deleteOngService,
+  getOngService,
+  updateOngService,
+  updateNgoGraficService
+);
 
 server.get('/ongs', ongController.getAll.bind(ongController));
 
@@ -44,12 +50,12 @@ describe('OngController - GetAll', () => {
   }, 10000);
 
   it('should return an error if fetching ONGs fails', async () => {
-    (getOngService.execute as jest.Mock).mockRejectedValue(new CustomError('Erro ao obter ONGs', 500));
+    (getOngService.execute as jest.Mock).mockRejectedValue(new CustomError('Internal Server Error', 500));
 
     const response = await request(server.server)
       .get('/ongs');
 
     expect(response.status).toBe(500);
-    expect(response.body).toHaveProperty('error', 'Erro ao obter ONGs');
+    expect(response.body).toHaveProperty('error', 'Internal Server Error');
   }, 10000);
 });

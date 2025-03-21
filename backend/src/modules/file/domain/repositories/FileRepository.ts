@@ -61,18 +61,20 @@ class FileRepository {
     }
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string): Promise<{ category: string }> {
     try {
       const ongFile = await prismaClient.ongFile.findUnique({
         where: { id },
       });
 
       if (ongFile) {
-        await this.s3Storage.deleteFile(ongFile.aws_name); // Usando aws_name
+        await this.s3Storage.deleteFile(ongFile.aws_name);
         await prismaClient.ongFile.delete({
           where: { id },
         });
-        return;
+        return {
+          category: ongFile.category
+        };
       }
 
       const actionFile = await prismaClient.actionFile.findUnique({
@@ -80,11 +82,16 @@ class FileRepository {
       });
 
       if (actionFile) {
-        await this.s3Storage.deleteFile(actionFile.aws_name); // Usando aws_name
+        await this.s3Storage.deleteFile(actionFile.aws_name);
         await prismaClient.actionFile.delete({
           where: { id },
         });
+        return {
+          category: actionFile.category
+        };
       }
+      
+      throw new CustomError("Arquivo não encontrado", 404);
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new CustomError("Erro ao deletar arquivo", 400);

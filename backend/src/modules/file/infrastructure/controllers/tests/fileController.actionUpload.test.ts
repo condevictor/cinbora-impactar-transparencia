@@ -19,7 +19,18 @@ server.register(require('@fastify/multipart'));
 server.post('/upload', async (req, res) => {
   // Mocka o request.user para incluir o ngoid do token
   req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
-  await fileController.uploadOngFile(req, res);
+  
+  try {
+    const fileEntity = await fileController.uploadOngFile(req, res);
+    // IMPORTANTE: Enviar explicitamente a resposta
+    return res.send(fileEntity);
+  } catch (error) {
+    // Tratar erro e preservar mensagem original
+    if (error instanceof CustomError) {
+      return res.status(error.statusCode).send({ error: error.message });
+    }
+    return res.status(500).send({ error: "Erro ao fazer upload do arquivo" });
+  }
 });
 
 describe('FileController - uploadOngFile', () => {
@@ -70,7 +81,7 @@ describe('FileController - uploadOngFile', () => {
     const filePath = path.join(__dirname, 'testFile.txt');
     fs.writeFileSync(filePath, 'This is a test file');
 
-    (uploadOngFileService.execute as jest.Mock).mockRejectedValue(new CustomError('Erro ao fazer upload do arquivo', 500));
+    (uploadOngFileService.execute as jest.Mock).mockRejectedValue(new CustomError('Internal Server Error', 500));
     (logService.logAction as jest.Mock).mockResolvedValue(undefined);
 
     const response = await request(server.server)
@@ -79,7 +90,7 @@ describe('FileController - uploadOngFile', () => {
       .attach('file', filePath);
 
     expect(response.status).toBe(500);
-    expect(response.body).toHaveProperty('error', 'Erro ao fazer upload do arquivo');
+    expect(response.body).toHaveProperty('error', 'Internal Server Error');
 
     fs.unlinkSync(filePath); // Clean up the test file
   }, 10000);

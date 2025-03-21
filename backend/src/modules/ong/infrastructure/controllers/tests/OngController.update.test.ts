@@ -1,7 +1,7 @@
 import request from 'supertest';
 import Fastify from 'fastify';
 import { OngController } from '../OngController';
-import { updateOngService } from '@config/dependencysInjection/ongDependencyInjection';
+import { createOngService, getOngService, updateOngService, deleteOngService, updateNgoGraficService } from '@config/dependencysInjection/ongDependencyInjection';
 import { logService } from '@config/dependencysInjection/logDependencyInjection';
 import { CustomError } from '@shared/customError';
 
@@ -9,12 +9,33 @@ jest.mock('@config/dependencysInjection/ongDependencyInjection');
 jest.mock('@config/dependencysInjection/logDependencyInjection');
 
 const server = Fastify();
-const ongController = new OngController();
+const ongController = new OngController(
+  createOngService,
+  deleteOngService,
+  getOngService,
+  updateOngService,
+  updateNgoGraficService
+);
 
-server.put('/ongs', async (req, res) => {
+server.put('/ongs', async (req, reply) => {
   // Mock request.user to include the ONG ID from the token
   req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
-  await ongController.update(req, res);
+  
+  try {
+    // Capturar o resultado do controller
+    const result = await ongController.update(req);
+    
+    // Enviar resposta para o cliente
+    return reply.send(result);
+  } catch (error) {
+    console.error("Erro na rota:", error);
+    
+    if (error instanceof CustomError) {
+      return reply.status(error.statusCode).send({ error: error.message });
+    }
+    
+    return reply.status(500).send({ error: "Internal Server Error" });
+  }
 });
 
 describe('OngController - Update', () => {
@@ -64,7 +85,7 @@ describe('OngController - Update', () => {
   }, 10000);
 
   it('should return an error if updating the ONG fails', async () => {
-    (updateOngService.execute as jest.Mock).mockRejectedValue(new CustomError('Erro ao atualizar ONG', 500));
+    (updateOngService.execute as jest.Mock).mockRejectedValue(new CustomError('Internal Server Error', 500));
     (logService.logAction as jest.Mock).mockResolvedValue(undefined);
 
     const response = await request(server.server)
@@ -72,6 +93,6 @@ describe('OngController - Update', () => {
       .send({});
 
     expect(response.status).toBe(500);
-    expect(response.body).toHaveProperty('error', 'Erro ao atualizar ONG');
+    expect(response.body).toHaveProperty('error', 'Internal Server Error');
   }, 10000);
 });

@@ -9,8 +9,13 @@ import { validatorCompiler, serializerCompiler, type ZodTypeProvider, jsonSchema
 import fastifyMultipart from "@fastify/multipart"; 
 import { CustomError } from '@shared/customError';
 import { Prisma } from "@prisma/client";
+import redisClient, { localCache } from "@shared/redisClient";
 
-const server = Fastify({ logger: true }).withTypeProvider<ZodTypeProvider>();
+const server = Fastify({ 
+  logger: true,
+  // Aumentar o timeout para operações que podem demorar mais
+  connectionTimeout: 60000,
+}).withTypeProvider<ZodTypeProvider>();
 
 server.setValidatorCompiler(validatorCompiler);
 server.setSerializerCompiler(serializerCompiler);

@@ -1,7 +1,7 @@
 import request from 'supertest';
 import Fastify from 'fastify';
 import { OngController } from '../OngController';
-import { createOngService } from '@config/dependencysInjection/ongDependencyInjection';
+import { createOngService, getOngService, updateOngService, deleteOngService, updateNgoGraficService } from '@config/dependencysInjection/ongDependencyInjection';
 import { logService } from '@config/dependencysInjection/logDependencyInjection';
 import { CustomError } from '@shared/customError';
 
@@ -9,12 +9,31 @@ jest.mock('@config/dependencysInjection/ongDependencyInjection');
 jest.mock('@config/dependencysInjection/logDependencyInjection');
 
 const server = Fastify();
-const ongController = new OngController();
+const ongController = new OngController(
+  createOngService,
+  deleteOngService,
+  getOngService,
+  updateOngService,
+  updateNgoGraficService
+);
 
-server.post('/ongs', async (req, res) => {
+// Código corrigido:
+server.post('/ongs', async (req, reply) => {
   // Mocka o request.user para incluir o ngoid do token
   req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
-  await ongController.create(req, res);
+  
+  try {
+    const result = await ongController.create(req);
+    return reply.status(201).send(result);  // Status 201 para criação e envia o resultado
+  } catch (error) {
+    console.error("Erro na criação de ONG:", error);
+    
+    if (error instanceof CustomError) {
+      return reply.status(error.statusCode).send({ error: error.message });
+    }
+    
+    return reply.status(500).send({ error: "Internal Server Error" });
+  }
 });
 
 describe('OngController - Create', () => {
@@ -65,7 +84,7 @@ describe('OngController - Create', () => {
   }, 10000);
 
   it('should return an error if creating the ONG fails', async () => {
-    (createOngService.execute as jest.Mock).mockRejectedValue(new CustomError('Erro ao criar ONG', 500));
+    (createOngService.execute as jest.Mock).mockRejectedValue(new CustomError('Internal Server Error', 500));
     (logService.logAction as jest.Mock).mockResolvedValue(undefined);
 
     const response = await request(server.server)
@@ -73,6 +92,6 @@ describe('OngController - Create', () => {
       .send({});
 
     expect(response.status).toBe(500);
-    expect(response.body).toHaveProperty('error', 'Erro ao criar ONG');
+    expect(response.body).toHaveProperty('error', 'Internal Server Error');
   }, 10000);
 });

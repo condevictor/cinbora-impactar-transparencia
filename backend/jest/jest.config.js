@@ -2,13 +2,14 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  rootDir: '../',
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
     '^.+\\.jsx?$': 'babel-jest',
     '^.+\\.js$': 'babel-jest',
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!@aws-sdk|mime)',
+    '/node_modules/(?!(mime|@aws-sdk))',
   ],
   moduleNameMapper: {
     "^@modules/(.*)$": "<rootDir>/src/modules/$1",
@@ -17,4 +18,9 @@ module.exports = {
     "^@middlewares/(.*)$": "<rootDir>/src/middlewares/$1",
     "^@routeParams/(.*)$": "<rootDir>/src/routeParams/$1",
   },
+  testMatch: [
+    "<rootDir>/src/**/__tests__/**/*.ts",
+    "<rootDir>/src/**/*.{spec,test}.ts"
+  ],
+  setupFilesAfterEnv: ['<rootDir>/jest/jest.setup.js'],
 };

@@ -1,4 +1,4 @@
-import { FastifyRequest, FastifyReply } from "fastify";
+import { FastifyRequest } from "fastify";
 import { CreateActionService, DeleteActionService, GetActionService, UpdateActionService, UpdateActionExpensesGraficService, ActionProps } from "@modules/action";
 import { CreateFileAwsService } from "@modules/file";
 import { logService } from "@config/dependencysInjection/logDependencyInjection";
@@ -22,115 +22,105 @@ class ActionController {
     createActionService: CreateActionService,
     updateActionService: UpdateActionService,
     deleteActionService: DeleteActionService,
-    updateActionExpensesGraficService: UpdateActionExpensesGraficService
+    updateActionExpensesGraficService: UpdateActionExpensesGraficService,
+    createFileAwsService: CreateFileAwsService 
   ) {
     this.getActionService = getActionService;
     this.createActionService = createActionService;
     this.updateActionService = updateActionService;
     this.deleteActionService = deleteActionService;
     this.updateActionExpensesGraficService = updateActionExpensesGraficService;
-    this.createFileAwsService = new CreateFileAwsService();
+    this.createFileAwsService = createFileAwsService;
   }
-
-  async getAll(request: FastifyRequest, reply: FastifyReply) {
+  async getAll(request: FastifyRequest) {
     const { id: ngoId } = request.params as { id: string };
     try {
-      const actions = await this.getActionService.executeByNgoId(ngoId);
-      reply.send(actions);
+      return await this.getActionService.executeByNgoId(ngoId);
     } catch (error) {
       console.error("Erro ao obter Ações:", error);
       if (error instanceof CustomError) {
-        reply.status(error.statusCode).send({ error: error.message });
-      } else {
-        reply.status(500).send({ error: "Erro ao obter Ações" });
+        throw error;
       }
+      throw new CustomError("Erro ao obter Ações", 500);
     }
   }
 
-  async getOne(request: FastifyRequest, reply: FastifyReply) {
+  async getOne(request: FastifyRequest) {
     const { id: actionId } = request.params as { id: string, actionId: string };
     try {
       const action = await this.getActionService.executeById(actionId);
       if (!action) {
-        reply.status(404).send({ error: "Ação não encontrada" });
-        return;
+        throw new CustomError("Ação não encontrada", 404);
       }
-      reply.send(action);
+      return action;
     } catch (error) {
       console.error("Erro ao obter Ação:", error);
       if (error instanceof CustomError) {
-        reply.status(error.statusCode).send({ error: error.message });
-      } else {
-        reply.status(500).send({ error: "Erro ao obter Ação" });
+        throw error;
       }
+      throw new CustomError("Erro ao obter Ação", 500);
     }
   }
 
-  async getOneWithExpenses(request: FastifyRequest, reply: FastifyReply) {
+  async getOneWithExpenses(request: FastifyRequest) {
     const { actionId } = request.params as { actionId: string };
     try {
       const action = await this.getActionService.executeById(actionId);
       if (!action) {
-        reply.status(404).send({ error: "Ação não encontrada" });
-        return;
+        throw new CustomError("Ação não encontrada", 404);
       }
       const actionGrafic = await this.getActionService.getExpensesByActionId(actionId);
-      reply.send({ action, actionGrafic });
+      return { action, actionGrafic };
     } catch (error) {
       console.error("Erro ao obter Ação:", error);
       if (error instanceof CustomError) {
-        reply.status(error.statusCode).send({ error: error.message });
-      } else {
-        reply.status(500).send({ error: "Erro ao obter Ação" });
+        throw error;
       }
+      throw new CustomError("Erro ao obter Ação", 500);
     }
   }
 
-  async updateActionExpensesGrafic(request: FastifyRequest, reply: FastifyReply) {
+  async updateActionExpensesGrafic(request: FastifyRequest) {
     const { actionId } = request.params as { actionId: string };
     const { categorysExpenses } = request.body as {
       categorysExpenses?: Record<string, number>;
     };
 
     if (!categorysExpenses) {
-      reply.status(400).send({ error: "Dados de despesas não fornecidos" });
-      return;
+      throw new CustomError("Dados de despesas não fornecidos", 400);
     }
 
+    if (!request.user) {
+      throw new CustomError("Usuário não autenticado", 401);
+    }
+    
     try {
-      if (!request.user) {
-        reply.status(401).send({ error: "Usuário não autenticado" });
-        return;
-      }
       const updatedGrafic = await this.updateActionExpensesGraficService.execute(actionId, categorysExpenses);
       await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "ATUALIZAR", "Gráfico de Despesas da Ação", actionId, categorysExpenses, "Gráfico de despesas da ação atualizado");
-      reply.send(updatedGrafic);
+      return updatedGrafic;
     } catch (error) {
       console.error("Erro ao atualizar gráfico de despesas da ação:", error);
       if (error instanceof CustomError) {
-        reply.status(error.statusCode).send({ error: error.message });
-      } else {
-        reply.status(500).send({ error: "Erro ao atualizar gráfico de despesas da ação" });
+        throw error;
       }
+      throw new CustomError("Erro ao atualizar gráfico de despesas da ação", 500);
     }
   }
 
-  async getActionExpensesGrafic(request: FastifyRequest, reply: FastifyReply) {
+  async getActionExpensesGrafic(request: FastifyRequest) {
     const { id: ngoId, actionId } = request.params as { id: string, actionId: string };
     try {
-      const expensesGrafic = await this.getActionService.getExpensesByActionId(actionId);
-      reply.send(expensesGrafic);
+      return await this.getActionService.getExpensesByActionId(actionId);
     } catch (error) {
       console.error("Erro ao obter gráfico de despesas da ação:", error);
       if (error instanceof CustomError) {
-        reply.status(error.statusCode).send({ error: error.message });
-      } else {
-        reply.status(500).send({ error: "Erro ao obter gráfico de despesas da ação" });
+        throw error;
       }
+      throw new CustomError("Erro ao obter gráfico de despesas da ação", 500);
     }
   }
 
-  async create(request: FastifyRequest, reply: FastifyReply) {
+  async create(request: FastifyRequest) {
     const parts = request.parts();
     let name = '';
     let type = '';
@@ -161,20 +151,18 @@ class ActionController {
         // Handle categorysExpenses fields
         const categoryMatch = fieldPart.fieldname.match(/^categorysExpenses\[(.*?)\]$/);
         if (categoryMatch && categoryMatch[1]) {
-          const category = decodeURIComponent(categoryMatch[1].replace(/\+/g, " ")); // Garante que os espaços sejam mantidos
+          const category = decodeURIComponent(categoryMatch[1].replace(/\+/g, " "));
           categorysExpenses[category] = parseFloat(fieldPart.value);
         }
       }
     }
 
     if (!fileBuffer) {
-      reply.status(400).send({ error: "No file uploaded" });
-      return;
+      throw new CustomError("No file uploaded", 400);
     }
 
     if (!request.user) {
-      reply.status(401).send({ error: "Usuário não autenticado" });
-      return;
+      throw new CustomError("Usuário não autenticado", 401);
     }
 
     try {
@@ -192,40 +180,38 @@ class ActionController {
       });
 
       await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "CRIAR", "Ação", action.id.toString(), { name, type, spent, goal, colected, aws_url, categorysExpenses }, "Ação criada");
-      reply.send(action);
+      return action;
     } catch (error) {
       console.error("Error creating action:", error);
       if (error instanceof CustomError) {
-        reply.status(error.statusCode).send({ error: error.message });
-      } else {
-        reply.status(500).send({ error: "Erro ao criar ação" });
+        throw error;
       }
+      throw new CustomError("Erro ao criar ação", 500);
     }
   }
 
-  async update(request: FastifyRequest, reply: FastifyReply) {
+  async update(request: FastifyRequest) {
     const { id } = request.params as { id: string };
     const data = request.body as Partial<ActionProps>;
 
+    if (!request.user) {
+      throw new CustomError("Usuário não autenticado", 401);
+    }
+    
     try {
-      if (!request.user) {
-        reply.status(401).send({ error: "Usuário não autenticado" });
-        return;
-      }
       const updatedAction = await this.updateActionService.execute(id, data);
       await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "ATUALIZAR", "Ação", id, data, "Ação atualizada");
-      reply.send(updatedAction);
+      return updatedAction;
     } catch (error) {
       console.error("Error updating action:", error);
       if (error instanceof CustomError) {
-        reply.status(error.statusCode).send({ error: error.message });
-      } else {
-        reply.status(500).send({ error: "Erro ao atualizar ação" });
+        throw error;
       }
+      throw new CustomError("Erro ao atualizar ação", 500);
     }
   }
 
-  async updateActionImage(request: FastifyRequest, reply: FastifyReply) {
+  async updateActionImage(request: FastifyRequest) {
     const { id } = request.params as { id: string };
     const parts = request.parts();
     let fileBuffer: Buffer | null = null;
@@ -240,19 +226,17 @@ class ActionController {
     }
 
     if (!fileBuffer) {
-      reply.status(400).send({ error: "No file uploaded" });
-      return;
+      throw new CustomError("No file uploaded", 400);
     }
 
+    if (!request.user) {
+      throw new CustomError("Usuário não autenticado", 401);
+    }
+    
     try {
-      if (!request.user) {
-        reply.status(401).send({ error: "Usuário não autenticado" });
-        return;
-      }
       const action = await this.getActionService.executeById(id);
       if (!action) {
-        reply.status(404).send({ error: "Ação não encontrada" });
-        return;
+        throw new CustomError("Ação não encontrada", 404);
       }
 
       const oldFileName = action.aws_url.split('/').pop();
@@ -264,21 +248,19 @@ class ActionController {
       const updatedAction = await this.updateActionService.execute(id, { aws_url });
       await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "ATUALIZAR", "Ação", id, { aws_url }, "Imagem da ação atualizada");
 
-      reply.send({ message: "Imagem da ação atualizada com sucesso", aws_url: updatedAction.aws_url });
+      return { message: "Imagem da ação atualizada com sucesso", aws_url: updatedAction.aws_url };
     } catch (error) {
       console.error("Error updating action image:", error);
       if (error instanceof CustomError) {
-        reply.status(error.statusCode).send({ error: error.message });
-      } else {
-        reply.status(500).send({ error: "Erro ao atualizar imagem da ação" });
+        throw error;
       }
+      throw new CustomError("Erro ao atualizar imagem da ação", 500);
     }
   }
 
-  async delete(request: FastifyRequest, reply: FastifyReply) {
+  async delete(request: FastifyRequest) {
     if (!request.user) {
-      reply.status(401).send({ error: "Usuário não autenticado" });
-      return;
+      throw new CustomError("Usuário não autenticado", 401);
     }
 
     const { id } = request.params as { id: string };
@@ -286,14 +268,13 @@ class ActionController {
     try {
       await this.deleteActionService.execute({ id });
       await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "DELETAR", "Ação", id, {}, "Ação deletada");
-      reply.send({ message: "Ação deletada com sucesso" });
+      return { message: "Ação deletada com sucesso" };
     } catch (error) {
       console.error("Error deleting action:", error);
       if (error instanceof CustomError) {
-        reply.status(error.statusCode).send({ error: error.message });
-      } else {
-        reply.status(500).send({ error: "Erro ao deletar ação" });
+        throw error;
       }
+      throw new CustomError("Erro ao deletar ação", 500);
     }
   }
 }

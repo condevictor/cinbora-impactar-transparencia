@@ -78,76 +78,89 @@ class FileController {
     return { fileBuffer, filename, mimetype, size, category };
   }
 
-  async uploadOngFile(request: FastifyRequest, reply: FastifyReply) {
-    const { fileBuffer, filename, mimetype, size, category } = await this.extractFileData(request);
+  // Helper para converter a categoria em formato de caminho para cache
+  getCacheCategory(category: string): string {
+    const categoryMap: Record<string, string> = {
+      'image': 'images',
+      'video': 'videos',
+      'report': 'reports',
+      'tax invoice': 'tax_invoices',
+      'other': 'others'
+    };
+    
+    return categoryMap[category] || category;
+  }
 
-    if (!this.validateFileRequest(reply, fileBuffer, category, request.user)) {
-      return;
-    }
-
+  async uploadOngFile(request: any, reply: any) {
     try {
-      if (!fileBuffer || !request.user) {
-        reply.status(400).send({ error: "Dados inválidos ou usuário não autenticado" });
-        return;
+      const { fileBuffer, filename, mimetype, size, category } = await this.extractFileData(request);
+
+      if (!fileBuffer) {
+        throw new CustomError("Nenhum arquivo enviado", 400);
       }
+    
+      if (!category) {
+        throw new CustomError("Categoria do arquivo é obrigatória", 400);
+      }
+    
+      if (!request.user || !request.user.ngoId) {
+        throw new CustomError("Usuário não autenticado ou sem permissão", 401);
+      }
+  
       const fileEntity = await this.uploadOngFileService.execute(fileBuffer, filename, category, mimetype, size, request.user.ngoId);
       await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, "Arquivo da ONG criado");
-      reply.send(fileEntity); 
+      
+      // Don't send response here, let the route handler do it
+      return fileEntity;
     } catch (error) {
-      console.error("Erro ao fazer upload do arquivo:", error);
+      console.error('Erro ao fazer upload do arquivo:', error);
+      
+      // Tratar o erro no próprio controller
       if (error instanceof CustomError) {
         reply.status(error.statusCode).send({ error: error.message });
       } else {
-        reply.status(500).send({ error: "Erro interno ao fazer upload do arquivo" });
+        reply.status(500).send({ error: 'Erro ao fazer upload do arquivo' });
       }
+      
+      // Re-lançar para o handler da rota saber que houve um erro
+      throw error;
     }
   }
 
   async uploadActionFile(request: FastifyRequest<{ Params: ActionParams }>, reply: FastifyReply) {
     const { fileBuffer, filename, mimetype, size, category } = await this.extractFileData(request);
 
-    if (!this.validateFileRequest(reply, fileBuffer, category, request.user)) {
-      return;
+    if (!fileBuffer) {
+      throw new CustomError("Nenhum arquivo enviado", 400);
+    }
+  
+    if (!category) {
+      throw new CustomError("Categoria do arquivo é obrigatória", 400);
+    }
+  
+    if (!request.user || !request.user.ngoId) {
+      throw new CustomError("Usuário não autenticado ou sem permissão", 401);
     }
 
-    try {
-      if (!fileBuffer || !request.user) {
-        reply.status(400).send({ error: "Dados inválidos ou usuário não autenticado" });
-        return;
-      }
-      const fileEntity = await this.uploadActionFileService.execute(fileBuffer, filename, category, mimetype, size, request.params.actionId, request.user.ngoId);
-      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, "Arquivo da ação criado");
-      reply.send(fileEntity); 
-    } catch (error) {
-      console.error("Erro ao fazer upload do arquivo:", error);
-      if (error instanceof CustomError) {
-        reply.status(error.statusCode).send({ error: error.message });
-      } else {
-        reply.status(500).send({ error: "Erro interno ao fazer upload do arquivo" });
-      }
-    }
+    const fileEntity = await this.uploadActionFileService.execute(fileBuffer, filename, category, mimetype, size, request.params.actionId, request.user.ngoId);
+    await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, "Arquivo da ação criado");
+    
+    // Don't send response here, let the route handler do it
+    return fileEntity;
   }
 
   async delete(request: FastifyRequest<{ Params: DeleteParams }>, reply: FastifyReply) {
     if (!request.user) {
-      reply.status(401).send({ error: "Usuário não autenticado" });
-      return;
+      throw new CustomError("Usuário não autenticado", 401);
     }
 
     const { id } = request.params;
 
-    try {
-      await this.deleteFileService.execute(id);
-      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "DELETAR", "Arquivo", id, {}, "Arquivo deletado");
-      reply.send({ message: "Arquivo deletado com sucesso" });
-    } catch (error) {
-      console.error("Erro ao deletar arquivo:", error);
-      if (error instanceof CustomError) {
-        reply.status(error.statusCode).send({ error: error.message });
-      } else {
-        reply.status(500).send({ error: "Erro interno ao deletar arquivo" });
-      }
-    }
+    const deleteResult = await this.deleteFileService.execute(id);
+    await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "DELETAR", "Arquivo", id, {category: deleteResult.category}, "Arquivo deletado");
+    
+    // Don't send response here, let the route handler do it
+    return deleteResult;
   }
 
   async getActionFilesByCategory(request: FastifyRequest<{ Params: ActionParams }>, reply: FastifyReply, category: string) {
