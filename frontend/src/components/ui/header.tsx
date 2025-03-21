@@ -70,12 +70,12 @@ export default function Header() {
             <DropdownMenuTrigger className="text-white text-4xl hidden max-lg:block">
               ☰
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-[#00B3FF] rounded-xl border-solid border-2 border-white">
+            <DropdownMenuContent className="bg-white rounded-xl border-solid border-2 mr-4 mt-2 border-white hidden max-lg:block">
               <Link href="/">
-                <DropdownMenuItem className="block text-center text-8 font-semibold text-white hover:scale-110">Início</DropdownMenuItem>
+                <DropdownMenuItem className="block text-center text-8 font-semibold text-[#294BB6] hover:scale-110">Início</DropdownMenuItem>
               </Link>
               <Link href="/partners">
-                <DropdownMenuItem className="block text-center text-8 font-semibold text-white hover:scale-110">Ongs</DropdownMenuItem>
+                <DropdownMenuItem className="block text-center text-8 font-semibold text-[#294BB6] hover:scale-110">Ongs</DropdownMenuItem>
               </Link>
               <DropdownMenuItem className="px-4 py-2 hover:bg-gray-200">
                 <Link href="/login">
