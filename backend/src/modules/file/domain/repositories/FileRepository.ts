@@ -7,9 +7,9 @@ import { Prisma } from "@prisma/client";
 class FileRepository {
   private s3Storage = s3StorageInstance;
 
-  async saveFile(fileBuffer: Buffer, filename: string): Promise<string> {
+  async saveFile(fileBuffer: Buffer, filename: string, path?: string): Promise<string> {
     try {
-      return this.s3Storage.saveFile(fileBuffer, filename);
+      return this.s3Storage.saveFile(fileBuffer, filename, path);
     } catch {
       throw new CustomError("Erro ao salvar arquivo no S3", 500);
     }
@@ -17,13 +17,19 @@ class FileRepository {
 
   async createOngFile(fileBuffer: Buffer, fileProps: OngFileProps): Promise<OngFileEntity> {
     try {
-      const aws_url = await this.s3Storage.saveFile(fileBuffer, fileProps.name);
-      const aws_name = aws_url.split('/').pop()!; // Extrai o nome do arquivo da URL
+      // Construir caminho para arquivos da ONG
+      const path = this.s3Storage.buildPath(fileProps.ngoId, 'files');
+      
+      // Salvar arquivo com o novo caminho
+      const aws_url = await this.s3Storage.saveFile(fileBuffer, fileProps.name, path);
+      
+      // O aws_name agora contém o caminho completo após amazonaws.com/
+      const aws_name = aws_url.split('amazonaws.com/')[1]; // Algo como "1/files/uuid-filename.jpg"
 
       const file = await prismaClient.ongFile.create({
         data: { 
           ...fileProps, 
-          aws_name,
+          aws_name, // Agora armazena o caminho completo
           aws_url,
           size: fileProps.size
         },
@@ -40,8 +46,23 @@ class FileRepository {
 
   async createActionFile(fileBuffer: Buffer, fileProps: ActionFileProps): Promise<ActionFileEntity> {
     try {
-      const aws_url = await this.s3Storage.saveFile(fileBuffer, fileProps.name);
-      const aws_name = aws_url.split('/').pop()!; // Extrai o nome do arquivo da URL
+      // Primeiro, obtenha o ngoId associado a esta ação
+      const action = await prismaClient.action.findUnique({
+        where: { id: fileProps.actionId }
+      });
+      
+      if (!action) {
+        throw new CustomError("Ação não encontrada", 404);
+      }
+      
+      // Construir caminho para arquivos da ação
+      const path = this.s3Storage.buildPath(action.ngoId, 'actions', fileProps.actionId);
+      
+      // Salvar arquivo com o novo caminho
+      const aws_url = await this.s3Storage.saveFile(fileBuffer, fileProps.name, path);
+      
+      // O aws_name agora contém o caminho completo
+      const aws_name = aws_url.split('amazonaws.com/')[1]; // Algo como "1/actions/2/uuid-filename.jpg"
 
       const file = await prismaClient.actionFile.create({
         data: { 

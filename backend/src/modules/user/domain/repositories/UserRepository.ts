@@ -3,12 +3,15 @@ import { User, UserProps } from "@modules/user";
 import { CustomError } from "@shared/customError";
 import { DeleteFileService } from "@modules/file";
 import { Prisma } from "@prisma/client";
+import S3Storage from "@shared/s3Storage";
 
 class UserRepository {
   private deleteFileService: DeleteFileService;
+  private s3Storage: S3Storage;
 
-  constructor(deleteFileService: DeleteFileService) {
+  constructor(deleteFileService: DeleteFileService, s3Storage: S3Storage ) {
     this.deleteFileService = deleteFileService;
+    this.s3Storage = s3Storage;
   }
 
   async findById(id: string): Promise<User | null> {
@@ -189,6 +192,54 @@ class UserRepository {
       });
     } catch (error) {
       throw new CustomError("Erro ao buscar todos os usuários", 500);
+    }
+  }
+
+  async updateProfilePhoto(userId: string, ngoId: number, fileBuffer: Buffer, filename: string): Promise<string> {
+    try {
+      // Construir o caminho para a pasta do usuário
+      const path = this.s3Storage.buildPath(ngoId, 'users', userId);
+      
+      // Verificar se já existe uma foto de perfil e excluí-la
+      const user = await prismaClient.user.findUnique({ where: { id: userId } });
+      
+      if (user && user.profileUrl) {
+        try {
+          await this.s3Storage.deleteFile(user.profileUrl);
+        } catch (error) {
+          console.error(`Erro ao excluir foto de perfil antiga do usuário ${userId}:`, error);
+        }
+      }
+      
+      // Salvar a nova foto de perfil
+      const aws_url = await this.s3Storage.saveFile(fileBuffer, filename, path);
+      
+      // Atualizar o registro do usuário com a nova URL
+      await prismaClient.user.update({
+        where: { id: userId },
+        data: { profileUrl: aws_url }
+      });
+      
+      return aws_url;
+    } catch (error) {
+      console.error(`Erro ao atualizar foto de perfil do usuário ${userId}:`, error);
+      throw new CustomError("Erro ao atualizar foto de perfil", 500);
+    }
+  }
+
+  async deleteProfilePhoto(userId: string, ngoId: number): Promise<void> {
+    try {
+      // Excluir todos os arquivos da pasta do usuário
+      await this.s3Storage.deleteFolder(`${ngoId}/users/${userId}`);
+      
+      // Atualizar o registro do usuário para remover a URL
+      await prismaClient.user.update({
+        where: { id: userId },
+        data: { profileUrl: null }
+      });
+    } catch (error) {
+      console.error(`Erro ao excluir foto de perfil do usuário ${userId}:`, error);
+      throw new CustomError("Erro ao excluir foto de perfil", 500);
     }
   }
 }
