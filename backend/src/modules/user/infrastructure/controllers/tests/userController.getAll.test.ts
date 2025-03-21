@@ -1,13 +1,18 @@
 import request from 'supertest';
 import Fastify from 'fastify';
 import { UserController } from '../UserController';
-import { getUserService } from '@config/dependencysInjection/userDependencyInjection';
+import { createUserService, deleteUserService, getUserService, updateUserProfileService } from '@config/dependencysInjection/userDependencyInjection';
 import { CustomError } from '@shared/customError';
 
 jest.mock('@config/dependencysInjection/userDependencyInjection');
 
 const server = Fastify();
-const userController = new UserController();
+const userController = new UserController(
+  createUserService, 
+  deleteUserService, 
+  getUserService,
+  updateUserProfileService
+);
 
 server.get('/users', userController.getAll.bind(userController));
 

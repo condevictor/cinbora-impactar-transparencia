@@ -91,26 +91,40 @@ class FileController {
     return categoryMap[category] || category;
   }
 
-  async uploadOngFile(request: FastifyRequest, reply: FastifyReply) {
-    const { fileBuffer, filename, mimetype, size, category } = await this.extractFileData(request);
+  async uploadOngFile(request: any, reply: any) {
+    try {
+      const { fileBuffer, filename, mimetype, size, category } = await this.extractFileData(request);
 
-    if (!fileBuffer) {
-      throw new CustomError("Nenhum arquivo enviado", 400);
-    }
-  
-    if (!category) {
-      throw new CustomError("Categoria do arquivo é obrigatória", 400);
-    }
-  
-    if (!request.user || !request.user.ngoId) {
-      throw new CustomError("Usuário não autenticado ou sem permissão", 401);
-    }
-
-    const fileEntity = await this.uploadOngFileService.execute(fileBuffer, filename, category, mimetype, size, request.user.ngoId);
-    await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, "Arquivo da ONG criado");
+      if (!fileBuffer) {
+        throw new CustomError("Nenhum arquivo enviado", 400);
+      }
     
-    // Don't send response here, let the route handler do it
-    return fileEntity;
+      if (!category) {
+        throw new CustomError("Categoria do arquivo é obrigatória", 400);
+      }
+    
+      if (!request.user || !request.user.ngoId) {
+        throw new CustomError("Usuário não autenticado ou sem permissão", 401);
+      }
+  
+      const fileEntity = await this.uploadOngFileService.execute(fileBuffer, filename, category, mimetype, size, request.user.ngoId);
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, "Arquivo da ONG criado");
+      
+      // Don't send response here, let the route handler do it
+      return fileEntity;
+    } catch (error) {
+      console.error('Erro ao fazer upload do arquivo:', error);
+      
+      // Tratar o erro no próprio controller
+      if (error instanceof CustomError) {
+        reply.status(error.statusCode).send({ error: error.message });
+      } else {
+        reply.status(500).send({ error: 'Erro ao fazer upload do arquivo' });
+      }
+      
+      // Re-lançar para o handler da rota saber que houve um erro
+      throw error;
+    }
   }
 
   async uploadActionFile(request: FastifyRequest<{ Params: ActionParams }>, reply: FastifyReply) {

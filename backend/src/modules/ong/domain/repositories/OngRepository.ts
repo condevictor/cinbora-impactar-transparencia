@@ -143,6 +143,7 @@ class OngRepository {
           // Deletar os arquivos de ação no S3
           for (const file of action.files) {
             try {
+              // Use o FileRepository em vez de chamar this.s3Storage diretamente
               await this.s3Storage.deleteFile(file.aws_name);
               console.log(`Arquivo ${file.aws_name} deletado com sucesso`);
             } catch (s3Error) {
@@ -155,6 +156,7 @@ class OngRepository {
             try {
               const actionFileName = action.aws_url.split('/').pop();
               if (actionFileName) {
+                // Use o FileRepository aqui também
                 await this.s3Storage.deleteFile(actionFileName);
                 console.log(`Imagem de capa ${actionFileName} deletada com sucesso`);
               }

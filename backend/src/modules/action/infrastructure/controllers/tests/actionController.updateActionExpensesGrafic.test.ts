@@ -1,7 +1,7 @@
 import request from 'supertest';
 import Fastify from 'fastify';
 import { ActionController } from '../ActionController';
-import { getActionService, createActionService, updateActionService, deleteActionService, updateActionExpensesGraficService } from '@config/dependencysInjection/actionDependencyInjection';
+import { getActionService, createActionService, updateActionService, deleteActionService, updateActionExpensesGraficService, createFileAwsService } from '@config/dependencysInjection/actionDependencyInjection';
 import { logService } from '@config/dependencysInjection/logDependencyInjection';
 import { CustomError } from '@shared/customError';
 
@@ -15,7 +15,8 @@ const actionController = new ActionController(
   createActionService,
   updateActionService,
   deleteActionService,
-  updateActionExpensesGraficService
+  updateActionExpensesGraficService,
+  createFileAwsService
 );
 
 server.addHook('preHandler', async (request, reply) => {
@@ -89,7 +90,7 @@ describe('ActionController - UpdateActionExpensesGrafic', () => {
 
     (getActionService.executeById as jest.Mock).mockResolvedValue(actionData);
     (updateActionExpensesGraficService.execute as jest.Mock).mockRejectedValue(
-      new CustomError('Erro ao atualizar gráfico de despesas', 500)
+      new CustomError('Internal Server Error', 500)
     );
     (logService.logAction as jest.Mock).mockResolvedValue(undefined);
 
@@ -98,6 +99,6 @@ describe('ActionController - UpdateActionExpensesGrafic', () => {
       .send(expensesData);
 
     expect(response.status).toBe(500);
-    expect(response.body).toHaveProperty('error', 'Erro ao atualizar gráfico de despesas');
+    expect(response.body).toHaveProperty('error', 'Internal Server Error');
   }, 10000);
 });

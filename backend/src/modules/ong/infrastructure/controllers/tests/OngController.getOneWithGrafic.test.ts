@@ -1,13 +1,19 @@
 import request from 'supertest';
 import Fastify from 'fastify';
 import { OngController } from '../OngController';
-import { getOngService } from '@config/dependencysInjection/ongDependencyInjection';
+import { createOngService, getOngService, updateOngService, deleteOngService, updateNgoGraficService } from '@config/dependencysInjection/ongDependencyInjection';
 import { CustomError } from '@shared/customError';
 
 jest.mock('@config/dependencysInjection/ongDependencyInjection');
 
 const server = Fastify();
-const ongController = new OngController();
+const ongController = new OngController(
+  createOngService,
+  deleteOngService,
+  getOngService,
+  updateOngService,
+  updateNgoGraficService
+);
 
 server.get('/ongs/:id/grafic', ongController.getOneWithGrafic.bind(ongController));
 
@@ -63,12 +69,12 @@ describe('OngController - GetOneWithGrafic', () => {
   }, 10000); 
 
   it('should return an error if fetching the ONG with grafic data fails', async () => {
-    (getOngService.executeById as jest.Mock).mockRejectedValue(new CustomError('Erro ao obter ONG com dados gráficos', 500));
+    (getOngService.executeById as jest.Mock).mockRejectedValue(new CustomError('Internal Server Error', 500));
 
     const response = await request(server.server)
       .get('/ongs/1/grafic');
 
     expect(response.status).toBe(500);
-    expect(response.body).toHaveProperty('error', 'Erro ao obter ONG com dados gráficos');
+    expect(response.body).toHaveProperty('error', 'Internal Server Error');
   }, 10000);
 });
