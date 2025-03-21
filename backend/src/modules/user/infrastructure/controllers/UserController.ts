@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { CreateUserService, DeleteUserService, GetUserService, UserProps } from "@modules/user";
+import { UpdateUserProfileService } from "@modules/user/application/services/UpdateUserProfileService";
 import { logService } from "@config/dependencysInjection/logDependencyInjection";
 import { CustomError } from "@shared/customError";
 
@@ -7,15 +8,18 @@ class UserController {
   private createUserService: CreateUserService;
   private deleteUserService: DeleteUserService;
   private getUserService: GetUserService;
+  private updateUserProfileService: UpdateUserProfileService;
 
   constructor(
     createUserService: CreateUserService,
     deleteUserService: DeleteUserService,
     getUserService: GetUserService,
+    updateUserProfileService: UpdateUserProfileService,
   ) {
     this.createUserService = createUserService;
     this.deleteUserService = deleteUserService;
     this.getUserService = getUserService;
+    this.updateUserProfileService = updateUserProfileService;
   }
 
   async create(request: FastifyRequest, reply: FastifyReply) {
@@ -80,6 +84,47 @@ class UserController {
     } catch (error) {
       console.error("Erro ao obter usuário:", error);
       reply.status(500).send({ error: "Erro ao obter usuário" });
+    }
+  }
+
+  async updateProfile(request: FastifyRequest, reply: FastifyReply) {
+    if (!request.user) {
+      reply.status(401).send({ error: "Usuário não autenticado" });
+      return;
+    }
+
+    try {
+      const file = await request.file();
+      if (!file) {
+        reply.status(400).send({ error: "Nenhum arquivo enviado" });
+        return;
+      }
+
+      const userId = request.user.id;
+      const updatedUser = await this.updateUserProfileService.execute(userId, file);
+      
+      await logService.logAction(
+        request.user.ngoId, 
+        request.user.id, 
+        request.user.name, 
+        "ATUALIZAR", 
+        "Usuário", 
+        userId, 
+        { profileUpdate: true }, 
+        "Foto de perfil atualizada"
+      );
+      
+      reply.send({ 
+        message: "Foto de perfil atualizada com sucesso", 
+        user: updatedUser 
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar foto de perfil:", error);
+      if (error instanceof CustomError) {
+        reply.status(error.statusCode).send({ error: error.message });
+      } else {
+        reply.status(500).send({ error: "Erro interno ao atualizar foto de perfil" });
+      }
     }
   }
 }

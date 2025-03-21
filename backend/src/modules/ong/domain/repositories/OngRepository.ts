@@ -3,9 +3,15 @@ import { Ong, OngProps } from "@modules/ong";
 import { CustomError } from "@shared/customError";
 import s3StorageInstance from "@shared/s3Cliente";
 import { Prisma } from "@prisma/client";
+import { UserRepository } from "@modules/user";
 
 class OngRepository {
   private s3Storage = s3StorageInstance;
+  private userRepository: UserRepository;
+  
+  constructor(userRepository: UserRepository) {
+    this.userRepository = userRepository;
+  }
 
   async findById(id: string): Promise<Ong | null> {
     const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
@@ -90,6 +96,29 @@ class OngRepository {
       }
 
       await prismaClient.$transaction(async (prisma) => {
+        // Buscar todos os usuários da ONG para deletar suas fotos de perfil
+        const users = await prisma.user.findMany({
+          where: { ngoId: numericId }
+        });
+
+        // Para cada usuário, verificar se tem foto de perfil e excluí-la na AWS
+        for (const user of users) {
+          if (user.profileUrl) {
+            try {
+              const profileFileName = user.profileUrl.split('/').pop();
+              if (profileFileName) {
+                await this.s3Storage.deleteFile(profileFileName);
+                console.log(`Foto de perfil ${profileFileName} do usuário ${user.id} deletada com sucesso`);
+              }
+            } catch (s3Error) {
+              console.error(`Erro ao deletar foto de perfil do usuário ${user.id}:`, s3Error);
+            }
+          }
+        }
+
+        // Agora podemos usar o método existente para excluir todos os usuários da ONG
+        await this.userRepository.deleteAllFromNgo(numericId);
+
         // Buscar a ONG com todos os relacionamentos relevantes
         const ong = await prisma.ngo.findUnique({
           where: { id: numericId },

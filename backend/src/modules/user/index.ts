@@ -3,6 +3,7 @@ export * from "./domain/repositories/UserRepository";
 export * from "./application/services/CreateUserService";
 export * from "./application/services/DeleteUserService";
 export * from "./application/services/GetUserService";
+export * from "./application/services/UpdateUserProfileService";
 export * from "./infrastructure/controllers/UserController";
 export * from "./infrastructure/routes/UserRoutes";
 export * from "./infrastructure/schemas/UserSchema"
