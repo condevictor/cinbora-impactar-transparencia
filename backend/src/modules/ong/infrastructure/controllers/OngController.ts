@@ -1,20 +1,25 @@
 import { FastifyRequest } from "fastify";
 import { OngProps, GetOngService, CreateOngService, DeleteOngService, UpdateOngService, UpdateNgoGraficService } from "@modules/ong";
-import { getOngService, deleteOngService, createOngService, updateOngService, updateNgoGraficService } from "@config/dependencysInjection/ongDependencyInjection";
 import { logService } from "@config/dependencysInjection/logDependencyInjection";
 import { CustomError } from "@shared/customError";
 
 class OngController {
-  private getOngService: GetOngService;
-  private deleteOngService: DeleteOngService;
   private createOngService: CreateOngService;
+  private deleteOngService: DeleteOngService;
+  private getOngService: GetOngService;
   private updateOngService: UpdateOngService;
   private updateNgoGraficService: UpdateNgoGraficService;
 
-  constructor() {
-    this.getOngService = getOngService;
-    this.deleteOngService = deleteOngService;
+  constructor(
+    createOngService: CreateOngService,
+    deleteOngService: DeleteOngService,
+    getOngService: GetOngService,
+    updateOngService: UpdateOngService,
+    updateNgoGraficService: UpdateNgoGraficService
+  ) {
     this.createOngService = createOngService;
+    this.deleteOngService = deleteOngService;
+    this.getOngService = getOngService;
     this.updateOngService = updateOngService;
     this.updateNgoGraficService = updateNgoGraficService;
   }

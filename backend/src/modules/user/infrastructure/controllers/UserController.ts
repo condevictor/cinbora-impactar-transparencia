@@ -1,6 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { CreateUserService, DeleteUserService, GetUserService, UserProps } from "@modules/user";
-import { createUserService, deleteUserService, getUserService } from "@config/dependencysInjection/userDependencyInjection";
 import { logService } from "@config/dependencysInjection/logDependencyInjection";
 import { CustomError } from "@shared/customError";
 
@@ -9,7 +8,11 @@ class UserController {
   private deleteUserService: DeleteUserService;
   private getUserService: GetUserService;
 
-  constructor() {
+  constructor(
+    createUserService: CreateUserService,
+    deleteUserService: DeleteUserService,
+    getUserService: GetUserService,
+  ) {
     this.createUserService = createUserService;
     this.deleteUserService = deleteUserService;
     this.getUserService = getUserService;

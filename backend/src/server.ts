@@ -9,7 +9,7 @@ import { validatorCompiler, serializerCompiler, type ZodTypeProvider, jsonSchema
 import fastifyMultipart from "@fastify/multipart"; 
 import { CustomError } from '@shared/customError';
 import { Prisma } from "@prisma/client";
-import redisClient from "@shared/redisClient";
+import redisClient, { localCache } from "@shared/redisClient";
 
 const server = Fastify({ 
   logger: true,
@@ -76,27 +76,25 @@ const start = async () => {
 
   console.log("Verificando conexão com Redis Upstash...");
   try {
-    // Testar a conexão Redis
-    await redisClient.set('test-connection', 'success');
-    const testResult = await redisClient.get('test-connection');
-    if (testResult !== 'success') {
-      throw new Error('Redis connection test failed');
-    }
-    
+    // Método ping simples em vez de set/get - economiza um comando
+    await redisClient.ping();
     console.log("Conexão com Redis estabelecida com sucesso");
+    
+    // Decorador do cliente Redis otimizado
     server.decorate('redis', redisClient);
     
-    // Adicionar método helper para limpar todo o cache
+    // Adicionar método helper para limpar todo o cache - otimizado
     server.decorate('clearAllCache', async () => {
       try {
-        const keys = await redisClient.keys('cache:*');
-        if (keys && keys.length > 0) {
-          await Promise.all(keys.map(key => redisClient.del(key)));
-          server.log.info(`Cleared ${keys.length} cache keys`);
-        }
+        // Limpar cache local imediatamente
+        localCache.flushAll();
+        
+        // Limpar cache Redis de forma eficiente
+        await redisClient.delByPattern('cache:*');
+        server.log.info('Cache limpo com sucesso');
         return true;
       } catch (err) {
-        server.log.error(`Error clearing cache: ${err}`);
+        server.log.error(`Erro ao limpar cache: ${err}`);
         return false;
       }
     });

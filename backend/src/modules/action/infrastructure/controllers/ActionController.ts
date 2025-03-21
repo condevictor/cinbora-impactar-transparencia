@@ -22,16 +22,16 @@ class ActionController {
     createActionService: CreateActionService,
     updateActionService: UpdateActionService,
     deleteActionService: DeleteActionService,
-    updateActionExpensesGraficService: UpdateActionExpensesGraficService
+    updateActionExpensesGraficService: UpdateActionExpensesGraficService,
+    createFileAwsService: CreateFileAwsService 
   ) {
     this.getActionService = getActionService;
     this.createActionService = createActionService;
     this.updateActionService = updateActionService;
     this.deleteActionService = deleteActionService;
     this.updateActionExpensesGraficService = updateActionExpensesGraficService;
-    this.createFileAwsService = new CreateFileAwsService();
+    this.createFileAwsService = createFileAwsService;
   }
-
   async getAll(request: FastifyRequest) {
     const { id: ngoId } = request.params as { id: string };
     try {
