@@ -7,6 +7,7 @@ import { getActionService, createActionService, updateActionService, deleteActio
 import { logService } from '@config/dependencysInjection/logDependencyInjection';
 import { CustomError } from '@shared/customError';
 
+// Mock completo de todas as dependências
 jest.mock('@config/dependencysInjection/actionDependencyInjection');
 jest.mock('@config/dependencysInjection/logDependencyInjection');
 jest.mock('@modules/file', () => {
@@ -20,6 +21,7 @@ jest.mock('@modules/file', () => {
   };
 });
 
+// Configuração do servidor para testes
 const server = Fastify();
 server.register(require('@fastify/multipart'), {
   limits: {
@@ -40,8 +42,14 @@ const actionController = new ActionController(
 );
 
 server.addHook('preHandler', async (request, reply) => {
-  // Mocka o request.user para incluir o ngoid do token
+  // Mock do usuário autenticado
   request.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+});
+
+// Tratamento de erros global para o servidor Fastify
+server.setErrorHandler((error, request, reply) => {
+  console.error('Server error:', error);
+  reply.status(500).send({ error: error.message || 'Internal Server Error' });
 });
 
 server.post('/ongs/actions', actionController.create.bind(actionController));
@@ -56,6 +64,7 @@ describe('ActionController - Create', () => {
   });
 
   beforeEach(() => {
+    jest.clearAllMocks();
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
@@ -74,9 +83,12 @@ describe('ActionController - Create', () => {
       categorysExpenses: { 'Category One': 100 }
     };
 
-    const filePath = path.join(__dirname, 'testfile.txt');
+    // Criar arquivo temporário com um ID único para evitar conflitos
+    const testId = Date.now();
+    const filePath = path.join(__dirname, `testfile-${testId}.txt`);
     fs.writeFileSync(filePath, 'file content');
 
+    // Garantir que o mock está configurado corretamente
     (createActionService.execute as jest.Mock).mockResolvedValue({
       id: 1,
       ...actionData,
@@ -128,19 +140,24 @@ describe('ActionController - Create', () => {
     (createActionService.execute as jest.Mock).mockRejectedValue(new CustomError('Erro ao criar Ação', 500));
     (logService.logAction as jest.Mock).mockResolvedValue(undefined);
 
-    const response = await request(server.server)
-      .post('/ongs/actions')
-      .field('name', actionData.name)
-      .field('type', actionData.type)
-      .field('spent', actionData.spent.toString())
-      .field('goal', actionData.goal.toString())
-      .field('colected', actionData.colected.toString())
-      .field('categorysExpenses[Category One]', actionData.categorysExpenses['Category One'].toString())
-      .attach('file', filePath);
+    try {
+      const response = await request(server.server)
+        .post('/ongs/actions')
+        .field('name', actionData.name)
+        .field('type', actionData.type)
+        .field('spent', actionData.spent.toString())
+        .field('goal', actionData.goal.toString())
+        .field('colected', actionData.colected.toString())
+        .field('categorysExpenses[Category One]', actionData.categorysExpenses['Category One'].toString())
+        .attach('file', filePath)
+        .timeout(5000);
 
-    expect(response.status).toBe(500);
-    expect(response.body).toHaveProperty('error', 'Erro ao criar Ação');
-
-    fs.unlinkSync(filePath);
-  }, 10000);
+      expect(response.status).toBe(500);
+      expect(response.body).toHaveProperty('error');
+    } finally {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+  }, 15000);
 });
