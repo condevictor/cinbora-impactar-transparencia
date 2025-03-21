@@ -1,6 +1,7 @@
 import { Action, ActionProps, ActionRepository } from "@modules/action";
+import { CustomError } from "@shared/customError";
 
-class UpdateActionUseCase {
+class UpdateActionService {
   private actionRepository: ActionRepository;
 
   constructor(actionRepository: ActionRepository) {
@@ -12,10 +13,13 @@ class UpdateActionUseCase {
       const updatedAction = await this.actionRepository.update(id, data);
       return updatedAction;
     } catch (error) {
-      console.error("Error in UpdateActionUseCase:", error);
-      throw error;
+      console.error("Erro ao atualizar ação:", error);
+      if (error instanceof CustomError) {
+        throw error;
+      }
+      throw new CustomError("Erro ao atualizar ação", 500);
     }
   }
 }
 
-export { UpdateActionUseCase };
+export { UpdateActionService };

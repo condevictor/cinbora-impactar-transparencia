@@ -1,6 +1,8 @@
-import { FastifyRequest, FastifyReply } from "fastify";
+import { FastifyRequest } from "fastify";
 import { OngProps, GetOngService, CreateOngService, DeleteOngService, UpdateOngService, UpdateNgoGraficService } from "@modules/ong";
 import { getOngService, deleteOngService, createOngService, updateOngService, updateNgoGraficService } from "@config/dependencysInjection/ongDependencyInjection";
+import { logService } from "@config/dependencysInjection/logDependencyInjection";
+import { CustomError } from "@shared/customError";
 
 class OngController {
   private getOngService: GetOngService;
@@ -17,100 +19,107 @@ class OngController {
     this.updateNgoGraficService = updateNgoGraficService;
   }
 
-  async getAll(request: FastifyRequest) {
+  async getAll() {
     try {
-      const ngos = await this.getOngService.execute();
-      return ngos; 
+      return await this.getOngService.execute();
     } catch (error) {
       console.error("Erro ao obter ONGs:", error);
-      throw new Error("Erro ao obter ONGs"); 
+      throw new CustomError("Erro ao obter ONGs", 500);
     }
   }
 
-  async getOne(request: FastifyRequest, reply: FastifyReply) {
+  async getOneWithGrafic(request: FastifyRequest) {
     const { id } = request.params as { id: string };
     try {
       const ngo = await this.getOngService.executeById(id);
-      reply.send(ngo);
-    } catch (error) {
-      console.error("Erro ao obter ONG:", error);
-      reply.status(500).send({ error: "Erro ao obter ONG" });
-    }
-  }
-
-  async getOneWithGrafic(request: FastifyRequest, reply: FastifyReply) {
-    const { id } = request.params as { id: string };
-    try {
-      const ngo = await this.getOngService.executeById(id);
-      if (!ngo) {
-        reply.status(404).send({ error: "ONG não encontrada" });
-        return;
-      }
       const ngoGrafic = await this.getOngService.getGraficByNgoId(id);
-      reply.send({ ngo, ngoGrafic });
+      return { ngo, ngoGrafic };
     } catch (error) {
-      console.error("Erro ao obter ONG:", error);
-      reply.status(500).send({ error: "Erro ao obter ONG" });
+      console.error("Erro ao obter ONG com gráfico:", error);
+      if (error instanceof CustomError) {
+        throw error;
+      }
+      throw new CustomError("Erro ao obter ONG com gráfico", 500);
     }
   }
 
-  async update(request: FastifyRequest, reply: FastifyReply) {
+  async update(request: FastifyRequest) {
     const data = request.body as Partial<OngProps>;
-
     if (!request.user) {
-      reply.status(401).send({ error: "Usuário não autenticado" });
-      return;
+      throw new CustomError("Usuário não autenticado", 401);
     }
-
+    
     try {
       const updatedOng = await this.updateOngService.execute(request.user.ngoId, data);
-      reply.send({ message: "ONG atualizada com sucesso", ngo: updatedOng });
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "ATUALIZAR", "ONG", request.user.ngoId.toString(), data, "ONG atualizada");
+      return { message: "ONG atualizada com sucesso", ngo: updatedOng };
     } catch (error) {
       console.error("Erro ao atualizar ONG:", error);
-      reply.status(500).send({ error: "Erro ao atualizar ONG" });
+      if (error instanceof CustomError) {
+        throw error;
+      }
+      throw new CustomError("Erro ao atualizar ONG", 500);
     }
   }
 
-  async updateNgoGrafic(request: FastifyRequest, reply: FastifyReply) {
+  async updateNgoGrafic(request: FastifyRequest) {
     const { totalExpenses, expensesByCategory } = request.body as {
       totalExpenses?: number;
       expensesByCategory?: Record<string, number>;
     };
-
+    
     if (!request.user) {
-      reply.status(401).send({ error: "Usuário não autenticado" });
-      return;
+      throw new CustomError("Usuário não autenticado", 401);
     }
-
+    
     try {
       const updatedGrafic = await this.updateNgoGraficService.execute(request.user.ngoId, { totalExpenses, expensesByCategory });
-      reply.send(updatedGrafic);
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "ATUALIZAR", "Gráfico ONG", request.user.ngoId.toString(), { totalExpenses, expensesByCategory }, "Gráfico da ONG atualizado");
+      return updatedGrafic;
     } catch (error) {
       console.error("Erro ao atualizar gráfico da ONG:", error);
-      reply.status(500).send({ error: "Erro ao atualizar gráfico da ONG" });
+      if (error instanceof CustomError) {
+        throw error;
+      }
+      throw new CustomError("Erro ao atualizar gráfico da ONG", 500);
     }
   }
 
-  async delete(request: FastifyRequest, reply: FastifyReply) {
+  async delete(request: FastifyRequest) {
+    if (!request.user) {
+      throw new CustomError("Usuário não autenticado", 401);
+    }
+
     const { id } = request.params as { id: string };
     try {
       await this.deleteOngService.execute({ id });
-      reply.send({ message: "ONG deletada com sucesso" });
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "DELETAR", "ONG", id, {}, "ONG deletada");
+      return { message: "ONG deletada com sucesso" };
     } catch (error) {
       console.error("Erro ao deletar ONG:", error);
-      reply.status(500).send({ error: "Erro ao deletar ONG" });
+      if (error instanceof CustomError) {
+        throw error;
+      }
+      throw new CustomError("Erro ao deletar ONG", 500);
     }
   }
 
-  async create(request: FastifyRequest, reply: FastifyReply) {
-    const data = request.body as OngProps;
+  async create(request: FastifyRequest) {
+    if (!request.user) {
+      throw new CustomError("Usuário não autenticado", 401);
+    }
 
+    const data = request.body as OngProps;
     try {
       const ong = await this.createOngService.execute(data);
-      reply.send(ong);
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "ONG", ong.id.toString(), data, "ONG criada");
+      return ong;
     } catch (error) {
       console.error("Erro ao criar ONG:", error);
-      reply.status(500).send({ error: "Erro ao criar ONG" });
+      if (error instanceof CustomError) {
+        throw error;
+      }
+      throw new CustomError("Erro ao criar ONG", 500);
     }
   }
 }

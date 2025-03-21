@@ -9,3 +9,4 @@ export * from "./application/services/UploadOngFileService";
 export * from "./infrastructure/controllers/FileController";
 export * from "./infrastructure/routes/FileRoutes";
 export * from "./application/services/CreateFileAwsService";
+export * from "./infrastructure/schemas/FileSchema"

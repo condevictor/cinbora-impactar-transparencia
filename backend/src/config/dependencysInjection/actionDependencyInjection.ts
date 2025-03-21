@@ -1,10 +1,19 @@
-import { ActionRepository, CreateActionUseCase, DeleteActionUseCase, GetActionUseCase, UpdateActionUseCase, UpdateActionExpensesGraficUseCase } from "@modules/action";
+import { ActionRepository, CreateActionService, DeleteActionService, GetActionService, UpdateActionService, UpdateActionExpensesGraficService } from "@modules/action";
+import { ActionController } from "@modules/action";
 
 const actionRepository = new ActionRepository();
-const createActionUseCase = new CreateActionUseCase(actionRepository);
-const deleteActionUseCase = new DeleteActionUseCase(actionRepository);
-const getActionUseCase = new GetActionUseCase(actionRepository);
-const updateActionUseCase = new UpdateActionUseCase(actionRepository);
-const updateActionExpensesGraficUseCase = new UpdateActionExpensesGraficUseCase(actionRepository);
+const createActionService = new CreateActionService(actionRepository);
+const deleteActionService = new DeleteActionService(actionRepository);
+const getActionService = new GetActionService(actionRepository);
+const updateActionService = new UpdateActionService(actionRepository);
+const updateActionExpensesGraficService = new UpdateActionExpensesGraficService(actionRepository);
 
-export { createActionUseCase, deleteActionUseCase, getActionUseCase, updateActionUseCase, updateActionExpensesGraficUseCase };
+const actionController = new ActionController(
+  getActionService,
+  createActionService,
+  updateActionService,
+  deleteActionService,
+  updateActionExpensesGraficService
+);
+
+export { createActionService, deleteActionService, getActionService, updateActionService, updateActionExpensesGraficService, actionController };

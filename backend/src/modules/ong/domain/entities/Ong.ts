@@ -4,11 +4,11 @@ interface OngProps {
   description: string;
   is_formalized: boolean;
   start_year: number | null;
-  contact_phone: string;
-  instagram_link: string;
-  x_link: string;
-  facebook_link: string;
-  pix_qr_code_link: string;
+  contact_phone: string | null;
+  instagram_link: string | null;
+  x_link: string | null;
+  facebook_link: string | null;
+  pix_qr_code_link: string | null;
   site: string | null;
   gallery_images_url: string[];
   skills: any;

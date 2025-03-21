@@ -1,4 +1,5 @@
 import { Ong, OngProps, OngRepository } from "@modules/ong";
+import { CustomError } from "@shared/customError";
 
 class CreateOngService {
   private ongRepository: OngRepository;
@@ -8,8 +9,16 @@ class CreateOngService {
   }
 
   async execute(data: OngProps): Promise<Ong> {
-    const ong = new Ong(data);
-    return this.ongRepository.create(ong);
+    try {
+      const ong = new Ong(data);
+      return this.ongRepository.create(ong);
+    } catch (error) {
+      console.error("Erro ao criar ONG:", error);
+      if (error instanceof CustomError) {
+        throw error;
+      }
+      throw new CustomError("Erro ao criar ONG", 500);
+    }
   }
 }
 

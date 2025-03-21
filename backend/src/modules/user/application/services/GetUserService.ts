@@ -9,7 +9,12 @@ class GetUserService {
   }
 
   async executeByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findByEmail(email);
+    const user = await this.userRepository.findByEmail(email);
+    return user;
+  }
+
+  async executeAll(): Promise<User[]> {
+    return this.userRepository.findAll();
   }
 }
 

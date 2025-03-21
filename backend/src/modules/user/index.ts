@@ -5,3 +5,4 @@ export * from "./application/services/DeleteUserService";
 export * from "./application/services/GetUserService";
 export * from "./infrastructure/controllers/UserController";
 export * from "./infrastructure/routes/UserRoutes";
+export * from "./infrastructure/schemas/UserSchema"

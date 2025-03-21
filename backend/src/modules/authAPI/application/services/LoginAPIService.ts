@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CustomError } from "../../../../shared/customError";
+import { CustomError } from "@shared/customError";
 import { config } from '@config/dotenv';
 
 interface GetDataProps {

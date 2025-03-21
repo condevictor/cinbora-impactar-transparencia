@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+const userSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+  ngoId: z.number(),
+  createdAt: z.union([z.string(), z.date()]).optional(), 
+  updatedAt: z.union([z.string(), z.date()]).optional(), 
+});
+
 const createUserSchema = {
   body: z.object({
     name: z.string(),
@@ -9,23 +18,14 @@ const createUserSchema = {
   response: {
     200: z.object({
       message: z.string(),
-      user: z.any(),
-    }),
-    400: z.object({
-      error: z.string().default("Requisição inválida"),
-    }),
-    500: z.object({
-      error: z.string().default("Erro interno do servidor"),
+      user: userSchema,
     }),
   },
 };
 
 const getUserSchema = {
   response: {
-    200: z.array(z.any()),
-    500: z.object({
-      error: z.string().default("Erro interno do servidor"),
-    }),
+    200: z.array(userSchema),
   },
 };
 
@@ -36,9 +36,6 @@ const deleteUserSchema = {
   response: {
     200: z.object({
       message: z.string(),
-    }),
-    500: z.object({
-      error: z.string().default("Erro interno do servidor"),
     }),
   },
 };

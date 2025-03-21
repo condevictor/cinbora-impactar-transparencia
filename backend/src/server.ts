@@ -11,7 +11,11 @@ import { CustomError } from '@shared/customError';
 import { Prisma } from "@prisma/client";
 import redisClient from "@shared/redisClient";
 
-const server = Fastify({ logger: true }).withTypeProvider<ZodTypeProvider>();
+const server = Fastify({ 
+  logger: true,
+  // Aumentar o timeout para operações que podem demorar mais
+  connectionTimeout: 60000,
+}).withTypeProvider<ZodTypeProvider>();
 
 server.setValidatorCompiler(validatorCompiler);
 server.setSerializerCompiler(serializerCompiler);
@@ -81,6 +85,21 @@ const start = async () => {
     
     console.log("Conexão com Redis estabelecida com sucesso");
     server.decorate('redis', redisClient);
+    
+    // Adicionar método helper para limpar todo o cache
+    server.decorate('clearAllCache', async () => {
+      try {
+        const keys = await redisClient.keys('cache:*');
+        if (keys && keys.length > 0) {
+          await Promise.all(keys.map(key => redisClient.del(key)));
+          server.log.info(`Cleared ${keys.length} cache keys`);
+        }
+        return true;
+      } catch (err) {
+        server.log.error(`Error clearing cache: ${err}`);
+        return false;
+      }
+    });
   } catch (err) {
     console.error("Erro ao conectar ao Redis Upstash:", err);
     process.exit(1);

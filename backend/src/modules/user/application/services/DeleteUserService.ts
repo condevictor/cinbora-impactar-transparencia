@@ -1,4 +1,5 @@
 import { UserRepository } from "@modules/user";
+import { CustomError } from "@shared/customError";
 
 interface DeleteUserProps {
   id: string;
@@ -15,7 +16,7 @@ class DeleteUserService {
     const user = await this.userRepository.findById(id);
 
     if (!user) {
-      throw new Error("Usuário não encontrado");
+      throw new CustomError("Usuário não encontrado", 404);
     }
 
     await this.userRepository.delete(id);

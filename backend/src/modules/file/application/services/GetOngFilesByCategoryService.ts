@@ -1,4 +1,5 @@
 import { FileRepository, OngFileEntity } from "@modules/file";
+import { CustomError } from "@shared/customError";
 
 class GetOngFilesByCategoryService {
   private fileRepository: FileRepository;
@@ -8,7 +9,12 @@ class GetOngFilesByCategoryService {
   }
 
   async execute(ngoId: string, category: string): Promise<OngFileEntity[]> {
-    return this.fileRepository.findOngFilesByCategory(ngoId, category);
+    try {
+      return await this.fileRepository.findOngFilesByCategory(ngoId, category);
+    } catch (error) {
+      console.error(`Erro no serviço de busca de arquivos da ONG da categoria ${category}:`, error);
+      throw new CustomError(`Erro no serviço de busca de arquivos da ONG da categoria ${category}`, 500);
+    }
   }
 }
 

@@ -10,10 +10,7 @@ const createActionSchema = {
       spent: z.number(),
       goal: z.number(),
       colected: z.number(),
-      aws_url: z.string().optional(), // Adicionando aws_url à resposta
-    }),
-    500: z.object({
-      error: z.string().default("Erro interno do servidor"),
+      aws_url: z.string().optional(),
     }),
   },
 };
@@ -21,13 +18,6 @@ const createActionSchema = {
 const updateActionSchema = {
   params: z.object({
     id: z.string(),
-  }),
-  body: z.object({
-    name: z.string().optional(),
-    type: z.string().optional(),
-    spent: z.number().optional(),
-    goal: z.number().optional(),
-    colected: z.number().optional(),
   }),
   response: {
     200: z.object({
@@ -40,9 +30,6 @@ const updateActionSchema = {
       colected: z.number(),
       aws_url: z.string().optional(), 
     }),
-    500: z.object({
-      error: z.string().default("Erro interno do servidor"),
-    }),
   },
 };
 
@@ -53,9 +40,6 @@ const deleteActionSchema = {
   response: {
     200: z.object({
       message: z.string(),
-    }),
-    500: z.object({
-      error: z.string().default("Erro interno do servidor"),
     }),
   },
 };
@@ -71,9 +55,6 @@ const updateActionExpensesGraficSchema = {
     200: z.object({
       actionId: z.string(),
       categorysExpenses: z.array(z.record(z.number())),
-    }),
-    500: z.object({
-      error: z.string().default("Erro interno do servidor"),
     }),
   },
 };

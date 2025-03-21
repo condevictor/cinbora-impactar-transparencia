@@ -4,5 +4,6 @@ import { FastifyInstance } from "fastify";
 declare module "fastify" {
   interface FastifyInstance {
     redis: Redis;
+    clearAllCache(): Promise<boolean>;
   }
 }

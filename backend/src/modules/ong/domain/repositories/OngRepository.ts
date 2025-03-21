@@ -1,24 +1,37 @@
 import prismaClient from "@shared/prismaClient";
 import { Ong, OngProps } from "@modules/ong";
+import { CustomError } from "@shared/customError";
+import { Prisma } from "@prisma/client";
 
 class OngRepository {
   async findById(id: string): Promise<Ong | null> {
     const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
 
     if (isNaN(numericId) || numericId <= 0) {
-      throw new Error('ID inválido');
+      throw new CustomError('ID inválido', 400);
     }
 
-    const ong = await prismaClient.ngo.findUnique({ where: { id: numericId } });
-
-    if (!ong) return null;
-
-    return new Ong(ong, ong.id);
+    try {
+      const ong = await prismaClient.ngo.findUnique({ where: { id: numericId } });
+      if (!ong) return null;
+      return new Ong(ong, ong.id);
+    } catch (error) {
+      console.error("Erro ao buscar ONG por ID:", error);
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new CustomError("Erro ao buscar ONG por ID", 400);
+      }
+      throw new CustomError("Erro ao buscar ONG", 500);
+    }
   }
 
   async findAll(): Promise<Ong[]> {
-    const ongs = await prismaClient.ngo.findMany();
-    return ongs.map(ong => new Ong(ong, ong.id));
+    try {
+      const ongs = await prismaClient.ngo.findMany();
+      return ongs.map(ong => new Ong(ong, ong.id));
+    } catch (error) {
+      console.error("Erro ao buscar todas as ONGs:", error);
+      throw new CustomError("Erro ao buscar todas as ONGs", 500);
+    }
   }
 
   async create(data: Ong): Promise<Ong> {
@@ -48,7 +61,7 @@ class OngRepository {
           data: {
             ngoId: data.id,
             totalExpenses: 0,
-            expensesByCategory: [{}],
+            expensesByAction: [],
           },
         });
 
@@ -57,8 +70,11 @@ class OngRepository {
 
       return ong;
     } catch (error) {
-      console.error("Error creating ONG:", error);
-      throw error;
+      console.error("Erro ao criar ONG:", error);
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new CustomError("Erro ao criar ONG", 400);
+      }
+      throw new CustomError("Erro ao criar ONG", 500);
     }
   }
 
@@ -66,7 +82,7 @@ class OngRepository {
     const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
 
     if (isNaN(numericId) || numericId <= 0) {
-      throw new Error('ID inválido');
+      throw new CustomError('ID inválido', 400);
     }
 
     try {
@@ -98,8 +114,11 @@ class OngRepository {
         await prisma.ngo.delete({ where: { id: numericId } });
       });
     } catch (error) {
-      console.error("Error deleting ONG:", error);
-      throw error;
+      console.error("Erro ao deletar ONG:", error);
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new CustomError("Erro ao deletar ONG", 400);
+      }
+      throw new CustomError("Erro ao deletar ONG", 500);
     }
   }
 
@@ -107,42 +126,66 @@ class OngRepository {
     const existingNgo = await prismaClient.ngo.findUnique({ where: { id: ngoId } });
 
     if (!existingNgo) {
-      throw new Error('ONG não encontrada');
+      throw new CustomError('ONG não encontrada', 404);
     }
 
-    const updatedOng = await prismaClient.ngo.update({
-      where: { id: ngoId },
-      data,
-    });
-    return updatedOng;
+    try {
+      const updatedOng = await prismaClient.ngo.update({
+        where: { id: ngoId },
+        data,
+      });
+      return updatedOng;
+    } catch (error) {
+      console.error("Erro ao atualizar ONG:", error);
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new CustomError("Erro ao atualizar ONG", 400);
+      }
+      throw new CustomError("Erro ao atualizar ONG", 500);
+    }
   }
 
   async updateNgoGrafic(ngoId: number, data: Partial<{ totalExpenses: number; expensesByCategory: Record<string, number> }>): Promise<any> {
     const existingGrafic = await prismaClient.ngoGraphic.findUnique({ where: { ngoId } });
 
     if (!existingGrafic) {
-      throw new Error('Gráfico não encontrado');
+      throw new CustomError('Gráfico não encontrado', 404);
     }
 
     const updatedExpensesByCategory = {
       ...data.expensesByCategory,
     };
 
-    const updatedGrafic = await prismaClient.ngoGraphic.update({
-      where: { ngoId },
-      data: {
-        totalExpenses: data.totalExpenses ?? existingGrafic.totalExpenses,
-        expensesByCategory: updatedExpensesByCategory,
-      },
-    });
+    try {
+      const updatedGrafic = await prismaClient.ngoGraphic.update({
+        where: { ngoId },
+        data: {
+          totalExpenses: data.totalExpenses ?? existingGrafic.totalExpenses,
+          expensesByAction: updatedExpensesByCategory,
+        },
+      });
 
-    return updatedGrafic;
+      return updatedGrafic;
+    } catch (error) {
+      console.error("Erro ao atualizar gráfico da ONG:", error);
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new CustomError("Erro ao atualizar gráfico da ONG", 400);
+      }
+      throw new CustomError("Erro ao atualizar gráfico da ONG", 500);
+    }
   }
 
   async findGraficByNgoId(ngoId: string): Promise<any> {
-    return prismaClient.ngoGraphic.findFirst({
-      where: { ngoId: parseInt(ngoId) },
-    });
+    try {
+      return prismaClient.ngoGraphic.findFirst({
+        where: { ngoId: parseInt(ngoId) },
+      });
+    } catch (error) {
+      console.error("Erro ao obter gráfico da ONG:", error);
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new CustomError("Erro ao obter gráfico da ONG", 400);
+      }
+      throw new CustomError("Erro ao obter gráfico da ONG", 500);
+    }
   }
 }
 

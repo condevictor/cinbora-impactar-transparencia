@@ -1,5 +1,5 @@
 import { GetExternalDataService } from "@modules/authAPI";
-import { CustomError } from "../../../../shared/customError";
+import { CustomError } from "@shared/customError";
 import { JWTService } from "@shared/jwtService";
 import { CreateUserService, GetUserService } from "@modules/user";
 import { CreateOngService, GetOngService } from "@modules/ong";

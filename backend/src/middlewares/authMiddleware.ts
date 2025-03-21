@@ -46,5 +46,4 @@ async function authMiddleware(request: FastifyRequest, reply: FastifyReply) {
   }
 }
 
-
 export { authMiddleware };
