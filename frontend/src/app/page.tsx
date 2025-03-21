@@ -39,6 +39,7 @@ export default function Ongs() {
       });
   }, []);
 
+
   return (
     <div>
       <div className="flex mt-10 justify-between">
@@ -118,9 +119,12 @@ export default function Ongs() {
                       TRANSPARÊNCIA
                     </Button>
                   </Link>
-                  <div className="w-2/12 rounded-full bg-[#F2F4F7] flex justify-center items-center">
-                    <Image className="w-6 h-6" src={shareButton} alt="share" />
+                  <div className="rounded-full w-2/12 bg-[#F2F4F7] flex justify-center items-center">
+                    <a href={`https://api.whatsapp.com/send?text=${encodeURIComponent(window.location.origin + '/visitor?ngo_id=' + ong.id)}`} target="_blank" rel="noopener noreferrer">
+                      <Image className="w-6 h-6" src={shareButton} alt="share" />
+                    </a>
                   </div>
+                  
                 </div>
               </div>
             ))}

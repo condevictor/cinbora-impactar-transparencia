@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { Input } from "@/components/ui/input";
@@ -10,12 +10,18 @@ import { toast } from "sonner";
 import Image from "next/image";
 import boraImpactar from "../../assets/bora_impactar.svg"
 
-
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  // Verifica se já está logado e redireciona
+  useEffect(() => {
+    if (Cookies.get("auth_token")) {
+      router.push("/dashboard/ongs");
+    }
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

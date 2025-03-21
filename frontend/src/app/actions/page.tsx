@@ -12,7 +12,7 @@ import ActionsBalance from "@/components/ui/actionsBalance"
 
 export default function ActionDetail() {
   const searchParams = useSearchParams()
-  const acaoId = searchParams.get("acao_id")
+  const acaoId = searchParams.get("action_id")
   const [action, setAction] = useState(null)
   const [activeTab, setActiveTab] = useState("gallery");
 

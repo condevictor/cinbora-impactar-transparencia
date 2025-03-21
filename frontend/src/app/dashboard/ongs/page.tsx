@@ -23,8 +23,18 @@ import capa from "../../../assets/capa.svg";
 import Gallery from "@/components/ui/gallery";
 import Balance from "@/components/ui/balance";
 import Documents from "@/components/ui/documents";
+import { useRouter } from "next/navigation";
 
 export default function ActionsPage() {
+  const router = useRouter();
+  
+  useEffect(() => {
+    const token = Cookies.get("auth_token");
+    if (!token) {
+      router.push("/login");
+    }
+  }, [router]);
+  
   const [slides, setSlides] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [editingSlide, setEditingSlide] = useState(null);
@@ -305,7 +315,7 @@ export default function ActionsPage() {
                           <div className="relative">
                             <button
                               onClick={() => openModal(slide)}
-                              className="absolute  right-3 bg-[#0056D2] text-white text-xs font-bold px-4 py-1 rounded shadow-sm hover:bg-[#003C99] transition-all"
+                              className="absolute top-0 right-0 bg-[#0056D2] text-white text-xs font-bold px-4 py-1 rounded shadow-sm hover:bg-[#003C99] transition-all"
                             >
                               Editar
                             </button>
@@ -333,7 +343,10 @@ export default function ActionsPage() {
                           </div>
                           <hr className="border-solide border borde-gray-500" />
                           <div className="flex justify-between items-center h-10">
-                            <Button className="w-4/5 h-full font-bold rounded-[34px] bg-[#294BB6] text-white border-solid border-[#2E4049] border hover:text-[#294BB6] hover:bg-white">
+                            <Button 
+                              onClick={() => router.push("/dashboard/actions" + "?action_id=" + slide.id)}
+                              className="w-4/5 h-full font-bold rounded-[34px] bg-[#294BB6] text-white border-solid border-[#2E4049] border hover:text-[#294BB6] hover:bg-white"
+                            >
                               TRANSPARÊNCIA
                             </Button>
                             <div className="w-2/12 rounded-full h-full bg-[#F2F4F7] flex justify-center items-center">
