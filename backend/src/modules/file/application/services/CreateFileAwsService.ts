@@ -5,13 +5,18 @@ import s3StorageInstance from "@shared/s3Cliente";
 class CreateFileAwsService {
   private fileRepository: FileRepository;
   
-  // Usar injeção de dependência em vez de criar nova instância
   constructor(fileRepository: FileRepository) {
+    if (!fileRepository) {
+      throw new Error("FileRepository é obrigatório para CreateFileAwsService");
+    }
     this.fileRepository = fileRepository;
   }
 
   async uploadActionImage(fileBuffer: Buffer, filename: string, ngoId?: number, actionId?: string): Promise<string> {
     try {
+      if (!fileBuffer || !filename) {
+        throw new CustomError("Buffer do arquivo e nome do arquivo são obrigatórios", 400);
+      }
       return await this.fileRepository.saveFile(fileBuffer, filename, ngoId, actionId);
     } catch (error) {
       console.error("Erro ao fazer upload do arquivo no AWS service:", error);
