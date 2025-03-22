@@ -27,17 +27,18 @@ class FileRepository {
       // Construir caminho para arquivos da ONG
       const path = this.s3Storage.buildPath(fileProps.ngoId, 'files');
       
-      // Salvar arquivo com o novo caminho
+      // Salvar arquivo com o novo caminho - agora retorna URL já codificada corretamente
       const aws_url = await this.s3Storage.saveFile(fileBuffer, fileProps.name, path);
       
       // O aws_name agora contém o caminho completo após amazonaws.com/
-      const aws_name = aws_url.split('amazonaws.com/')[1]; // Algo como "1/files/uuid-filename.jpg"
+      // A URL já está codificada consistentemente pelo método saveFile
+      const aws_name = aws_url.split('amazonaws.com/')[1];
 
       const file = await prismaClient.ongFile.create({
         data: { 
           ...fileProps, 
-          aws_name, // Agora armazena o caminho completo
-          aws_url,
+          aws_name,
+          aws_url, // URL já está codificada corretamente
           size: fileProps.size
         },
       });
@@ -65,17 +66,18 @@ class FileRepository {
       // Construir caminho para arquivos da ação
       const path = this.s3Storage.buildPath(action.ngoId, 'actions', fileProps.actionId);
       
-      // Salvar arquivo com o novo caminho
+      // Salvar arquivo com o novo caminho - agora retorna URL já codificada corretamente
       const aws_url = await this.s3Storage.saveFile(fileBuffer, fileProps.name, path);
       
       // O aws_name agora contém o caminho completo
-      const aws_name = aws_url.split('amazonaws.com/')[1]; // Algo como "1/actions/2/uuid-filename.jpg"
+      // A URL já está codificada consistentemente pelo método saveFile
+      const aws_name = aws_url.split('amazonaws.com/')[1];
 
       const file = await prismaClient.actionFile.create({
         data: { 
           ...fileProps, 
           aws_name,
-          aws_url,
+          aws_url, // URL já está codificada corretamente
           size: fileProps.size
         },
       });
