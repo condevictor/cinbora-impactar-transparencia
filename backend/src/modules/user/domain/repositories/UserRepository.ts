@@ -195,7 +195,7 @@ class UserRepository {
         
         return userInstance;
       });
-    } catch (error) {
+    } catch {
       throw new CustomError("Erro ao buscar todos os usuários", 500);
     }
   }

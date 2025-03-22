@@ -1,6 +1,5 @@
 import { Action, ActionRepository } from "@modules/action";
 import { CustomError } from "@shared/customError";
-import { NgoExpensesGrafic } from "@routeParams/RouteParams"
 
 class GetActionService {
   private actionRepository: ActionRepository;

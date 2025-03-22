@@ -108,7 +108,7 @@ class ActionController {
   }
 
   async getActionExpensesGrafic(request: FastifyRequest) {
-    const { id: ngoId, actionId } = request.params as { id: string, actionId: string };
+    const { actionId } = request.params as { id: string, actionId: string };
     try {
       return await this.getActionService.getExpensesByActionId(actionId);
     } catch (error) {
@@ -131,7 +131,7 @@ class ActionController {
     let filename = '';
     let mimetype = '';
     let size = 0;
-    let categorysExpenses: Record<string, number> = {};
+    const categorysExpenses: Record<string, number> = {};
 
     for await (const part of parts) {
       if (part.type === 'file') {

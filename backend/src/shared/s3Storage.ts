@@ -26,7 +26,7 @@ class S3Storage {
     return filename
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-      .replace(/[^\w\-\.]/g, '-')      // Substitui caracteres especiais por hífens
+      .replace(/[^\w\-.]/g, '-')     // Substitui caracteres especiais por hífens
       .replace(/\s+/g, '-')            // Substitui espaços por hífens
       .replace(/-+/g, '-')             // Previne múltiplos hífens consecutivos
       .trim();
@@ -45,9 +45,6 @@ class S3Storage {
     if (!ContentType) {
       throw new Error('File type could not be determined');
     }
-
-    // Extrair a extensão do arquivo
-    const fileExtension = filename.split('.').pop() || '';
     
     // Codificar o nome do arquivo para evitar problemas com caracteres especiais
     const encodedFilename = this.encodeFilename(filename);

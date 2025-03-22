@@ -35,7 +35,7 @@ class UpdateUserProfileService {
       const filename = file.filename;
 
       // Usar o método updateProfilePhoto do repositório que já tem toda a lógica implementada
-      const profileUrl = await this.userRepository.updateProfilePhoto(
+      await this.userRepository.updateProfilePhoto(
         userId, 
         ngoId, 
         buffer, 

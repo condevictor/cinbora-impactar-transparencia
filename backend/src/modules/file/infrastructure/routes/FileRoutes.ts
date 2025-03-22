@@ -53,7 +53,7 @@ async function fileRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       try {
         // Call controller but don't send response yet
-        const fileEntity = await fileController.uploadActionFile(request, reply);
+        const fileEntity = await fileController.uploadActionFile(request);
         
         // Invalidate cache first, then send response
         if (fileEntity && request.params.actionId) {
@@ -87,7 +87,7 @@ async function fileRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       try {
         // Call controller but don't send response yet
-        const result = await fileController.delete(request, reply);
+        const result = await fileController.delete(request);
         
         // Invalidate cache first, then send response
         if (result && request.user) {
@@ -123,7 +123,7 @@ async function fileRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       try {
         // Call controller but don't send response yet
-        const result = await fileController.delete(request, reply);
+        const result = await fileController.delete(request);
         
         // Invalidate cache first, then send response
         if (result && request.params.actionId) {

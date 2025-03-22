@@ -127,7 +127,7 @@ class FileController {
     }
   }
 
-  async uploadActionFile(request: FastifyRequest<{ Params: ActionParams }>, reply: FastifyReply) {
+  async uploadActionFile(request: FastifyRequest<{ Params: ActionParams }>) {
     const { fileBuffer, filename, mimetype, size, category } = await this.extractFileData(request);
 
     if (!fileBuffer) {
@@ -149,7 +149,7 @@ class FileController {
     return fileEntity;
   }
 
-  async delete(request: FastifyRequest<{ Params: DeleteParams }>, reply: FastifyReply) {
+  async delete(request: FastifyRequest<{ Params: DeleteParams }>) {
     if (!request.user) {
       throw new CustomError("Usuário não autenticado", 401);
     }

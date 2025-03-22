@@ -1,6 +1,5 @@
 import { FileRepository } from "@modules/file";
 import { CustomError } from "@shared/customError";
-import s3StorageInstance from "@shared/s3Cliente";
 
 class CreateFileAwsService {
   private fileRepository: FileRepository;

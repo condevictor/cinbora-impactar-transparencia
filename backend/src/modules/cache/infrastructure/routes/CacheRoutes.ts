@@ -3,7 +3,7 @@ import { localCache, keyPatternMap } from "@shared/redisClient";
 
 export async function diagnosticRoutes(fastify: FastifyInstance) {
   // Rota para verificar estatísticas do cache
-  fastify.get("/admin/cache-stats", async (request, reply) => {
+  fastify.get("/admin/cache-stats", async () => {
     // Verifique se há uma senha de administrador ou IP permitido
     // Isso é importante para não expor informações em produção
     
@@ -46,7 +46,7 @@ export async function diagnosticRoutes(fastify: FastifyInstance) {
   });
   
   // Rota para limpar todo o cache
-  fastify.post("/admin/clear-cache", async (request, reply) => {
+  fastify.post("/admin/clear-cache", async () => {
     const localKeysCleared = localCache.keys().length;
     localCache.flushAll();
     

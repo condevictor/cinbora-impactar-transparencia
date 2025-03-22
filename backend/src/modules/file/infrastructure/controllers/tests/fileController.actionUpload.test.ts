@@ -6,6 +6,7 @@ import { logService } from '@config/dependencysInjection/logDependencyInjection'
 import { CustomError } from '@shared/customError';
 import { FileController } from '../FileController';
 import { uploadOngFileService as mockUploadOngFileService, uploadActionFileService, deleteFileService, getActionFilesByCategoryService, getOngFilesByCategoryService } from '@config/dependencysInjection/fileDependencyInjection';
+import fastifyMultipart from '@fastify/multipart';
 
 jest.mock('@config/dependencysInjection/fileDependencyInjection');
 jest.mock('@config/dependencysInjection/logDependencyInjection');
@@ -14,7 +15,7 @@ const server = Fastify();
 const uploadOngFileService = mockUploadOngFileService;
 const fileController = new FileController(uploadOngFileService, uploadActionFileService, deleteFileService, getActionFilesByCategoryService, getOngFilesByCategoryService);
 
-server.register(require('@fastify/multipart'));
+server.register(fastifyMultipart);
 
 server.post('/upload', async (req, res) => {
   // Mocka o request.user para incluir o ngoid do token
@@ -22,10 +23,8 @@ server.post('/upload', async (req, res) => {
   
   try {
     const fileEntity = await fileController.uploadOngFile(req, res);
-    // IMPORTANTE: Enviar explicitamente a resposta
     return res.send(fileEntity);
   } catch (error) {
-    // Tratar erro e preservar mensagem original
     if (error instanceof CustomError) {
       return res.status(error.statusCode).send({ error: error.message });
     }
@@ -74,7 +73,7 @@ describe('FileController - uploadOngFile', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual(fileEntity);
 
-    fs.unlinkSync(filePath); // Clean up the test file
+    fs.unlinkSync(filePath);
   }, 10000);
 
   it('should return an error if file upload fails', async () => {
@@ -92,6 +91,6 @@ describe('FileController - uploadOngFile', () => {
     expect(response.status).toBe(500);
     expect(response.body).toHaveProperty('error', 'Internal Server Error');
 
-    fs.unlinkSync(filePath); // Clean up the test file
+    fs.unlinkSync(filePath);
   }, 10000);
 });

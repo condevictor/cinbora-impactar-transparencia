@@ -1,9 +1,5 @@
 import request from 'supertest';
-import Fastify, { FastifyRequest, FastifyReply } from 'fastify';
-import { logService } from '@config/dependencysInjection/logDependencyInjection';
-import { CustomError } from '@shared/customError';
-import { FileController } from '../FileController';
-import { uploadOngFileService, uploadActionFileService, deleteFileService, getActionFilesByCategoryService, getOngFilesByCategoryService } from '@config/dependencysInjection/fileDependencyInjection';
+import Fastify from 'fastify';
 
 jest.mock('@config/dependencysInjection/fileDependencyInjection');
 jest.mock('@config/dependencysInjection/logDependencyInjection');
@@ -12,15 +8,6 @@ jest.mock('@config/dependencysInjection/logDependencyInjection');
 const mockDeleteFileService = {
   execute: jest.fn()
 };
-
-// Usar o mock personalizado em vez do importado
-const fileController = new FileController(
-  uploadOngFileService, 
-  uploadActionFileService, 
-  mockDeleteFileService as any,  // Usar nosso mock personalizado
-  getActionFilesByCategoryService, 
-  getOngFilesByCategoryService
-);
 
 const server = Fastify();
 
@@ -33,7 +20,7 @@ server.delete('/file/:id', async (req, reply) => {
     await mockDeleteFileService.execute((req.params as any).id);
 
     return reply.code(200).send({ message: 'Arquivo deletado com sucesso' });
-  } catch (error) {
+  } catch {
     return reply.code(500).send({ error: 'Internal Server Error' });
   }
 });

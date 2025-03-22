@@ -6,6 +6,7 @@ import { ActionController } from '../ActionController';
 import { getActionService, createActionService, updateActionService, deleteActionService, updateActionExpensesGraficService, createFileAwsService } from '@config/dependencysInjection/actionDependencyInjection';
 import { logService } from '@config/dependencysInjection/logDependencyInjection';
 import { CustomError } from '@shared/customError';
+import fastifyMultipart from '@fastify/multipart';
 
 jest.mock('@config/dependencysInjection/actionDependencyInjection', () => ({
   getActionService: {},
@@ -42,7 +43,7 @@ jest.mock('@modules/file', () => ({
 
 // Configuração do servidor para testes
 const server = Fastify();
-server.register(require('@fastify/multipart'), {
+server.register(fastifyMultipart), {
   limits: {
     fieldNameSize: 100,
     fieldSize: 1000,
@@ -50,7 +51,7 @@ server.register(require('@fastify/multipart'), {
     fileSize: 1000000,
     files: 1
   }
-});
+};
 
 const actionController = new ActionController(
   getActionService,
@@ -61,7 +62,7 @@ const actionController = new ActionController(
   createFileAwsService
 );
 
-server.addHook('preHandler', async (request, reply) => {
+server.addHook('preHandler', async (request) => {
   // Mock do usuário autenticado
   request.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
 });

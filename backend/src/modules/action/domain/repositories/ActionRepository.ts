@@ -121,7 +121,7 @@ class ActionRepository {
                 });
                 
                 // Get or create NGO graphic
-                let ngoGraphic = await prisma.ngoGraphic.findUnique({ 
+                const ngoGraphic = await prisma.ngoGraphic.findUnique({ 
                     where: { ngoId: data.ngoId } 
                 });
                 
@@ -149,7 +149,7 @@ class ActionRepository {
                         yearData.months.push(monthData);
                     }
                     
-                    let dayData = monthData?.dailyRecords.find((d: { day: number, expensesByAction: Record<string, number> }) => d.day === day);
+                    const dayData = monthData?.dailyRecords.find((d: { day: number, expensesByAction: Record<string, number> }) => d.day === day);
                     if (dayData) {
                         dayData.expensesByAction = allActionsExpenses;
                     } else {
@@ -293,7 +293,7 @@ class ActionRepository {
           yearData.months.push(monthData);
         }
   
-        let dayData = monthData?.dailyRecords.find((d: { day: number, categorysExpenses: Record<string, number> }) => d.day === day);
+        const dayData = monthData?.dailyRecords.find((d: { day: number, categorysExpenses: Record<string, number> }) => d.day === day);
   
         if (dayData) {
           // Substitui os dados do dia atual
@@ -364,7 +364,7 @@ class ActionRepository {
           return acc;
         }, {});
   
-        let ngoExpensesArray = ngoGraphic.expensesByAction as any[];
+        const ngoExpensesArray = ngoGraphic.expensesByAction as any[];
         let yearData = ngoExpensesArray.find((entry) => entry.year === year);
   
         if (!yearData) {
@@ -378,7 +378,7 @@ class ActionRepository {
           yearData.months.push(monthData);
         }
   
-        let dayData = monthData?.dailyRecords.find((d: { day: number, categorysExpenses: Record<string, number> }) => d.day === day);
+        const dayData = monthData?.dailyRecords.find((d: { day: number, categorysExpenses: Record<string, number> }) => d.day === day);
         if (dayData) {
           dayData.expensesByAction = allActionsExpenses;
         } else {

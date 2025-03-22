@@ -6,6 +6,7 @@ import { logService } from '@config/dependencysInjection/logDependencyInjection'
 import { CustomError } from '@shared/customError';
 import { FileController } from '../FileController';
 import { uploadOngFileService as mockUploadOngFileService, uploadActionFileService, deleteFileService, getActionFilesByCategoryService, getOngFilesByCategoryService } from '@config/dependencysInjection/fileDependencyInjection';
+import fastifyMultipart from '@fastify/multipart';
 
 jest.mock('@config/dependencysInjection/fileDependencyInjection');
 jest.mock('@config/dependencysInjection/logDependencyInjection');
@@ -14,7 +15,7 @@ const server = Fastify();
 const uploadOngFileService = mockUploadOngFileService;
 const fileController = new FileController(uploadOngFileService, uploadActionFileService, deleteFileService, getActionFilesByCategoryService, getOngFilesByCategoryService);
 
-server.register(require('@fastify/multipart'));
+server.register(fastifyMultipart);
 
 server.post('/upload', async (req, res) => {
   // Mocka o request.user para incluir o ngoid do token

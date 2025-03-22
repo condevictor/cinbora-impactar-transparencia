@@ -13,8 +13,10 @@ export default [
     plugins: {
       jest: jestPlugin
     },
-    env: {
-      "jest/globals": true
+    languageOptions: {
+      globals: {
+        ...jestPlugin.environments.globals.globals
+      }
     }
   }
 ];

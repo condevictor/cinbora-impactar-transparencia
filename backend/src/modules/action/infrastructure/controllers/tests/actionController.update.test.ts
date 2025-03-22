@@ -45,7 +45,7 @@ const actionController = new ActionController(
   createFileAwsService
 );
 
-server.addHook('preHandler', async (request, reply) => {
+server.addHook('preHandler', async (request) => {
   // Mocka o request.user para incluir o ngoid do token
   request.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
 });

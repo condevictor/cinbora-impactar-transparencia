@@ -5,6 +5,7 @@ import path from 'path';
 import { ActionController } from '../ActionController';
 import { getActionService, createActionService, updateActionService, deleteActionService, updateActionExpensesGraficService, createFileAwsService } from '@config/dependencysInjection/actionDependencyInjection';
 import { logService } from '@config/dependencysInjection/logDependencyInjection';
+import fastifyMultipart from '@fastify/multipart';
 
 jest.mock('@config/dependencysInjection/actionDependencyInjection');
 jest.mock('@config/dependencysInjection/logDependencyInjection');
@@ -20,7 +21,7 @@ jest.mock('@modules/file', () => {
 });
 
 const server = Fastify();
-server.register(require('@fastify/multipart'));
+server.register(fastifyMultipart);
 
 const actionController = new ActionController(
   getActionService,
@@ -31,7 +32,7 @@ const actionController = new ActionController(
   createFileAwsService
 );
 
-server.addHook('preHandler', async (request, reply) => {
+server.addHook('preHandler', async (request) => {
   // Mocka o request.user para incluir o ngoid do token
   request.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
 });
