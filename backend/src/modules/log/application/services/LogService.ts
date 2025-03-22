@@ -10,7 +10,7 @@ class LogService {
 
   async logAction(ngoId: number, userId: string, userName: string, action: string, model: string, modelId: string, changes: any, description: string) {
     const now = new Date();
-    const brazilianDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+    const brazilianDate = new Date(now.getTime() - 3 * 60 * 60 * 1000);
     
     const log: Log = {
       ngoId,
