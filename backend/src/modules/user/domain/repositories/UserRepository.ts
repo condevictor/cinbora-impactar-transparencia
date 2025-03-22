@@ -158,7 +158,6 @@ class UserRepository {
       const users = await prismaClient.user.findMany({
         where: { ngoId },
       });
-
       // Para cada usuário, excluir sua pasta de arquivos
       for (const user of users) {
         try {
@@ -170,7 +169,6 @@ class UserRepository {
           // Continuar com os próximos usuários
         }
       }
-
       // Excluir todos os registros de usuários da ONG
       await prismaClient.user.deleteMany({
         where: { ngoId },

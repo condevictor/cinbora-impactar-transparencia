@@ -249,9 +249,14 @@ class ActionController {
         throw new CustomError("Ação não encontrada", 404);
       }
 
-      const oldFileName = action.aws_url.split('/').pop();
-      if (oldFileName) {
-        await this.createFileAwsService.deleteFile(oldFileName);
+      // Se existe uma imagem anterior, exclua-a
+      if (action.aws_url) {
+        try {
+          await this.createFileAwsService.deleteFile(action.aws_url);
+        } catch (deleteError) {
+          console.error("Erro ao excluir imagem anterior:", deleteError);
+          // Continua mesmo se falhar ao excluir
+        }
       }
 
       const aws_url = await this.createFileAwsService.uploadActionImage(

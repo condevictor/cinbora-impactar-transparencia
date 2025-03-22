@@ -12,7 +12,7 @@ const fileRepository = new FileRepository();
 
 // Instanciar os serviços com os parâmetros corretos
 const deleteFileService = new DeleteFileService(fileRepository);
-const createFileAwsService = new CreateFileAwsService();
+const createFileAwsService = new CreateFileAwsService(fileRepository);
 
 // O repositório de usuário agora requer o serviço de exclusão de arquivos
 const userRepository = new UserRepository(deleteFileService, s3StorageInstance);

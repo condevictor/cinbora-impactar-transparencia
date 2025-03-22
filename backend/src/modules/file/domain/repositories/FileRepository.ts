@@ -131,7 +131,8 @@ class FileRepository {
   async deleteFileFromS3(filename: string): Promise<void> {
     try {
       await this.s3Storage.deleteFile(filename);
-    } catch {
+    } catch (error) {
+      console.error("Erro ao deletar arquivo no S3:", error);
       throw new CustomError("Erro ao deletar arquivo no S3", 500);
     }
   }
@@ -170,6 +171,30 @@ class FileRepository {
       }
       throw new CustomError("Erro ao buscar arquivos da ONG por categoria", 500);
     }
+  }
+
+
+async deleteEntityFiles(type: 'ong' | 'action' | 'user', entityId: string | number, ngoId: number): Promise<number> {
+  try {
+    let path: string;
+    
+    switch (type) {
+      case 'ong':
+        path = `${ngoId}`;
+        break;
+      case 'action':
+        path = `${ngoId}/actions/${entityId}`;
+        break;
+      case 'user':
+        path = `${ngoId}/users/${entityId}`;
+        break;
+    }
+    
+    return await this.s3Storage.deleteFolder(path);
+  } catch (error) {
+    console.error(`Erro ao excluir arquivos de ${type} ${entityId}:`, error);
+    throw new CustomError(`Erro ao excluir arquivos de ${type}`, 500);
+  }
   }
 }
 
