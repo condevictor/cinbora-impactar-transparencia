@@ -5,16 +5,17 @@ import { GetUserService } from "@modules/user/application/services/GetUserServic
 import { UpdateUserProfileService } from "@modules/user/application/services/UpdateUserProfileService";
 import { UserController } from "@modules/user/infrastructure/controllers/UserController";
 import { CreateFileAwsService, DeleteFileService, FileRepository } from "@modules/file";
+import s3StorageInstance from "@shared/s3Cliente";
 
 // Instanciar o FileRepository primeiro
 const fileRepository = new FileRepository();
 
 // Instanciar os serviços com os parâmetros corretos
 const deleteFileService = new DeleteFileService(fileRepository);
-const createFileAwsService = new CreateFileAwsService();
+const createFileAwsService = new CreateFileAwsService(fileRepository);
 
 // O repositório de usuário agora requer o serviço de exclusão de arquivos
-const userRepository = new UserRepository(deleteFileService);
+const userRepository = new UserRepository(deleteFileService, s3StorageInstance);
 
 // Serviços
 const createUserService = new CreateUserService(userRepository);

@@ -89,48 +89,29 @@ class OngRepository {
 
   async delete(id: string): Promise<void> {
     try {
-      const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-
+      const numericId = parseInt(id);
+      
       if (isNaN(numericId)) {
-        throw new CustomError("ID inválido", 400);
+        throw new CustomError("ID de ONG inválido", 400);
       }
 
       await prismaClient.$transaction(async (prisma) => {
-        // Buscar todos os usuários da ONG para deletar suas fotos de perfil
-        const users = await prisma.user.findMany({
-          where: { ngoId: numericId }
-        });
 
-        // Para cada usuário, verificar se tem foto de perfil e excluí-la na AWS
-        for (const user of users) {
-          if (user.profileUrl) {
-            try {
-              const profileFileName = user.profileUrl.split('/').pop();
-              if (profileFileName) {
-                await this.s3Storage.deleteFile(profileFileName);
-                console.log(`Foto de perfil ${profileFileName} do usuário ${user.id} deletada com sucesso`);
-              }
-            } catch (s3Error) {
-              console.error(`Erro ao deletar foto de perfil do usuário ${user.id}:`, s3Error);
-            }
-          }
+        try {
+          // Isso exclui TUDO no caminho /{ongId}/... incluindo todas as subpastas
+          await this.s3Storage.deleteFolder(`${numericId}`);
+          console.log(`Todos os arquivos da ONG ${numericId} foram excluídos com sucesso`);
+        } catch (s3Error) {
+          console.error(`Erro ao excluir arquivos da ONG ${numericId}:`, s3Error);
+          // Continuamos com a deleção dos registros no banco mesmo se falhar no S3
         }
-
-        // Agora podemos usar o método existente para excluir todos os usuários da ONG
-        await this.userRepository.deleteAllFromNgo(numericId);
-
-        // Buscar a ONG com todos os relacionamentos relevantes
+        
         const ong = await prisma.ngo.findUnique({
           where: { id: numericId },
           include: {
             actions: {
-              include: {
-                files: true,
-                expenses: true,
-                // Incluir outras relações de Action necessárias
-              }
-            },
-            // Incluir outras relações diretas de ONG se houver
+              select: { id: true }
+            }
           }
         });
 
@@ -138,49 +119,44 @@ class OngRepository {
           throw new CustomError("ONG não encontrada", 404);
         }
 
-        // 1. Para cada ação da ONG, deletar arquivos no S3 e registros relacionados
+        // 1. Primeiro, deletar ActionExpensesGrafic (que depende de Action)
         for (const action of ong.actions) {
-          // Deletar os arquivos de ação no S3
-          for (const file of action.files) {
-            try {
-              // Use o FileRepository em vez de chamar this.s3Storage diretamente
-              await this.s3Storage.deleteFile(file.aws_name);
-              console.log(`Arquivo ${file.aws_name} deletado com sucesso`);
-            } catch (s3Error) {
-              console.error(`Erro ao deletar arquivo ${file.aws_name}:`, s3Error);
-            }
-          }
-
-          // Deletar imagem de capa da ação no S3
-          if (action.aws_url) {
-            try {
-              const actionFileName = action.aws_url.split('/').pop();
-              if (actionFileName) {
-                // Use o FileRepository aqui também
-                await this.s3Storage.deleteFile(actionFileName);
-                console.log(`Imagem de capa ${actionFileName} deletada com sucesso`);
-              }
-            } catch (s3Error) {
-              console.error(`Erro ao deletar imagem de capa da ação:`, s3Error);
-            }
-          }
-
-          // Deletar registros de banco de dados relacionados à ação
-          await Promise.all([
-            prisma.actionFile.deleteMany({ where: { actionId: action.id } }),
-            prisma.actionExpensesGrafic.deleteMany({ where: { actionId: action.id } }),
-            // Outros relacionamentos de ação se existirem
-          ]);
+          await prisma.actionExpensesGrafic.deleteMany({
+            where: { actionId: action.id }
+          });
         }
 
-        // 2. Deletar gráficos da ONG
-        await prisma.ngoGraphic.deleteMany({ where: { ngoId: numericId } });
+        // 2. Deletar os usuários associados à ONG
+        await prisma.user.deleteMany({
+          where: { ngoId: numericId }
+        });
 
-        // 3. Deletar todas as ações da ONG
-        await prisma.action.deleteMany({ where: { ngoId: numericId } });
+        // 3. Deletar o restante em uma ordem que respeite as relações
+        await prisma.actionFile.deleteMany({
+          where: { ngoId: numericId }
+        });
 
-        // 4. Deletar a ONG em si
-        await prisma.ngo.delete({ where: { id: numericId } });
+        await prisma.action.deleteMany({
+          where: { ngoId: numericId }
+        });
+
+        await prisma.ongFile.deleteMany({
+          where: { ngoId: numericId }
+        });
+
+        await prisma.ngoGraphic.deleteMany({
+          where: { ngoId: numericId }
+        });
+        
+        // Adicionado: Deletar todos os logs associados à ONG
+        await prisma.log.deleteMany({
+          where: { ngoId: numericId }
+        });
+
+        // 4. Finalmente deletar a ONG
+        await prisma.ngo.delete({
+          where: { id: numericId }
+        });
       });
     } catch (error) {
       console.error("Erro ao deletar ONG:", error);

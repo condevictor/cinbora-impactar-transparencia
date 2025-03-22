@@ -1,30 +1,43 @@
-import { ActionRepository, CreateActionService, DeleteActionService, GetActionService, UpdateActionService, UpdateActionExpensesGraficService } from "@modules/action";
-import { ActionController } from "@modules/action";
-import { CreateFileAwsService } from "@modules/file"; // Adicionar esta importação
+import { ActionRepository } from "@modules/action/domain/repositories/ActionRepository";
+import { GetActionService, CreateActionService, UpdateActionService, DeleteActionService, UpdateActionExpensesGraficService } from "@modules/action";
+import { ActionController } from "@modules/action/infrastructure/controllers/ActionController";
+import { CreateFileAwsService } from "@modules/file/application/services/CreateFileAwsService";
+import { FileRepository } from "@modules/file/domain/repositories/FileRepository";
+import s3StorageInstance from "@shared/s3Cliente";
 
+// Instanciar o repositório de arquivos
+const fileRepository = new FileRepository();
+
+// Instanciar o repositório de ações
 const actionRepository = new ActionRepository();
-const createActionService = new CreateActionService(actionRepository);
-const deleteActionService = new DeleteActionService(actionRepository);
-const getActionService = new GetActionService(actionRepository);
-const updateActionService = new UpdateActionService(actionRepository);
-const updateActionExpensesGraficService = new UpdateActionExpensesGraficService(actionRepository);
-const createFileAwsService = new CreateFileAwsService(); 
 
+// Criar os serviços necessários
+const getActionService = new GetActionService(actionRepository);
+// Agora passando o s3Storage como segundo parâmetro
+const createActionService = new CreateActionService(actionRepository, s3StorageInstance);
+const updateActionService = new UpdateActionService(actionRepository);
+const deleteActionService = new DeleteActionService(actionRepository);
+const updateActionExpensesGraficService = new UpdateActionExpensesGraficService(actionRepository);
+
+// Instanciar o serviço de arquivo AWS com o repositório de arquivos
+const createFileAwsService = new CreateFileAwsService(fileRepository);
+
+// Instanciar o controlador de ações com todas as suas dependências
 const actionController = new ActionController(
   getActionService,
   createActionService,
   updateActionService,
   deleteActionService,
   updateActionExpensesGraficService,
-  createFileAwsService 
+  createFileAwsService
 );
 
 export { 
-  createActionService, 
-  deleteActionService, 
-  getActionService, 
-  updateActionService, 
-  updateActionExpensesGraficService, 
-  createFileAwsService, 
-  actionController 
+  actionController,
+  getActionService,
+  createActionService,
+  updateActionService,
+  deleteActionService,
+  updateActionExpensesGraficService,
+  createFileAwsService
 };

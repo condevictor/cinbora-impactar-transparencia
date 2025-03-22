@@ -7,9 +7,16 @@ import { Prisma } from "@prisma/client";
 class FileRepository {
   private s3Storage = s3StorageInstance;
 
-  async saveFile(fileBuffer: Buffer, filename: string): Promise<string> {
+  async saveFile(fileBuffer: Buffer, filename: string, ngoId?: number, actionId?: string): Promise<string> {
     try {
-      return this.s3Storage.saveFile(fileBuffer, filename);
+      let path;
+      
+      // Se tiver tanto ngoId quanto actionId, cria o mesmo path usado em createActionFile
+      if (ngoId && actionId) {
+        path = this.s3Storage.buildPath(ngoId, 'actions', actionId);
+      }
+      
+      return this.s3Storage.saveFile(fileBuffer, filename, path);
     } catch {
       throw new CustomError("Erro ao salvar arquivo no S3", 500);
     }
@@ -17,13 +24,19 @@ class FileRepository {
 
   async createOngFile(fileBuffer: Buffer, fileProps: OngFileProps): Promise<OngFileEntity> {
     try {
-      const aws_url = await this.s3Storage.saveFile(fileBuffer, fileProps.name);
-      const aws_name = aws_url.split('/').pop()!; // Extrai o nome do arquivo da URL
+      // Construir caminho para arquivos da ONG
+      const path = this.s3Storage.buildPath(fileProps.ngoId, 'files');
+      
+      // Salvar arquivo com o novo caminho
+      const aws_url = await this.s3Storage.saveFile(fileBuffer, fileProps.name, path);
+      
+      // O aws_name agora contém o caminho completo após amazonaws.com/
+      const aws_name = aws_url.split('amazonaws.com/')[1]; // Algo como "1/files/uuid-filename.jpg"
 
       const file = await prismaClient.ongFile.create({
         data: { 
           ...fileProps, 
-          aws_name,
+          aws_name, // Agora armazena o caminho completo
           aws_url,
           size: fileProps.size
         },
@@ -40,8 +53,23 @@ class FileRepository {
 
   async createActionFile(fileBuffer: Buffer, fileProps: ActionFileProps): Promise<ActionFileEntity> {
     try {
-      const aws_url = await this.s3Storage.saveFile(fileBuffer, fileProps.name);
-      const aws_name = aws_url.split('/').pop()!; // Extrai o nome do arquivo da URL
+      // Primeiro, obtenha o ngoId associado a esta ação
+      const action = await prismaClient.action.findUnique({
+        where: { id: fileProps.actionId }
+      });
+      
+      if (!action) {
+        throw new CustomError("Ação não encontrada", 404);
+      }
+      
+      // Construir caminho para arquivos da ação
+      const path = this.s3Storage.buildPath(action.ngoId, 'actions', fileProps.actionId);
+      
+      // Salvar arquivo com o novo caminho
+      const aws_url = await this.s3Storage.saveFile(fileBuffer, fileProps.name, path);
+      
+      // O aws_name agora contém o caminho completo
+      const aws_name = aws_url.split('amazonaws.com/')[1]; // Algo como "1/actions/2/uuid-filename.jpg"
 
       const file = await prismaClient.actionFile.create({
         data: { 
@@ -103,7 +131,8 @@ class FileRepository {
   async deleteFileFromS3(filename: string): Promise<void> {
     try {
       await this.s3Storage.deleteFile(filename);
-    } catch {
+    } catch (error) {
+      console.error("Erro ao deletar arquivo no S3:", error);
       throw new CustomError("Erro ao deletar arquivo no S3", 500);
     }
   }
@@ -142,6 +171,30 @@ class FileRepository {
       }
       throw new CustomError("Erro ao buscar arquivos da ONG por categoria", 500);
     }
+  }
+
+
+async deleteEntityFiles(type: 'ong' | 'action' | 'user', entityId: string | number, ngoId: number): Promise<number> {
+  try {
+    let path: string;
+    
+    switch (type) {
+      case 'ong':
+        path = `${ngoId}`;
+        break;
+      case 'action':
+        path = `${ngoId}/actions/${entityId}`;
+        break;
+      case 'user':
+        path = `${ngoId}/users/${entityId}`;
+        break;
+    }
+    
+    return await this.s3Storage.deleteFolder(path);
+  } catch (error) {
+    console.error(`Erro ao excluir arquivos de ${type} ${entityId}:`, error);
+    throw new CustomError(`Erro ao excluir arquivos de ${type}`, 500);
+  }
   }
 }
 

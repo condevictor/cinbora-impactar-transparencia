@@ -166,8 +166,7 @@ class ActionController {
     }
 
     try {
-      const aws_url = await this.createFileAwsService.uploadFile(fileBuffer, filename);
-
+      // 1. Primeiro criar a ação com aws_url temporária ou vazia
       const action = await this.createActionService.execute({
         name,
         type,
@@ -175,12 +174,23 @@ class ActionController {
         spent,
         goal,
         colected,
-        aws_url,
+        aws_url: "",  // URL vazia inicialmente
         categorysExpenses,
       });
 
+      // 2. Agora fazer upload da imagem com o ID da ação
+      const aws_url = await this.createFileAwsService.uploadActionImage(
+        fileBuffer,
+        filename,
+        request.user.ngoId,
+        action.id.toString()
+      );
+
+      // 3. Atualizar a ação com a URL da imagem
+      const updatedAction = await this.updateActionService.execute(action.id, { aws_url });
+
       await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "CRIAR", "Ação", action.id.toString(), { name, type, spent, goal, colected, aws_url, categorysExpenses }, "Ação criada");
-      return action;
+      return updatedAction;
     } catch (error) {
       console.error("Error creating action:", error);
       if (error instanceof CustomError) {
@@ -239,13 +249,25 @@ class ActionController {
         throw new CustomError("Ação não encontrada", 404);
       }
 
-      const oldFileName = action.aws_url.split('/').pop();
-      if (oldFileName) {
-        await this.createFileAwsService.deleteFile(oldFileName);
+      // Se existe uma imagem anterior, exclua-a
+      if (action.aws_url) {
+        try {
+          await this.createFileAwsService.deleteFile(action.aws_url);
+        } catch (deleteError) {
+          console.error("Erro ao excluir imagem anterior:", deleteError);
+          // Continua mesmo se falhar ao excluir
+        }
       }
 
-      const aws_url = await this.createFileAwsService.uploadFile(fileBuffer, filename);
+      const aws_url = await this.createFileAwsService.uploadActionImage(
+        fileBuffer,
+        filename,
+        request.user.ngoId,  // ID da ONG do usuário autenticado
+        id                   // ID da ação que está sendo atualizada
+      );
+  
       const updatedAction = await this.updateActionService.execute(id, { aws_url });
+      
       await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "ATUALIZAR", "Ação", id, { aws_url }, "Imagem da ação atualizada");
 
       return { message: "Imagem da ação atualizada com sucesso", aws_url: updatedAction.aws_url };
