@@ -1,7 +1,7 @@
 import request from 'supertest';
 import Fastify from 'fastify';
 import { OngController } from '../OngController';
-import { updateNgoGraficService } from '@config/dependencysInjection/ongDependencyInjection';
+import { createOngService, getOngService, updateOngService, deleteOngService, updateNgoGraficService } from '@config/dependencysInjection/ongDependencyInjection';
 import { logService } from '@config/dependencysInjection/logDependencyInjection';
 import { CustomError } from '@shared/customError';
 
@@ -9,12 +9,33 @@ jest.mock('@config/dependencysInjection/ongDependencyInjection');
 jest.mock('@config/dependencysInjection/logDependencyInjection');
 
 const server = Fastify();
-const ongController = new OngController();
+const ongController = new OngController(
+  createOngService,
+  deleteOngService,
+  getOngService,
+  updateOngService,
+  updateNgoGraficService
+);
 
-server.put('/ongs/grafic', async (req, res) => {
+server.put('/ongs/grafic', async (req, reply) => {
   // Mocka o request.user para incluir o ngoid do token
   req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
-  await ongController.updateNgoGrafic(req, res);
+  
+  try {
+    // Capturar o resultado do controller
+    const result = await ongController.updateNgoGrafic(req);
+    
+    // Enviar como resposta HTTP
+    return reply.send(result);
+  } catch (error) {
+    console.error("Erro na rota:", error);
+    
+    if (error instanceof CustomError) {
+      return reply.status(error.statusCode).send({ error: error.message });
+    }
+    
+    return reply.status(500).send({ error: "Internal Server Error" });
+  }
 });
 
 describe('OngController - UpdateNgoGrafic', () => {
@@ -65,7 +86,7 @@ describe('OngController - UpdateNgoGrafic', () => {
   }, 10000);
 
   it('should return an error if updating the NGO grafic data fails', async () => {
-    (updateNgoGraficService.execute as jest.Mock).mockRejectedValue(new CustomError('Erro ao atualizar dados gráficos da ONG', 500));
+    (updateNgoGraficService.execute as jest.Mock).mockRejectedValue(new CustomError('Internal Server Error', 500));
     (logService.logAction as jest.Mock).mockResolvedValue(undefined);
 
     const response = await request(server.server)
@@ -73,6 +94,6 @@ describe('OngController - UpdateNgoGrafic', () => {
       .send({});
 
     expect(response.status).toBe(500);
-    expect(response.body).toHaveProperty('error', 'Erro ao atualizar dados gráficos da ONG');
+    expect(response.body).toHaveProperty('error', 'Internal Server Error');
   }, 10000);
 });

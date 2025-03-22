@@ -42,7 +42,7 @@ export default function ActionsPage() {
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [imageUrls, setImageUrls] = useState({});
-  const [activeTab, setActiveTab] = useState("balance");
+  const [activeTab, setActiveTab] = useState("documents");
   const [searchTerm, setSearchTerm] = useState("");
 
   const generateHash = async (name) => {
@@ -268,7 +268,7 @@ export default function ActionsPage() {
   };
 
   return (
-    <main className="flex flex-col items-center bg-gray-100 min-h-screen">
+    <main className="flex flex-col items-center min-h-screen">
       <h1 className="text-center text-5xl font-bold text-[#2E4049] mt-20">Transparência</h1>
       <h1 className="text-center text-4xl font-bold text-[#2E4049] mt-20">Ações</h1>
 

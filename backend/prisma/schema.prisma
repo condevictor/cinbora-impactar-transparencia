@@ -14,6 +14,7 @@ model User {
   name      String
   email     String   @unique
   ngoId     Int
+  profileUrl String?  // Campo opcional para URL da foto de perfil
   ngo       Ngo      @relation(fields: [ngoId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -8,8 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Gallery from "@/components/ui/DAgallery"
-import Balance from "@/components/ui/balance"
-import Documents from "@/components/ui/documents"
+import Balance from "@/components/ui/DAbalance"
+import Documents from "@/components/ui/DAdocuments"
 
 interface Action {
   id: number;

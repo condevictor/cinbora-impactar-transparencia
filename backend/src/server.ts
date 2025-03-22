@@ -9,8 +9,13 @@ import { validatorCompiler, serializerCompiler, type ZodTypeProvider, jsonSchema
 import fastifyMultipart from "@fastify/multipart"; 
 import { CustomError } from '@shared/customError';
 import { Prisma } from "@prisma/client";
+import redisClient, { localCache } from "@shared/redisClient";
 
-const server = Fastify({ logger: true }).withTypeProvider<ZodTypeProvider>();
+const server = Fastify({ 
+  logger: true,
+  // Aumentar o timeout para operações que podem demorar mais
+  connectionTimeout: 60000,
+}).withTypeProvider<ZodTypeProvider>();
 
 server.setValidatorCompiler(validatorCompiler);
 server.setSerializerCompiler(serializerCompiler);
@@ -68,6 +73,34 @@ const start = async () => {
       fileSize: 10 * 1024 * 1024, // Limite de tamanho de arquivo de 10 MB
     },
   });
+
+  try {
+    console.log("Redis desativado - usando apenas cache local, para não gastar o limite mensal");
+    // Decorador do cliente Redis simulado
+    server.decorate('redis', {
+      ping: async () => "PONG",
+      get: async () => null,
+      set: async () => "OK",
+      del: async () => 1,
+      delByPattern: async () => 0
+    });
+
+    // Adicionar método helper de cache simplificado
+    server.decorate('clearAllCache', async () => {
+      try {
+        // Limpar apenas cache local
+        localCache.flushAll();
+        server.log.info('Cache local limpo com sucesso');
+        return true;
+      } catch (err) {
+        server.log.error(`Erro ao limpar cache local: ${err}`);
+        return false;
+      }
+    });
+  } catch (err) {
+    console.error("Erro ao conectar ao Redis Upstash:", err);
+    process.exit(1);
+  }
   
   await server.register(routes);
 

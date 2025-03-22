@@ -1,7 +1,7 @@
 import request from 'supertest';
 import Fastify from 'fastify';
 import { ActionController } from '../ActionController';
-import { getActionService, createActionService, updateActionService, deleteActionService, updateActionExpensesGraficService } from '@config/dependencysInjection/actionDependencyInjection';
+import { getActionService, createActionService, updateActionService, deleteActionService, updateActionExpensesGraficService, createFileAwsService} from '@config/dependencysInjection/actionDependencyInjection';
 import { CustomError } from '@shared/customError';
 
 jest.mock('@config/dependencysInjection/actionDependencyInjection');
@@ -12,7 +12,8 @@ const actionController = new ActionController(
   createActionService,
   updateActionService,
   deleteActionService,
-  updateActionExpensesGraficService
+  updateActionExpensesGraficService,
+  createFileAwsService
 );
 
 server.get('/ongs/:id/actions', actionController.getAll.bind(actionController));
@@ -50,12 +51,12 @@ describe('ActionController - GetAll', () => {
   }, 10000);
 
   it('should return an error if fetching actions fails', async () => {
-    (getActionService.executeByNgoId as jest.Mock).mockRejectedValue(new CustomError('Erro ao obter Ações', 500));
+    (getActionService.executeByNgoId as jest.Mock).mockRejectedValue(new CustomError('Internal Server Error', 500));
 
     const response = await request(server.server)
       .get('/ongs/1/actions');
 
     expect(response.status).toBe(500);
-    expect(response.body).toHaveProperty('error', 'Erro ao obter Ações');
+    expect(response.body).toHaveProperty('error', 'Internal Server Error');
   }, 10000);
 });

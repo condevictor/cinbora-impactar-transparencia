@@ -3,9 +3,8 @@ import Fastify from 'fastify';
 import fs from 'fs';
 import path from 'path';
 import { ActionController } from '../ActionController';
-import { getActionService, createActionService, updateActionService, deleteActionService, updateActionExpensesGraficService } from '@config/dependencysInjection/actionDependencyInjection';
+import { getActionService, createActionService, updateActionService, deleteActionService, updateActionExpensesGraficService, createFileAwsService } from '@config/dependencysInjection/actionDependencyInjection';
 import { logService } from '@config/dependencysInjection/logDependencyInjection';
-import { CustomError } from '@shared/customError';
 
 jest.mock('@config/dependencysInjection/actionDependencyInjection');
 jest.mock('@config/dependencysInjection/logDependencyInjection');
@@ -28,7 +27,8 @@ const actionController = new ActionController(
   createActionService,
   updateActionService,
   deleteActionService,
-  updateActionExpensesGraficService
+  updateActionExpensesGraficService,
+  createFileAwsService
 );
 
 server.addHook('preHandler', async (request, reply) => {

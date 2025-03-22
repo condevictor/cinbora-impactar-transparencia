@@ -5,6 +5,7 @@ const userSchema = z.object({
   name: z.string(),
   email: z.string().email(),
   ngoId: z.number(),
+  profileUrl: z.string().nullable(), // Adicionado o campo profileUrl como opcional
   createdAt: z.union([z.string(), z.date()]).optional(), 
   updatedAt: z.union([z.string(), z.date()]).optional(), 
 });
@@ -40,4 +41,14 @@ const deleteUserSchema = {
   },
 };
 
-export { createUserSchema, getUserSchema, deleteUserSchema };
+// Adicionando schema para atualizar foto de perfil
+const updateProfileSchema = {
+  response: {
+    200: z.object({
+      message: z.string(),
+      user: userSchema,
+    }),
+  },
+};
+
+export { createUserSchema, getUserSchema, deleteUserSchema, updateProfileSchema };

@@ -208,7 +208,6 @@ class ActionRepository {
     }
   }
 
-
   async update(id: string, data: Partial<Omit<Action, 'id'>>): Promise<Action> {
     try {
       const updatedAction = await prismaClient.action.update({
@@ -228,38 +227,33 @@ class ActionRepository {
 
   async delete(id: string): Promise<void> {
     try {
-      await prismaClient.$transaction(async (prisma) => {
-        const action = await prisma.action.findUnique({
-          where: { id },
-          include: {
-            files: true,
-            expenses: true,
-          },
-        });
-
-        if (!action) {
-          throw new CustomError("Ação não encontrada", 404);
-        }
-
-        for (const file of action.files) {
-          await this.s3Storage.deleteFile(file.aws_name);
-        }
-
-        const actionFileName = action.aws_url.split('/').pop();
-        if (actionFileName) {
-          await this.s3Storage.deleteFile(actionFileName);
-        }
-
-        await prisma.actionFile.deleteMany({
-          where: { actionId: id },
-        });
-        await prisma.actionExpensesGrafic.deleteMany({
-          where: { actionId: id },
-        });
-        await prisma.action.delete({
-          where: { id },
-        });
+      const action = await prismaClient.action.findUnique({
+        where: { id: id },
+        include: { files: true }
       });
+  
+      if (!action) {
+        throw new CustomError("Ação não encontrada", 404);
+      }
+  
+      // Usar a nova abordagem para excluir toda a pasta da ação de uma vez
+      try {
+        // Exclui tudo em /{ngoId}/actions/{actionId}/
+        await this.s3Storage.deleteFolder(`${action.ngoId}/actions/${action.id}`);
+        console.log(`Todos os arquivos da ação ${action.id} foram excluídos com sucesso`);
+      } catch (s3Error) {
+        console.error(`Erro ao excluir arquivos da ação ${action.id}:`, s3Error);
+        // Continuar com a deleção dos registros no banco mesmo se falhar no S3
+      }
+  
+      // Excluir os registros relacionados
+      await prismaClient.$transaction([
+        prismaClient.actionFile.deleteMany({ where: { actionId: id } }),
+        prismaClient.actionExpensesGrafic.deleteMany({ where: { actionId: id } }),
+        prismaClient.action.delete({ where: { id: id } })
+      ]);
+  
+      return;
     } catch (error) {
       console.error("Erro ao deletar ação:", error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -268,8 +262,6 @@ class ActionRepository {
       throw new CustomError("Erro ao deletar ação", 500);
     }
   }
-
-  
 
   async updateActionExpensesGrafic(actionId: string, newExpense: Record<string, number>): Promise<any> {
     try {
@@ -413,8 +405,6 @@ class ActionRepository {
       throw new CustomError("Erro ao atualizar gráfico de despesas da ação", 500);
     }
   }
-  
-
 
   async findExpensesByActionId(actionId: string): Promise<any> {
     try {
