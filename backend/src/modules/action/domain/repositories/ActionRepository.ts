@@ -208,7 +208,6 @@ class ActionRepository {
     }
   }
 
-
   async update(id: string, data: Partial<Omit<Action, 'id'>>): Promise<Action> {
     try {
       const updatedAction = await prismaClient.action.update({
@@ -405,8 +404,6 @@ class ActionRepository {
       throw new CustomError("Erro ao atualizar gráfico de despesas da ação", 500);
     }
   }
-  
-
 
   async findExpensesByActionId(actionId: string): Promise<any> {
     try {
