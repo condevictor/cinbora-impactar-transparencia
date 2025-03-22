@@ -1,10 +1,30 @@
 import request from 'supertest';
 import Fastify from 'fastify';
 import { ActionController } from '../ActionController';
-import { getActionService, createActionService, updateActionService, deleteActionService, updateActionExpensesGraficService, createFileAwsService} from '@config/dependencysInjection/actionDependencyInjection';
+import { getActionService, createActionService, updateActionService, deleteActionService, updateActionExpensesGraficService, createFileAwsService } from '@config/dependencysInjection/actionDependencyInjection';
 import { CustomError } from '@shared/customError';
 
-jest.mock('@config/dependencysInjection/actionDependencyInjection');
+// Mock all dependencies
+jest.mock('@config/dependencysInjection/actionDependencyInjection', () => ({
+  getActionService: {
+    executeByNgoId: jest.fn(),
+  },
+  createActionService: {},
+  updateActionService: {},
+  deleteActionService: {},
+  updateActionExpensesGraficService: {},
+  createFileAwsService: {},
+}));
+
+jest.mock('@modules/file', () => ({
+  FileRepository: jest.fn().mockImplementation(() => ({})),
+  UploadOngFileService: jest.fn().mockImplementation(() => ({})),
+  UploadActionFileService: jest.fn().mockImplementation(() => ({})),
+  DeleteFileService: jest.fn().mockImplementation(() => ({})),
+  GetActionFilesByCategoryService: jest.fn().mockImplementation(() => ({})),
+  GetOngFilesByCategoryService: jest.fn().mockImplementation(() => ({})),
+  FileController: jest.fn().mockImplementation(() => ({})),
+}));
 
 const server = Fastify();
 const actionController = new ActionController(
@@ -29,6 +49,7 @@ describe('ActionController - GetAll', () => {
 
   beforeEach(() => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -48,6 +69,7 @@ describe('ActionController - GetAll', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(actions);
+    expect(getActionService.executeByNgoId).toHaveBeenCalledWith('1');
   }, 10000);
 
   it('should return an error if fetching actions fails', async () => {

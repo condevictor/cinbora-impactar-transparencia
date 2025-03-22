@@ -7,19 +7,38 @@ import { getActionService, createActionService, updateActionService, deleteActio
 import { logService } from '@config/dependencysInjection/logDependencyInjection';
 import { CustomError } from '@shared/customError';
 
-// Mock completo de todas as dependências
-jest.mock('@config/dependencysInjection/actionDependencyInjection');
-jest.mock('@config/dependencysInjection/logDependencyInjection');
-jest.mock('@modules/file', () => {
-  return {
-    CreateFileAwsService: jest.fn().mockImplementation(() => {
-      return {
-        uploadFile: jest.fn().mockResolvedValue('https://aws.s3/testfile.txt'),
-        deleteFile: jest.fn().mockResolvedValue(undefined)
-      };
-    })
-  };
-});
+jest.mock('@config/dependencysInjection/actionDependencyInjection', () => ({
+  getActionService: {},
+  createActionService: {
+    execute: jest.fn()
+  },
+  updateActionService: {},
+  deleteActionService: {},
+  updateActionExpensesGraficService: {},
+  createFileAwsService: {
+    uploadFile: jest.fn().mockResolvedValue('https://aws.s3/testfile.txt')
+  }
+}));
+
+jest.mock('@config/dependencysInjection/logDependencyInjection', () => ({
+  logService: {
+    logAction: jest.fn()
+  }
+}));
+
+jest.mock('@modules/file', () => ({
+  FileRepository: jest.fn().mockImplementation(() => ({})),
+  UploadOngFileService: jest.fn().mockImplementation(() => ({})),
+  UploadActionFileService: jest.fn().mockImplementation(() => ({})),
+  DeleteFileService: jest.fn().mockImplementation(() => ({})),
+  GetActionFilesByCategoryService: jest.fn().mockImplementation(() => ({})),
+  GetOngFilesByCategoryService: jest.fn().mockImplementation(() => ({})),
+  FileController: jest.fn().mockImplementation(() => ({})),
+  CreateFileAwsService: jest.fn().mockImplementation(() => ({
+    uploadFile: jest.fn().mockResolvedValue('https://aws.s3/testfile.txt'),
+    deleteFile: jest.fn().mockResolvedValue(undefined)
+  }))
+}));
 
 // Configuração do servidor para testes
 const server = Fastify();
@@ -113,7 +132,6 @@ describe('ActionController - Create', () => {
         expect(response.body).toHaveProperty('id');
         expect(response.body).toHaveProperty('name', actionData.name);
       } else {
-        console.log('Warning: Received non-200 status code in CI environment');
         expect(response).toBeDefined();
       }
     } finally {

@@ -5,8 +5,34 @@ import { getActionService, createActionService, updateActionService, deleteActio
 import { logService } from '@config/dependencysInjection/logDependencyInjection';
 import { CustomError } from '@shared/customError';
 
-jest.mock('@config/dependencysInjection/actionDependencyInjection');
-jest.mock('@config/dependencysInjection/logDependencyInjection');
+// Improve the mock implementation
+jest.mock('@config/dependencysInjection/actionDependencyInjection', () => ({
+  getActionService: {},
+  createActionService: {},
+  updateActionService: {
+    execute: jest.fn(),
+  },
+  deleteActionService: {},
+  updateActionExpensesGraficService: {},
+  createFileAwsService: {},
+}));
+
+jest.mock('@config/dependencysInjection/logDependencyInjection', () => ({
+  logService: {
+    logAction: jest.fn(),
+  },
+}));
+
+// Add this to mock the file module
+jest.mock('@modules/file', () => ({
+  FileRepository: jest.fn().mockImplementation(() => ({})),
+  UploadOngFileService: jest.fn().mockImplementation(() => ({})),
+  UploadActionFileService: jest.fn().mockImplementation(() => ({})),
+  DeleteFileService: jest.fn().mockImplementation(() => ({})),
+  GetActionFilesByCategoryService: jest.fn().mockImplementation(() => ({})),
+  GetOngFilesByCategoryService: jest.fn().mockImplementation(() => ({})),
+  FileController: jest.fn().mockImplementation(() => ({})),
+}));
 
 const server = Fastify();
 
