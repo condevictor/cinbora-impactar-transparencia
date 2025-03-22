@@ -22,7 +22,7 @@ class UpdateUserProfileService {
     this.deleteFileService = deleteFileService;
   }
 
-  async execute(userId: string, file: any): Promise<User> {
+  async execute(userId: string, file: any): Promise<User | null> {
     try {
       // Verificar se o usuário existe
       const existingUser = await this.userRepository.findById(userId);
@@ -30,31 +30,25 @@ class UpdateUserProfileService {
         throw new CustomError("Usuário não encontrado", 404);
       }
 
-      // Se o usuário já tem uma foto de perfil, exclua-a
-      if (existingUser.profileUrl) {
-        // Extrair o nome do arquivo da URL
-        const key = existingUser.profileUrl.split('/').pop() || '';
-        if (key) {
-          try {
-            await this.fileRepository.deleteFileFromS3(key);
-          } catch (error) {
-            console.error("Erro ao excluir foto de perfil anterior:", error);
-          }
-        }
-      }
+      // Obtenha o ngoId do usuário
+      const ngoId = existingUser.ngoId;
 
       // Processar o arquivo para upload
       const buffer = await file.toBuffer();
-      const filename = `${Date.now()}-${file.filename}`;
-      const folder = `users/${userId}/profile`;
-      
-      // Upload do arquivo para o S3
-      const fullPath = `${folder}/${filename}`;
-      const fileUrl = await this.createFileAwsService.uploadFile(buffer, fullPath);
+      const filename = file.filename;
 
-      // Atualizar o perfil do usuário com a nova URL
-      return await this.userRepository.updateProfile(userId, fileUrl);
+      // Usar o método updateProfilePhoto do repositório que já tem toda a lógica implementada
+      const profileUrl = await this.userRepository.updateProfilePhoto(
+        userId, 
+        ngoId, 
+        buffer, 
+        filename
+      );
+
+      // Atualizar o usuário com a nova URL e retorná-lo
+      return await this.userRepository.findById(userId);
     } catch (error) {
+      console.error("Erro ao atualizar foto de perfil:", error);
       if (error instanceof CustomError) {
         throw error;
       }
