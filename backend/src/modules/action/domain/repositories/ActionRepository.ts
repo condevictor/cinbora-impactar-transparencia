@@ -231,28 +231,29 @@ class ActionRepository {
         where: { id: id },
         include: { files: true }
       });
-
+  
       if (!action) {
         throw new CustomError("Ação não encontrada", 404);
       }
-
-      // NOVA ABORDAGEM - deletar toda a pasta da ação com um único comando
+  
+      // Usar a nova abordagem para excluir toda a pasta da ação de uma vez
       try {
         // Exclui tudo em /{ngoId}/actions/{actionId}/
         await this.s3Storage.deleteFolder(`${action.ngoId}/actions/${action.id}`);
         console.log(`Todos os arquivos da ação ${action.id} foram excluídos com sucesso`);
       } catch (s3Error) {
         console.error(`Erro ao excluir arquivos da ação ${action.id}:`, s3Error);
-        // Continuamos com a deleção dos registros no banco mesmo se falhar no S3
+        // Continuar com a deleção dos registros no banco mesmo se falhar no S3
       }
-
-      // Excluir registros relacionados no banco de dados
+  
+      // Excluir os registros relacionados
       await prismaClient.$transaction([
         prismaClient.actionFile.deleteMany({ where: { actionId: id } }),
         prismaClient.actionExpensesGrafic.deleteMany({ where: { actionId: id } }),
         prismaClient.action.delete({ where: { id: id } })
       ]);
-
+  
+      return;
     } catch (error) {
       console.error("Erro ao deletar ação:", error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {

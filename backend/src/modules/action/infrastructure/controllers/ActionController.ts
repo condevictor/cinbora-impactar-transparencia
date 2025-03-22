@@ -166,8 +166,7 @@ class ActionController {
     }
 
     try {
-      const aws_url = await this.createFileAwsService.uploadFile(fileBuffer, filename);
-
+      // Primeiro, crie a ação sem aws_url
       const action = await this.createActionService.execute({
         name,
         type,
@@ -175,11 +174,34 @@ class ActionController {
         spent,
         goal,
         colected,
-        aws_url,
+        aws_url: '', // Inicialmente vazio
         categorysExpenses,
       });
 
-      await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "CRIAR", "Ação", action.id.toString(), { name, type, spent, goal, colected, aws_url, categorysExpenses }, "Ação criada");
+      // Depois, faça o upload da imagem usando a nova estrutura de pastas
+      const aws_url = await this.createFileAwsService.uploadFile(
+        fileBuffer, 
+        filename, 
+        request.user.ngoId, 
+        'actions',
+        action.id // ID da ação que acabou de ser criada
+      );
+
+      // Atualize a ação com a URL da imagem
+      await this.updateActionService.execute(action.id.toString(), { aws_url });
+      action.aws_url = aws_url;
+
+      await logService.logAction(
+        request.user.ngoId, 
+        request.user.id.toString(), 
+        request.user.name, 
+        "CRIAR", 
+        "Ação", 
+        action.id.toString(), 
+        { name, type, spent, goal, colected, aws_url, categorysExpenses }, 
+        "Ação criada"
+      );
+      
       return action;
     } catch (error) {
       console.error("Error creating action:", error);
@@ -239,14 +261,36 @@ class ActionController {
         throw new CustomError("Ação não encontrada", 404);
       }
 
-      const oldFileName = action.aws_url.split('/').pop();
-      if (oldFileName) {
-        await this.createFileAwsService.deleteFile(oldFileName);
+      // Se existe uma imagem anterior, exclua-a
+      if (action.aws_url) {
+        try {
+          await this.createFileAwsService.deleteFile(action.aws_url);
+        } catch (deleteError) {
+          console.error("Erro ao excluir imagem anterior:", deleteError);
+          // Continua mesmo se falhar ao excluir
+        }
       }
 
-      const aws_url = await this.createFileAwsService.uploadFile(fileBuffer, filename);
+      // Fazer upload da nova imagem usando a estrutura de pastas correta
+      const aws_url = await this.createFileAwsService.uploadFile(
+        fileBuffer, 
+        filename, 
+        request.user.ngoId, 
+        'actions',
+        id // ID da ação sendo atualizada
+      );
+      
       const updatedAction = await this.updateActionService.execute(id, { aws_url });
-      await logService.logAction(request.user.ngoId, request.user.id.toString(), request.user.name, "ATUALIZAR", "Ação", id, { aws_url }, "Imagem da ação atualizada");
+      await logService.logAction(
+        request.user.ngoId, 
+        request.user.id.toString(), 
+        request.user.name, 
+        "ATUALIZAR", 
+        "Ação", 
+        id, 
+        { aws_url }, 
+        "Imagem da ação atualizada"
+      );
 
       return { message: "Imagem da ação atualizada com sucesso", aws_url: updatedAction.aws_url };
     } catch (error) {

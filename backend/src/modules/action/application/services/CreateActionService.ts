@@ -28,7 +28,7 @@ class CreateActionService {
         const path = this.s3Storage.buildPath(action.ngoId, 'actions', action.id);
         const aws_url = await this.s3Storage.saveFile(
           data.imageBuffer, 
-          data.imageName || 'cover.jpg', 
+          data.imageName, 
           path
         );
         
