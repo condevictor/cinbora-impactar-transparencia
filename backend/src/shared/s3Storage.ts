@@ -17,6 +17,22 @@ class S3Storage {
   }
 
   /**
+   * Codifica caracteres especiais em um nome de arquivo para garantir consistência
+   * @param filename Nome do arquivo para codificar
+   * @returns Nome do arquivo com caracteres especiais codificados
+   */
+  private encodeFilename(filename: string): string {
+    // Substitui espaços por hífens e remove caracteres problemáticos
+    return filename
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/[^\w\-\.]/g, '-')      // Substitui caracteres especiais por hífens
+      .replace(/\s+/g, '-')            // Substitui espaços por hífens
+      .replace(/-+/g, '-')             // Previne múltiplos hífens consecutivos
+      .trim();
+  }
+
+  /**
    * Salva um arquivo no S3 com caminho organizado
    * @param fileBuffer Buffer do arquivo
    * @param filename Nome original do arquivo
@@ -30,8 +46,14 @@ class S3Storage {
       throw new Error('File type could not be determined');
     }
 
-    // Generate a unique filename
-    const uniqueFilename = `${uuidv4()}-${filename}`;
+    // Extrair a extensão do arquivo
+    const fileExtension = filename.split('.').pop() || '';
+    
+    // Codificar o nome do arquivo para evitar problemas com caracteres especiais
+    const encodedFilename = this.encodeFilename(filename);
+    
+    // Generate a unique filename com o nome codificado
+    const uniqueFilename = `${uuidv4()}-${encodedFilename}`;
     
     // Construir o caminho completo (Key)
     const fullPath = path ? `${path}/${uniqueFilename}` : uniqueFilename;
@@ -46,7 +68,12 @@ class S3Storage {
     const command = new PutObjectCommand(params);
     try {
       await this.client.send(command);
-      return `https://${config.awsS3BucketName}.s3.${config.awsRegion}.amazonaws.com/${fullPath}`;
+      
+      // Criar URL consistente que será usada tanto pela AWS quanto pelo MongoDB
+      const s3Domain = `${config.awsS3BucketName}.s3.${config.awsRegion}.amazonaws.com`;
+      const objectUrl = `https://${s3Domain}/${fullPath}`;
+      
+      return objectUrl;
     } catch (error) {
       console.error('Error uploading file to S3:', error);
       throw error;

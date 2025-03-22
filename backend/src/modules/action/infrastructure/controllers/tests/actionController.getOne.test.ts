@@ -4,7 +4,26 @@ import { ActionController } from '../ActionController';
 import { getActionService, createActionService, updateActionService, deleteActionService, updateActionExpensesGraficService, createFileAwsService} from '@config/dependencysInjection/actionDependencyInjection';
 import { CustomError } from '@shared/customError';
 
-jest.mock('@config/dependencysInjection/actionDependencyInjection');
+jest.mock('@config/dependencysInjection/actionDependencyInjection', () => ({
+  getActionService: {
+    executeById: jest.fn(),
+  },
+  createActionService: {},
+  updateActionService: {},
+  deleteActionService: {},
+  updateActionExpensesGraficService: {},
+  createFileAwsService: {},
+}));
+
+jest.mock('@modules/file', () => ({
+  FileRepository: jest.fn().mockImplementation(() => ({})),
+  UploadOngFileService: jest.fn().mockImplementation(() => ({})),
+  UploadActionFileService: jest.fn().mockImplementation(() => ({})),
+  DeleteFileService: jest.fn().mockImplementation(() => ({})),
+  GetActionFilesByCategoryService: jest.fn().mockImplementation(() => ({})),
+  GetOngFilesByCategoryService: jest.fn().mockImplementation(() => ({})),
+  FileController: jest.fn().mockImplementation(() => ({})),
+}));
 
 const server = Fastify();
 const actionController = new ActionController(

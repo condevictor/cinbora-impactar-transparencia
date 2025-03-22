@@ -3,11 +3,9 @@ import { User } from "@modules/user";
 import { CreateFileAwsService } from "@modules/file";
 import { CustomError } from "@shared/customError";
 import { DeleteFileService } from "@modules/file";
-import { FileRepository } from "@modules/file";
 
 class UpdateUserProfileService {
   private userRepository: UserRepository;
-  private fileRepository: FileRepository;
   private createFileAwsService: CreateFileAwsService;
   private deleteFileService: DeleteFileService;
 
@@ -18,7 +16,6 @@ class UpdateUserProfileService {
   ) {
     this.userRepository = userRepository;
     this.createFileAwsService = createFileAwsService;
-    this.fileRepository = new FileRepository();
     this.deleteFileService = deleteFileService;
   }
 
