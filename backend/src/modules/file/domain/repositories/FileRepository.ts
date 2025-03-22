@@ -7,8 +7,15 @@ import { Prisma } from "@prisma/client";
 class FileRepository {
   private s3Storage = s3StorageInstance;
 
-  async saveFile(fileBuffer: Buffer, filename: string, path?: string): Promise<string> {
+  async saveFile(fileBuffer: Buffer, filename: string, ngoId?: number, actionId?: string): Promise<string> {
     try {
+      let path;
+      
+      // Se tiver tanto ngoId quanto actionId, cria o mesmo path usado em createActionFile
+      if (ngoId && actionId) {
+        path = this.s3Storage.buildPath(ngoId, 'actions', actionId);
+      }
+      
       return this.s3Storage.saveFile(fileBuffer, filename, path);
     } catch {
       throw new CustomError("Erro ao salvar arquivo no S3", 500);

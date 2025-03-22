@@ -8,9 +8,9 @@ class CreateFileAwsService {
     this.fileRepository = new FileRepository();
   }
 
-  async uploadFile(fileBuffer: Buffer, filename: string): Promise<string> {
+  async uploadActionImage(fileBuffer: Buffer, filename: string, ngoId?: number, actionId?: string): Promise<string> {
     try {
-      return await this.fileRepository.saveFile(fileBuffer, filename);
+      return await this.fileRepository.saveFile(fileBuffer, filename, ngoId, actionId);
     } catch (error) {
       console.error("Erro ao fazer upload do arquivo no AWS service:", error);
       throw new CustomError("Erro ao fazer upload do arquivo no AWS service", 500);
