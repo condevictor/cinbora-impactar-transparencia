@@ -92,16 +92,11 @@ const updateNgoGraficSchema = {
   },
 };
 
-const expensesByCategory = z.object({
-  category1: z.number().optional(),
-  catrgory2: z.number().optional(),
-});
-
 const ngoGraficSchema = z.object({
   id: z.string(),
   ngoId: z.number(),
   totalExpenses: z.number(),
-  expensesByCategory: z.array(expensesByCategory).optional(),
+  expensesByAction: z.array(z.any()).optional(),
   createdAt: z.union([z.string(), z.date()]).optional(), 
   updatedAt: z.union([z.string(), z.date()]).optional(), 
 });
