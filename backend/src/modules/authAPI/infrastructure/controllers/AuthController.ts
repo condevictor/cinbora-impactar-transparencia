@@ -75,7 +75,7 @@ class AuthController {
         });
       }
 
-      const token = this.jwtService.generateToken({ userId: user.id, name: user.name, email: user.email, ngoId: user.ngoId });
+      const token = this.jwtService.generateToken({ userId: user.id, name: user.name, email: user.email, ngoId: user.ngoId, profileUrl: user.profileUrl });
 
       // Buscar ações da ONG
       const actions = await this.getActionService.executeByNgoId(ngo.id.toString());
