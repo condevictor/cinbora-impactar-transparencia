@@ -19,7 +19,7 @@ const ongController = new OngController(
 
 server.delete('/ongs/:id', async (req, reply) => {
   // Mocka o request.user para incluir o ngoid do token
-  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1, profileUrl: 'exampleurl.com'};
   
   try {
     // Capturar o resultado do controller

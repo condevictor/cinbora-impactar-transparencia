@@ -14,7 +14,7 @@ const server = Fastify();
 // Implementação simplificada da rota
 server.delete('/file/:id', async (req, reply) => {
 
-  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1, profileUrl: 'exampleurl.com' };
   
   try {
     await mockDeleteFileService.execute((req.params as any).id);

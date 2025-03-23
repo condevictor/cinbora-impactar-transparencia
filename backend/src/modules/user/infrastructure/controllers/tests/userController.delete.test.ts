@@ -18,7 +18,7 @@ const userController = new UserController(
 
 server.delete('/users/:id', async (req, res) => {
   // Mocka o request.user para incluir o ngoid do token
-  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1, profileUrl: 'exampleurl.com' };
   await userController.delete(req, res);
 });
 
@@ -45,7 +45,8 @@ describe('UserController - Delete', () => {
       id: userId, 
       name: 'Test User',
       email: 'test@example.com',
-      ngoId: 1
+      ngoId: 1,
+      profileUrl: 'exampleurl.com'
     };
 
     (getUserService.executeById as jest.Mock).mockResolvedValue(mockUser);
@@ -66,7 +67,8 @@ describe('UserController - Delete', () => {
       id: userId, 
       name: 'Test User',
       email: 'test@example.com',
-      ngoId: 1
+      ngoId: 1,
+      profileUrl: 'exampleurl.com'
     };
     
     (getUserService.executeById as jest.Mock).mockResolvedValue(mockUser);

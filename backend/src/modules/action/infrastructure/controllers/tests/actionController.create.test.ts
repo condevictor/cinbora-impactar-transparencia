@@ -64,7 +64,7 @@ const actionController = new ActionController(
 
 server.addHook('preHandler', async (request) => {
   // Mock do usuário autenticado
-  request.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+  request.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1, profileUrl: 'exampleurl.com' };
 });
 
 // Tratamento de erros global para o servidor Fastify

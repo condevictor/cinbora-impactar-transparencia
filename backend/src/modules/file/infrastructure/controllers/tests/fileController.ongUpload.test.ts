@@ -19,7 +19,7 @@ server.register(fastifyMultipart);
 
 server.post('/upload', async (req, res) => {
   // Mocka o request.user para incluir o ngoid do token
-  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1, profileUrl: 'exampleurl.com' };
   try {
     const result = await fileController.uploadOngFile(req, res);
     return res.send(result);

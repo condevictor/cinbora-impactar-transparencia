@@ -44,7 +44,7 @@ describe('LoginAPIController - handle', () => {
 
   it('should return successful login response with user, token, ngo and actions', async () => {
     // Mock de dados de retorno
-    const mockUser = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+    const mockUser = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1, profileUrl: 'exampleurl.com' };
     const mockNgo = { id: 1, name: 'Test NGO', description: 'Test description' };
     const mockActions = [{ id: '1', name: 'Action 1', ngoId: 1 }];
     const mockToken = 'jwt-token';
