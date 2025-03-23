@@ -54,7 +54,7 @@ const updateActionExpensesGraficSchema = {
   response: {
     200: z.object({
       actionId: z.string(),
-      categorysExpenses: z.array(z.record(z.number())),
+      categorysExpenses: z.array(z.any()),
     }),
   },
 };
