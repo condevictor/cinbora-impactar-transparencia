@@ -44,19 +44,4 @@ const deleteActionSchema = {
   },
 };
 
-const updateActionExpensesGraficSchema = {
-  params: z.object({
-    actionId: z.string(),
-  }),
-  body: z.object({
-    categorysExpenses: z.record(z.number()).optional(),
-  }),
-  response: {
-    200: z.object({
-      actionId: z.string(),
-      categorysExpenses: z.array(z.any()),
-    }),
-  },
-};
-
-export { createActionSchema, updateActionSchema, deleteActionSchema, updateActionExpensesGraficSchema };
+export { createActionSchema, updateActionSchema, deleteActionSchema };

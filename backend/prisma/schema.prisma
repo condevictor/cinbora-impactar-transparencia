@@ -28,7 +28,7 @@ model Ngo {
   id                          Int      @id @map("_id")
   name                        String
   description                 String
-  is_formalized               Boolean
+  is_formalized               Boolean?
   start_year                  Int?
   contact_phone               String?
   instagram_link              String?
