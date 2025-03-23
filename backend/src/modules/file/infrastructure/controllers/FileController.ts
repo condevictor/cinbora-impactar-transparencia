@@ -27,7 +27,7 @@ class FileController {
     uploadActionFileService: UploadActionFileService,
     deleteFileService: DeleteFileService,
     getActionFilesByCategoryService: GetActionFilesByCategoryService,
-    getOngFilesByCategoryService: GetOngFilesByCategoryService
+    getOngFilesByCategoryService: GetOngFilesByCategoryService,
   ) {
     this.uploadOngFileService = uploadOngFileService;
     this.uploadActionFileService = uploadActionFileService;
@@ -108,7 +108,7 @@ class FileController {
       }
   
       const fileEntity = await this.uploadOngFileService.execute(fileBuffer, filename, category, mimetype, size, request.user.ngoId);
-      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, "Arquivo da ONG criado");
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, `Arquivo ${filename} da ONG criado`);
       
       // Don't send response here, let the route handler do it
       return fileEntity;
@@ -143,7 +143,8 @@ class FileController {
     }
 
     const fileEntity = await this.uploadActionFileService.execute(fileBuffer, filename, category, mimetype, size, request.params.actionId, request.user.ngoId);
-    await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, "Arquivo da ação criado");
+
+    await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, `Arquivo ${filename} criado para ação ID: ${request.params.actionId}`); // Using id here, try to change later
     
     // Don't send response here, let the route handler do it
     return fileEntity;
@@ -157,7 +158,8 @@ class FileController {
     const { id } = request.params;
 
     const deleteResult = await this.deleteFileService.execute(id);
-    await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "DELETAR", "Arquivo", id, {category: deleteResult.category}, "Arquivo deletado");
+
+    await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "DELETAR", "Arquivo", id, {category: deleteResult.category}, `Arquivo (ID: ${id}) deletado`); // Using id here, try to change later
     
     // Don't send response here, let the route handler do it
     return deleteResult;

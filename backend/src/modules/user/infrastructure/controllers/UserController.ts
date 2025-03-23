@@ -31,7 +31,7 @@ class UserController {
     try {
       const { name, email, ngoId } = request.body as UserProps;
       const user = await this.createUserService.execute({ name, email, ngoId });
-      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Usuário", user.id, request.body, "Usuário criado");
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Usuário", user.id, request.body, `Usuário ${name} criado`);
       reply.send({ message: "Usuário criado com sucesso", user });
     } catch (error) {
       console.error("Erro ao criar usuário:", error);
@@ -51,8 +51,9 @@ class UserController {
 
     try {
       const { id } = request.params as { id: string };
+      const userToDelete = await this.getUserService.executeById({ id });
       await this.deleteUserService.execute({ id });
-      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "DELETAR", "Usuário", id, {}, "Usuário deletado");
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "DELETAR", "Usuário", id, {}, `Usuário ${userToDelete.name} deletado`);
       reply.send({ message: "Usuário deletado com sucesso" });
     } catch (error) {
       console.error("Erro ao deletar usuário:", error);
@@ -103,16 +104,7 @@ class UserController {
       const userId = request.user.id;
       const updatedUser = await this.updateUserProfileService.execute(userId, file);
       
-      await logService.logAction(
-        request.user.ngoId, 
-        request.user.id, 
-        request.user.name, 
-        "ATUALIZAR", 
-        "Usuário", 
-        userId, 
-        { profileUpdate: true }, 
-        "Foto de perfil atualizada"
-      );
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "ATUALIZAR", "Usuário", userId, { profileUpdate: true }, `Foto de perfil do usuário ${request.user.name} atualizada`);
       
       reply.send({ 
         message: "Foto de perfil atualizada com sucesso", 
