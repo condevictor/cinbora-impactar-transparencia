@@ -65,7 +65,7 @@ async function actionRoutes(fastify: FastifyInstance) {
   // Rota para atualizar uma ação
   fastify.put<{ Params: ActionParams }>(
     "/ongs/actions/:id", 
-    { preHandler: [authMiddleware], schema: updateActionSchema }, 
+    { preHandler: [authMiddleware] }, 
     async (request, reply) => {
       const result = await actionController.update(request);
       if (request.user) {
