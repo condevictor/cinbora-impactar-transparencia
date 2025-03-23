@@ -73,7 +73,9 @@ describe('FileController - uploadOngFile', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual(fileEntity);
 
-    fs.unlinkSync(filePath);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
   }, 10000);
 
   it('should return an error if file upload fails', async () => {
@@ -91,6 +93,8 @@ describe('FileController - uploadOngFile', () => {
     expect(response.status).toBe(500);
     expect(response.body).toHaveProperty('error', 'Internal Server Error');
 
-    fs.unlinkSync(filePath);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
   }, 10000);
 });
