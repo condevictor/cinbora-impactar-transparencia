@@ -22,7 +22,7 @@ const NgoSchema = z.object({
   id: z.number(),
   name: z.string(),
   description: z.string().optional(),
-  is_formalized: z.boolean().nullable().optional(),
+  is_formalized: z.boolean().optional(),
   start_year: z.number().nullable().optional(),
   contact_phone: z.string().nullable().optional(),
   instagram_link: z.string().nullable().optional(),

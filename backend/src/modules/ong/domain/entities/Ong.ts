@@ -20,7 +20,7 @@ class Ong {
   id!: number;
   name!: string;
   description!: string;
-  is_formalized!: boolean | null;
+  is_formalized!: boolean;
   start_year!: number | null;
   contact_phone!: string | null;
   instagram_link!: string | null;
