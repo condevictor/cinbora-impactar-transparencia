@@ -4,11 +4,18 @@ import { CreateUserService, GetUserService, UserRepository } from "@modules/user
 import { CreateOngService, GetOngService, OngRepository } from "@modules/ong";
 import { GetActionService, ActionRepository } from "@modules/action";
 import { JWTService } from "@shared/jwtService";
-import { LoginAPIController } from "@modules/authAPI";
+import { LoginAPIController } from "@modules/authAPI"
+import { deleteFileService } from '@config/dependencysInjection/fileDependencyInjection';
+import S3Storage from '@shared/s3Storage';;
 
 const getExternalDataService = new GetExternalDataService();
-const userRepository = new UserRepository();
-const ongRepository = new OngRepository();
+const s3Storage = new S3Storage();
+
+// Agora, passe as dependências para o construtor de UserRepository
+const userRepository = new UserRepository(deleteFileService, s3Storage);
+
+// Em seguida, passe o userRepository para o OngRepository
+const ongRepository = new OngRepository(userRepository);
 const actionRepository = new ActionRepository();
 const createUserService = new CreateUserService(userRepository);
 const getUserService = new GetUserService(userRepository);

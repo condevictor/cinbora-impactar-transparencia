@@ -82,6 +82,8 @@ const start = async () => {
       get: async () => null,
       set: async () => "OK",
       del: async () => 1,
+      keys: async (_pattern: string) => [],
+      ttl: async (_key: string) => -1,
       delByPattern: async () => 0
     });
 
@@ -105,7 +107,7 @@ const start = async () => {
   await server.register(routes);
 
   try {
-    await server.listen({ port: 3333 });
+    await server.listen({ port: 3333, host: '0.0.0.0' });
   } catch (err) {
     server.log.error(err);
     process.exit(1);
