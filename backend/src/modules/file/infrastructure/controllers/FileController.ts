@@ -6,9 +6,10 @@ import { UploadOngFileService,
          UploadActionFileService, 
          DeleteFileService, 
          GetActionFilesByCategoryService, 
-         GetOngFilesByCategoryService 
+         GetOngFilesByCategoryService
        } from "@modules/file";
 import { logService } from "@config/dependencysInjection/logDependencyInjection";
+import { GetActionService } from "@modules/action";
 
 interface CustomMultipartFile extends MultipartFile {
   size: number;
@@ -20,6 +21,7 @@ class FileController {
   private deleteFileService: DeleteFileService;
   private getActionFilesByCategoryService: GetActionFilesByCategoryService;
   private getOngFilesByCategoryService: GetOngFilesByCategoryService;
+  private getActionService: GetActionService
 
   // Construtor recebe as instâncias de serviço injetadas
   constructor(
@@ -28,12 +30,14 @@ class FileController {
     deleteFileService: DeleteFileService,
     getActionFilesByCategoryService: GetActionFilesByCategoryService,
     getOngFilesByCategoryService: GetOngFilesByCategoryService,
+    getActionService: GetActionService
   ) {
     this.uploadOngFileService = uploadOngFileService;
     this.uploadActionFileService = uploadActionFileService;
     this.deleteFileService = deleteFileService;
     this.getActionFilesByCategoryService = getActionFilesByCategoryService;
     this.getOngFilesByCategoryService = getOngFilesByCategoryService;
+    this.getActionService = getActionService;
   }
 
   private validateFileRequest(reply: FastifyReply, fileBuffer: Buffer | null, category: string, user: any): boolean {
@@ -108,7 +112,7 @@ class FileController {
       }
   
       const fileEntity = await this.uploadOngFileService.execute(fileBuffer, filename, category, mimetype, size, request.user.ngoId);
-      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, `Arquivo ${filename} da ONG criado`);
+      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, `Arquivo "${filename}" da ONG criado`);
       
       // Don't send response here, let the route handler do it
       return fileEntity;
@@ -144,13 +148,22 @@ class FileController {
 
     const fileEntity = await this.uploadActionFileService.execute(fileBuffer, filename, category, mimetype, size, request.params.actionId, request.user.ngoId);
 
-    await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, `Arquivo ${filename} criado para ação ID: ${request.params.actionId}`); // Using id here, try to change later
+    // Buscar o nome da ação
+    let actionName = "desconhecida";
+    try {
+      const action = await this.getActionService.executeById(request.params.actionId);
+      if (action) actionName = action.name;
+    } catch (error) {
+      console.error("Erro ao buscar nome da ação:", error);
+    }
+
+    await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "Arquivo", fileEntity.id, { filename, category, mimetype, size }, `Arquivo "${filename}" criado para ação "${actionName}"`);
     
     // Don't send response here, let the route handler do it
     return fileEntity;
   }
 
-  async delete(request: FastifyRequest<{ Params: DeleteParams }>) {
+  async delete(request: FastifyRequest<{ Params: DeleteParams }>, model: string) {
     if (!request.user) {
       throw new CustomError("Usuário não autenticado", 401);
     }
@@ -159,8 +172,43 @@ class FileController {
 
     const deleteResult = await this.deleteFileService.execute(id);
 
-    await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "DELETAR", "Arquivo", id, {category: deleteResult.category}, `Arquivo (ID: ${id}) deletado`); // Using id here, try to change later
-    
+    if (model == 'action' && deleteResult.actionId) {
+      let actionName = "desconhecida";
+      
+      const action = await this.getActionService.executeById(deleteResult.actionId);
+      if (action) actionName = action.name;
+      
+      await logService.logAction(
+        request.user.ngoId, 
+        request.user.id, 
+        request.user.name, 
+        "DELETAR", 
+        "Arquivo", 
+        id, 
+        { 
+          name: deleteResult.name, 
+          category: deleteResult.category, 
+          actionName: action
+        }, 
+        `Arquivo "${deleteResult.name}" deletado da ação "${actionName}"`
+      );
+        
+    } else if (model == 'ong') {
+      await logService.logAction(
+        request.user.ngoId, 
+        request.user.id, 
+        request.user.name, 
+        "DELETAR", 
+        "Arquivo", 
+        id, 
+        { 
+          name: deleteResult.name, 
+          category: deleteResult.category 
+        }, 
+        `Arquivo "${deleteResult.name}" deletado da ong`
+      );
+    }
+
     // Don't send response here, let the route handler do it
     return deleteResult;
   }

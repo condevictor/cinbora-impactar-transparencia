@@ -6,6 +6,7 @@ import { logService } from '@config/dependencysInjection/logDependencyInjection'
 import { CustomError } from '@shared/customError';
 import { FileController } from '../FileController';
 import { uploadOngFileService as mockUploadOngFileService, uploadActionFileService, deleteFileService, getActionFilesByCategoryService, getOngFilesByCategoryService } from '@config/dependencysInjection/fileDependencyInjection';
+import { getActionService } from '@config/dependencysInjection/actionDependencyInjection';
 import fastifyMultipart from '@fastify/multipart';
 
 jest.mock('@config/dependencysInjection/fileDependencyInjection');
@@ -13,7 +14,7 @@ jest.mock('@config/dependencysInjection/logDependencyInjection');
 
 const server = Fastify();
 const uploadOngFileService = mockUploadOngFileService;
-const fileController = new FileController(uploadOngFileService, uploadActionFileService, deleteFileService, getActionFilesByCategoryService, getOngFilesByCategoryService);
+const fileController = new FileController(uploadOngFileService, uploadActionFileService, deleteFileService, getActionFilesByCategoryService, getOngFilesByCategoryService, getActionService);
 
 server.register(fastifyMultipart);
 
