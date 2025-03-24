@@ -13,6 +13,14 @@ class GetUserService {
     return user;
   }
 
+  async executeById({ id }: { id: string }): Promise<User> {
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user;
+  }
+
   async executeAll(): Promise<User[]> {
     return this.userRepository.findAll();
   }

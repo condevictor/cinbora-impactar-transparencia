@@ -8,6 +8,7 @@ type User = {
   name: string;
   email: string;
   ngoId: number;
+  profileUrl: string;
 };
 
 declare module "fastify" {
@@ -39,6 +40,7 @@ async function authMiddleware(request: FastifyRequest, reply: FastifyReply) {
       name: decoded.name,
       email: decoded.email,
       ngoId: decoded.ngoId,
+      profileUrl: decoded.profileUrl,
     };
     
   } catch {

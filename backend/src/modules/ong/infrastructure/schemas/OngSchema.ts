@@ -24,11 +24,11 @@ const NgoSchema = z.object({
   description: z.string().optional(),
   is_formalized: z.boolean().optional(),
   start_year: z.number().nullable().optional(),
-  contact_phone: z.string().optional(),
-  instagram_link: z.string().optional(),
-  x_link: z.string().optional(),
-  facebook_link: z.string().optional(),
-  pix_qr_code_link: z.string().optional(),
+  contact_phone: z.string().nullable().optional(),
+  instagram_link: z.string().nullable().optional(),
+  x_link: z.string().nullable().optional(),
+  facebook_link: z.string().nullable().optional(),
+  pix_qr_code_link: z.string().nullable().optional(),
   site: z.string().nullable().optional(),
   gallery_images_url: z.array(z.string()).optional(),
   skills: z.array(SkillSchema).optional(),
@@ -58,13 +58,13 @@ const updateOngSchema = {
   body: z.object({
     name: z.string().optional(),
     description: z.string().optional(),
-    is_formalized: z.boolean().optional(),
+    is_formalized: z.boolean().nullable().optional(),
     start_year: z.number().nullable().optional(),
-    contact_phone: z.string().optional(),
-    instagram_link: z.string().optional(),
-    x_link: z.string().optional(),
-    facebook_link: z.string().optional(),
-    pix_qr_code_link: z.string().optional(),
+    contact_phone: z.string().nullable().optional(),
+    instagram_link: z.string().nullable().optional(),
+    x_link: z.string().nullable().optional(),
+    facebook_link: z.string().nullable().optional(),
+    pix_qr_code_link: z.string().nullable().optional(),
     site: z.string().nullable().optional(),
     gallery_images_url: z.array(z.string()).optional(),
     skills: z.array(SkillSchema).optional(),
@@ -92,16 +92,11 @@ const updateNgoGraficSchema = {
   },
 };
 
-const expensesByCategory = z.object({
-  category1: z.number().optional(),
-  catrgory2: z.number().optional(),
-});
-
 const ngoGraficSchema = z.object({
   id: z.string(),
   ngoId: z.number(),
   totalExpenses: z.number(),
-  expensesByCategory: z.array(expensesByCategory).optional(),
+  expensesByAction: z.array(z.any()).optional(),
   createdAt: z.union([z.string(), z.date()]).optional(), 
   updatedAt: z.union([z.string(), z.date()]).optional(), 
 });

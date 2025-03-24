@@ -98,7 +98,6 @@ class OngController {
     const { id } = request.params as { id: string };
     try {
       await this.deleteOngService.execute({ id });
-      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "DELETAR", "ONG", id, {}, "ONG deletada");
       return { message: "ONG deletada com sucesso" };
     } catch (error) {
       console.error("Erro ao deletar ONG:", error);
@@ -117,7 +116,6 @@ class OngController {
     const data = request.body as OngProps;
     try {
       const ong = await this.createOngService.execute(data);
-      await logService.logAction(request.user.ngoId, request.user.id, request.user.name, "CRIAR", "ONG", ong.id.toString(), data, "ONG criada");
       return ong;
     } catch (error) {
       console.error("Erro ao criar ONG:", error);

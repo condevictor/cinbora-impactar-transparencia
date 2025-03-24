@@ -1,4 +1,6 @@
 import { FileRepository, UploadOngFileService, UploadActionFileService, DeleteFileService, GetActionFilesByCategoryService, GetOngFilesByCategoryService, FileController } from "@modules/file";
+import { getActionService } from "@config/dependencysInjection/actionDependencyInjection"
+
 
 const fileRepository = new FileRepository();
 const uploadOngFileService = new UploadOngFileService(fileRepository);
@@ -12,7 +14,8 @@ const fileController = new FileController(
   uploadActionFileService,
   deleteFileService,
   getActionFilesByCategoryService,
-  getOngFilesByCategoryService
+  getOngFilesByCategoryService,
+  getActionService
 );
 
 export { uploadOngFileService, uploadActionFileService, deleteFileService, getActionFilesByCategoryService, getOngFilesByCategoryService, fileController };

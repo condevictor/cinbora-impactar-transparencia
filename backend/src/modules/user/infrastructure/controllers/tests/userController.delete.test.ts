@@ -18,7 +18,7 @@ const userController = new UserController(
 
 server.delete('/users/:id', async (req, res) => {
   // Mocka o request.user para incluir o ngoid do token
-  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1, profileUrl: 'exampleurl.com' };
   await userController.delete(req, res);
 });
 
@@ -41,6 +41,15 @@ describe('UserController - Delete', () => {
 
   it('should delete a user', async () => {
     const userId = '1';
+    const mockUser = { 
+      id: userId, 
+      name: 'Test User',
+      email: 'test@example.com',
+      ngoId: 1,
+      profileUrl: 'exampleurl.com'
+    };
+
+    (getUserService.executeById as jest.Mock).mockResolvedValue(mockUser);
 
     (deleteUserService.execute as jest.Mock).mockResolvedValue({ message: 'Usuário deletado com sucesso' });
     (logService.logAction as jest.Mock).mockResolvedValue(undefined);
@@ -54,6 +63,15 @@ describe('UserController - Delete', () => {
 
   it('should return an error if user deletion fails', async () => {
     const userId = '1';
+    const mockUser = { 
+      id: userId, 
+      name: 'Test User',
+      email: 'test@example.com',
+      ngoId: 1,
+      profileUrl: 'exampleurl.com'
+    };
+    
+    (getUserService.executeById as jest.Mock).mockResolvedValue(mockUser);
 
     (deleteUserService.execute as jest.Mock).mockRejectedValue(new CustomError('Erro ao deletar usuário', 500));
     (logService.logAction as jest.Mock).mockResolvedValue(undefined);

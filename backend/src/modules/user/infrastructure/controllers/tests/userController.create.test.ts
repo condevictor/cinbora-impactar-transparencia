@@ -18,7 +18,7 @@ const userController = new UserController(
 
 server.post('/users', async (req, res) => {
   // Mocka o request.user para incluir o ngoid do token
-  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1, profileUrl: 'exampleurl.com'};
   await userController.create(req, res);
 });
 
@@ -44,6 +44,7 @@ describe('UserController - Create', () => {
       name: 'Test User',
       email: 'test@example.com',
       ngoId: 1,
+      profileUrl: 'exampleurl.com'
     };
 
     (createUserService.execute as jest.Mock).mockResolvedValue({
@@ -66,6 +67,7 @@ describe('UserController - Create', () => {
       name: 'Test User',
       email: 'test@example.com',
       ngoId: 1,
+      profileUrl: 'exampleurl.com'
     };
 
     (createUserService.execute as jest.Mock).mockRejectedValue(new CustomError('Erro ao criar usuário', 500));

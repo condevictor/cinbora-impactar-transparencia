@@ -23,6 +23,10 @@ describe("FileController - getActionFilesByCategory", () => {
   const mockGetOngFilesByCategoryService = {
     execute: jest.fn()
   };
+
+  const mockGetActionService = {
+    execute: jest.fn()
+  }
   
   // Mock do request e reply com tipagem correta
   const mockRequest = {
@@ -44,7 +48,8 @@ describe("FileController - getActionFilesByCategory", () => {
     mockUploadActionFileService as any,
     mockDeleteFileService as any,
     mockGetActionFilesByCategoryService as any,
-    mockGetOngFilesByCategoryService as any
+    mockGetOngFilesByCategoryService as any,
+    mockGetActionService as any
   );
 
   beforeEach(() => {

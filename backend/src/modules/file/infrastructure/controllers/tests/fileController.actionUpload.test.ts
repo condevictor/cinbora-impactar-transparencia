@@ -6,6 +6,7 @@ import { logService } from '@config/dependencysInjection/logDependencyInjection'
 import { CustomError } from '@shared/customError';
 import { FileController } from '../FileController';
 import { uploadOngFileService as mockUploadOngFileService, uploadActionFileService, deleteFileService, getActionFilesByCategoryService, getOngFilesByCategoryService } from '@config/dependencysInjection/fileDependencyInjection';
+import { getActionService } from '@config/dependencysInjection/actionDependencyInjection';
 import fastifyMultipart from '@fastify/multipart';
 
 jest.mock('@config/dependencysInjection/fileDependencyInjection');
@@ -13,13 +14,13 @@ jest.mock('@config/dependencysInjection/logDependencyInjection');
 
 const server = Fastify();
 const uploadOngFileService = mockUploadOngFileService;
-const fileController = new FileController(uploadOngFileService, uploadActionFileService, deleteFileService, getActionFilesByCategoryService, getOngFilesByCategoryService);
+const fileController = new FileController(uploadOngFileService, uploadActionFileService, deleteFileService, getActionFilesByCategoryService, getOngFilesByCategoryService, getActionService);
 
 server.register(fastifyMultipart);
 
 server.post('/upload', async (req, res) => {
   // Mocka o request.user para incluir o ngoid do token
-  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1, profileUrl: 'exampleurl.com' };
   
   try {
     const fileEntity = await fileController.uploadOngFile(req, res);
@@ -73,7 +74,9 @@ describe('FileController - uploadOngFile', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual(fileEntity);
 
-    fs.unlinkSync(filePath);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
   }, 10000);
 
   it('should return an error if file upload fails', async () => {
@@ -91,6 +94,8 @@ describe('FileController - uploadOngFile', () => {
     expect(response.status).toBe(500);
     expect(response.body).toHaveProperty('error', 'Internal Server Error');
 
-    fs.unlinkSync(filePath);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
   }, 10000);
 });

@@ -7,7 +7,10 @@ import { CustomError } from '@shared/customError';
 
 // Improve the mock implementation
 jest.mock('@config/dependencysInjection/actionDependencyInjection', () => ({
-  getActionService: {},
+  getActionService: {
+    executeById: jest.fn(),
+    execute: jest.fn()
+  },
   createActionService: {},
   updateActionService: {
     execute: jest.fn(),
@@ -47,7 +50,7 @@ const actionController = new ActionController(
 
 server.addHook('preHandler', async (request) => {
   // Mocka o request.user para incluir o ngoid do token
-  request.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+  request.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1, profileUrl: 'exampleurl.com' };
 });
 
 server.put('/ongs/actions/:id', actionController.update.bind(actionController));
@@ -86,6 +89,16 @@ describe('ActionController - Update', () => {
       aws_url: 'https://aws.s3/testfile.txt',
       categorysExpenses: { 'Category One': 100 }
     };
+    
+    (getActionService.executeById as jest.Mock).mockResolvedValue({
+      id: actionId,
+      ngoId: 1,
+      name: 'Original Action',
+      type: 'Original Type',
+      spent: 100,
+      goal: 1000,
+      colected: 500
+    });
 
     (updateActionService.execute as jest.Mock).mockResolvedValue(updatedAction);
     (logService.logAction as jest.Mock).mockResolvedValue(undefined);
@@ -105,6 +118,12 @@ describe('ActionController - Update', () => {
     const updateData = {
       name: 'Updated Action'
     };
+
+    (getActionService.executeById as jest.Mock).mockResolvedValue({
+      id: actionId,
+      ngoId: 1,
+      name: 'Original Action'
+    });
 
     (updateActionService.execute as jest.Mock).mockRejectedValue(new CustomError('Internal Server Error', 500));
     (logService.logAction as jest.Mock).mockResolvedValue(undefined);

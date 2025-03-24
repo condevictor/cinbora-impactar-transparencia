@@ -91,7 +91,7 @@ class FileRepository {
     }
   }
 
-  async delete(id: string): Promise<{ category: string }> {
+  async delete(id: string): Promise<{ category: string, name: string, actionId?: string }> {
     try {
       const ongFile = await prismaClient.ongFile.findUnique({
         where: { id },
@@ -103,7 +103,8 @@ class FileRepository {
           where: { id },
         });
         return {
-          category: ongFile.category
+          category: ongFile.category,
+          name: ongFile.name
         };
       }
 
@@ -117,7 +118,9 @@ class FileRepository {
           where: { id },
         });
         return {
-          category: actionFile.category
+          category: actionFile.category,
+          name: actionFile.name,
+          actionId: actionFile.actionId
         };
       }
       

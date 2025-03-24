@@ -38,7 +38,8 @@ const createServiceProxy = (name: string, mockData: any): ServiceProxy => {
     email: 'test@example.com',
     password: 'hashed_password',
     ngoId,
-    name: 'Test User'
+    name: 'Test User',
+    profileUrl: 'exampleurl.com'
   };
   
   const mockNgo = {
@@ -104,7 +105,8 @@ const createServiceProxy = (name: string, mockData: any): ServiceProxy => {
           id: userId,
           email: 'test@example.com',
           ngoId,
-          name: 'Test User'
+          name: 'Test User',
+          profileUrl: 'exampleurl.com'
         },
         ngo: mockNgo,
         token: 'jwt-token',

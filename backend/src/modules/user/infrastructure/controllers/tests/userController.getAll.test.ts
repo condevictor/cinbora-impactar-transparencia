@@ -35,8 +35,8 @@ describe('UserController - GetAll', () => {
 
   it('should return a list of users', async () => {
     const users = [
-      { id: '1', name: 'User One', email: 'userone@example.com', ngoId: 1 },
-      { id: '2', name: 'User Two', email: 'usertwo@example.com', ngoId: 2 },
+      { id: '1', name: 'User One', email: 'userone@example.com', ngoId: 1, profileUrl: 'exampleurl.com' },
+      { id: '2', name: 'User Two', email: 'usertwo@example.com', ngoId: 2, profileUrl: 'exampleurl.com' },
     ];
 
     (getUserService.executeAll as jest.Mock).mockResolvedValue(users);

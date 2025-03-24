@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { createActionSchema, updateActionSchema, deleteActionSchema, updateActionExpensesGraficSchema } from "../schemas/ActionSchema";
+import { createActionSchema, updateActionSchema, deleteActionSchema } from "../schemas/ActionSchema";
 import { authMiddleware } from "@middlewares/authMiddleware";
 import { OngParams, OngActionParams, ActionParams } from "@routeParams/RouteParams";
 import { actionController } from "@config/dependencysInjection/actionDependencyInjection";
@@ -103,7 +103,7 @@ async function actionRoutes(fastify: FastifyInstance) {
   // Rota para atualizar o gráfico de despesas de uma ação
   fastify.put<{ Params: { actionId: string } }>(
     "/ongs/actions/:actionId/grafic", 
-    { preHandler: [authMiddleware], schema: updateActionExpensesGraficSchema }, 
+    { preHandler: [authMiddleware] }, 
     async (request, reply) => {
       const result = await actionController.updateActionExpensesGrafic(request);
       if (request.user) {

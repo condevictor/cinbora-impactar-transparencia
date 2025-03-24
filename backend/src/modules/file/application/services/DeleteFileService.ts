@@ -8,7 +8,7 @@ class DeleteFileService {
     this.fileRepository = fileRepository;
   }
 
-  async execute(id: string): Promise<{ category: string }> {
+  async execute(id: string): Promise<{ category: string, name: string, actionId?: string }> {
     try {
       const deleteResult = await this.fileRepository.delete(id);
       return deleteResult;

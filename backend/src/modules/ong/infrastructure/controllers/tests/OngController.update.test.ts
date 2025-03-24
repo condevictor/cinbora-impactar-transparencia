@@ -19,7 +19,7 @@ const ongController = new OngController(
 
 server.put('/ongs', async (req, reply) => {
   // Mock request.user to include the ONG ID from the token
-  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+  req.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1, profileUrl: 'exampleurl.com' };
   
   try {
     // Capturar o resultado do controller

@@ -47,7 +47,7 @@ const actionController = new ActionController(
 
 server.addHook('preHandler', async (request) => {
   // Mocka o request.user para incluir o ngoid do token
-  request.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1 };
+  request.user = { id: '1', name: 'Test User', email: 'test@example.com', ngoId: 1, profileUrl: 'exampleurl.com' };
 });
 
 server.put('/ongs/actions/:id/expenses-grafic', actionController.updateActionExpensesGrafic.bind(actionController));
