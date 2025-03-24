@@ -1,5 +1,4 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command, DeleteObjectsCommand } from '@aws-sdk/client-s3';
-import mime from 'mime';
 import { config } from '@config/dotenv';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -40,7 +39,8 @@ class S3Storage {
    * @returns URL completa do arquivo salvo
    */
   async saveFile(fileBuffer: Buffer, filename: string, path?: string): Promise<string> {
-    const ContentType = mime.getType(filename);
+    const mime = await import('mime');
+    const ContentType = mime.default.getType(filename);
 
     if (!ContentType) {
       throw new Error('File type could not be determined');

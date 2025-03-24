@@ -1,9 +1,9 @@
-version: '3'
-
 services:
   backend:
     build: 
       context: .
+    image: backend-transparencia:latest 
+    container_name: backend-transparencia  
     ports:
       - "3333:3333"
     environment:

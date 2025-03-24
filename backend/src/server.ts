@@ -1,3 +1,4 @@
+import 'module-alias/register';
 import 'tsconfig-paths/register';
 import Fastify from "fastify";
 import { config } from "./config/dotenv";
