@@ -62,6 +62,7 @@ export default function DashboardAction() {
   return (
     <>
       <main className="p-4">
+        <h1 className="text-4xl text-center font-bold mt-10">{action.name}</h1>
         <CardContent className="relative p-4 min-w-72">
           <div className="relative z-10 bg-white mt-8 w-5/6 m-auto">
             <div className="relative">

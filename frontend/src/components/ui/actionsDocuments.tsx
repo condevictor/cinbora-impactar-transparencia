@@ -37,19 +37,14 @@ export default function ActionsDocuments() {
 
   const handleDownload = (file: any) => {
     if (file.aws_url) {
-      const link = document.createElement("a");
-      link.href = file.aws_url;
-      link.download = file.name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      window.open(file.aws_url, "_blank");
     } else {
       alert("URL do arquivo não disponível");
     }
   };
 
   return (
-    <div className="w-9/12 m-auto mb-20 mt-10">
+    <div className="w-9/12 m-auto mb-20 mt-10 max-[1600px]:w-11/12">
       <div className="flex flex-col">
         <div onClick={() => setIsNotasFiscaisOpen(!isNotasFiscaisOpen)} className="w-full h-20 bg-[#E0E0E0] border border-[#ADADAD] rounded-full flex items-center justify-between mb-8 cursor-pointer">
           <p className="ml-12">Notas Fiscais</p>
@@ -58,15 +53,15 @@ export default function ActionsDocuments() {
         {isNotasFiscaisOpen && (
           <>
             <h1 className="text-center font-bold text-2xl mb-2">Notas Fiscais</h1>
-            <div className="h-full w-full border border-black rounded-[64px] p-16 mb-20">
-              <div className="grid grid-cols-3 gap-10">
+            <div className="h-full w-full border border-black rounded-[64px] p-16 mb-20 max-[1600px]:border-none max-[1600px]:p-0">
+              <div className="grid grid-cols-3 gap-10 max-lg:grid-cols-2 max-sm:grid-cols-1">
                 {taxInvoices.length === 0 ? (
                   <p>nenhum arquivo encontrado</p>
                 ) : (
                   taxInvoices.map((item, index) => (
                     <div key={index} onClick={() => handleDownload(item)} className="w-full h-12 border border-[#294BB6] rounded flex items-center px-0.5 cursor-pointer">
                       <Image src={download} alt="download" />
-                      <span className="ml-2 text-sm">{item.name}</span>
+                      <span title={item.name} className="ml-2 whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</span>
                     </div>
                   ))
                 )}
@@ -81,15 +76,15 @@ export default function ActionsDocuments() {
         {isRelatoriosOpen && (
           <>
             <h1 className="text-center font-bold text-2xl mb-2">Relatórios</h1>
-            <div className="h-full w-full border border-black rounded-[64px] p-16 mb-20">
-              <div className="grid grid-cols-3 gap-10">
+            <div className="h-full w-full border border-black rounded-[64px] p-16 mb-20 max-[1600px]:border-none max-[1600px]:p-0">
+              <div className="grid grid-cols-3 gap-10 max-lg:grid-cols-2 max-sm:grid-cols-1">
                 {reports.length === 0 ? (
                   <p>nenhum arquivo encontrado</p>
                 ) : (
                   reports.map((item, index) => (
                     <div key={index} onClick={() => handleDownload(item)} className="w-full h-12 border border-[#294BB6] rounded flex items-center px-0.5 cursor-pointer">
                       <Image src={download} alt="download" />
-                      <span className="ml-2 text-sm">{item.name}</span>
+                      <span title={item.name} className="ml-2 whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</span>
                     </div>
                   ))
                 )}
@@ -104,15 +99,15 @@ export default function ActionsDocuments() {
         {isOutrosOpen && (
           <>
             <h1 className="text-center font-bold text-2xl mb-2">Outros documentos</h1>
-            <div className="h-full w-full border border-black rounded-[64px] p-16 mb-20">
-              <div className="grid grid-cols-3 gap-10">
+            <div className="h-full w-full border border-black rounded-[64px] p-16 mb-20 max-[1600px]:border-none max-[1600px]:p-0">
+              <div className="grid grid-cols-3 gap-10 max-lg:grid-cols-2 max-sm:grid-cols-1">
                 {others.length === 0 ? (
                   <p>nenhum arquivo encontrado</p>
                 ) : (
                   others.map((item, index) => (
                     <div key={index} onClick={() => handleDownload(item)} className="w-full h-12 border border-[#294BB6] rounded flex items-center px-0.5 cursor-pointer">
                       <Image src={download} alt="download" />
-                      <span className="ml-2 text-sm">{item.name}</span>
+                      <span title={item.name} className="ml-2 whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</span>
                     </div>
                   ))
                 )}

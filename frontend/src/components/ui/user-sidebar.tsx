@@ -68,11 +68,22 @@ export function UserSidebar() {
   }, [isOpen, fetchUserData]);
 
   const handleLogout = () => {
+    const tokens = Cookies.get("auth_token");
+  
+    if (Array.isArray(tokens)) {
+      tokens.forEach((_, index) => Cookies.remove(`auth_token[${index}]`));
+    }
+  
     Cookies.remove("auth_token");
     Cookies.remove("user_name");
     Cookies.remove("user_email");
+    Cookies.remove("ngo_id");
+    Cookies.remove("ngo_name");
+  
     window.location.href = "/login";
   };
+  
+  
 
   return (
     <Sheet onOpenChange={setIsOpen}>

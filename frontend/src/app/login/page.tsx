@@ -1,27 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
-import boraImpactar from "../../assets/bora_impactar.svg"
+import boraImpactar from "../../assets/bora_impactar.svg";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-
-  // Verifica se já está logado e redireciona
-  useEffect(() => {
-    if (Cookies.get("auth_token")) {
-      router.push("/dashboard/ongs");
-    }
-  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,31 +28,43 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) throw new Error("Credenciais inválidas");
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast.error("Credenciais inválidas. Verifique seu email e senha.");
+        } else {
+          toast.error(`Erro ao fazer login: ${response.statusText}`);
+        }
+        throw new Error("Erro no login");
+      }
 
       const data = await response.json();
 
-      // Salva os cookies
-      Cookies.set("auth_token", data.token, { expires: 7, secure: true, sameSite: "Strict" });
-      Cookies.set("user_name", data.user.name);
-      Cookies.set("ngo_name", data.ngo.name);
-      Cookies.set("ngo_id", data.ngo.id);
+      if (data.token) {
+        Cookies.remove("auth_token");
+        Cookies.set("auth_token", data.token, { expires: 7, secure: true, sameSite: "Strict" });
+        toast.success("Sessão iniciada com sucesso!");
+      }
 
-      toast.success("Login bem-sucedido! Redirecionando...", { duration: 4000 });
+      if (data.user?.name) {
+        Cookies.set("user_name", data.user.name);
+        toast.success(`Bem-vindo, ${data.user.name}!`);
+      }
 
-      router.push("/dashboard/ongs");
+      if (data.ngo?.name) {
+        Cookies.set("ngo_name", data.ngo.name);
+        toast.success(`ONG vinculada: ${data.ngo.name}`);
+      }
 
-      setTimeout(() => {
-        if (window.location.pathname === "/") {
-          window.scrollTo(0, 0);
-          window.location.reload();
-        }
-      }, 500);
-      
+      if (data.ngo?.id) {
+        Cookies.set("ngo_id", data.ngo.id);
+      }
+
+      toast.success("Redirecionando para o painel...");
+
+      setTimeout(() => router.push("/dashboard/ongs"), 1000);
+
     } catch (error) {
-      toast.error(`Erro ao fazer login: ${error instanceof Error ? error.message : "Erro desconhecido"}`, {
-        duration: 4000,
-      });
+      toast.error("Falha ao conectar ao servidor. Tente novamente mais tarde.");
     } finally {
       setLoading(false);
     }
@@ -72,9 +78,38 @@ export default function LoginPage() {
         <p className="text-white text-center">Acesse sua Ong</p>
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-          <Input className="bg-white rounded-xl border-[#D4D7E3]" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <Input className="bg-white rounded-xl border-[#D4D7E3]" type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          <Button type="submit" className="w-full bg-[#294BB6] rounded-xl text-white font-bold tracking-widest hover:bg-white hover:text-[#294BB6]" disabled={loading}>
+          <Input 
+            className="bg-white rounded-xl border-[#D4D7E3]" 
+            type="email" 
+            placeholder="Email" 
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)} 
+            required 
+          />
+
+          <div className="relative">
+            <Input 
+              className="bg-white rounded-xl border-[#D4D7E3] pr-10" 
+              type={showPassword ? "text" : "password"} 
+              placeholder="Senha" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+            />
+            <button 
+              type="button" 
+              className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 transition" 
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full bg-[#294BB6] rounded-xl text-white font-bold tracking-widest hover:bg-white hover:text-[#294BB6]" 
+            disabled={loading}
+          >
             {loading ? <Loader2 className="animate-spin w-5 h-5" /> : "Entrar"}
           </Button>
         </form>
