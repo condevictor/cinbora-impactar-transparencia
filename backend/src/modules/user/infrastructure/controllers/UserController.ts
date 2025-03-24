@@ -78,7 +78,9 @@ class UserController {
       return;
     }
     try {
-      reply.send(request.user);
+      const user = await this.getUserService.executeByEmail(request.user.email)
+
+      reply.send(user);
     } catch (error) {
       console.error("Erro ao obter usuário:", error);
       reply.status(500).send({ error: "Erro ao obter usuário" });
