@@ -9,11 +9,19 @@ import ActionsGallery from "@/components/ui/actionsGallery"
 import ActionsDocuments from "@/components/ui/actionsDocuments"
 import ActionsBalance from "@/components/ui/actionsBalance"
 
+interface Action {
+  type: string;
+  name: string;
+  colected: number;
+  spent: number;
+  goal: number;
+}
+
 export default function ActionDetail() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const acaoId = searchParams.get("action_id")
-  const [action, setAction] = useState(null)
+  const [action, setAction] = useState<Action | null>(null)
   const [activeTab, setActiveTab] = useState("gallery");
 
   if (!acaoId) {
