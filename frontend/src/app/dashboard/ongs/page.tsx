@@ -347,20 +347,6 @@ export default function ActionsPage() {
   };
   
   
-  
-  const getChangedCategories = (newExpenses, oldExpenses) => {
-    const changes = {};
-  
-    Object.keys(newExpenses).forEach((key) => {
-      const difference = newExpenses[key] - (oldExpenses[key] || 0);
-      if (difference !== 0) {
-        changes[key] = difference;
-      }
-    });
-  
-    return changes;
-  };
-  
   const validateAndFixCategories = () => {
     let updatedCategories = { ...editingSlide.categorysExpenses };
   
@@ -549,7 +535,6 @@ const handleSave = async () => {
           slide.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           slide.type?.toLowerCase().includes(searchTerm.toLowerCase())
         );
-        // Alteração: componente de adicionar ação colocado ao final do array
         const displaySlides = searchTerm ? filteredSlides : [...filteredSlides, { isAddCard: true }];
  
         if (searchTerm && filteredSlides.length === 0) {
