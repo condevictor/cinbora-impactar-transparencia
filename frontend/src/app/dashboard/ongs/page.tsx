@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { Button } from "@/components/ui/button";
-import { UploadCloud } from "lucide-react";
-import { FiChevronDown, FiPlus } from "react-icons/fi";
+import ModalPortal from "@/components/ui/modalPortal";
+import { UploadCloud, Loader2 } from "lucide-react";
+import { FiChevronDown } from "react-icons/fi";
 import {
   Carousel,
   CarouselContent,
@@ -32,7 +33,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useRouter } from "next/navigation"; // <-- novo import
+import { useRouter } from "next/navigation";
 
 export default function ActionsPage() {
   const [slides, setSlides] = useState([]);
@@ -66,8 +67,9 @@ export default function ActionsPage() {
   const [hoveredSlide, setHoveredSlide] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [originalCategorysExpenses, setOriginalCategorysExpenses] = useState({});
-  const [searchTerm, setSearchTerm] = useState(""); // <-- novo estado de filtro
-  const router = useRouter(); // <-- instância do router
+  const [isSaving, setIsSaving] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(""); 
+  const router = useRouter();
   
   const generateHash = async (name) => {
   const encoder = new TextEncoder();
@@ -137,20 +139,13 @@ export default function ActionsPage() {
   
   useEffect(() => {
     if (isOpen) {
-      setEditingSlide((prev) => ({
-        ...prev,
-        goal: prev?.goal || 0,
-        collected: prev?.colected || 0,
-        spent: prev?.spent || 0,
-        categorysExpenses: prev?.categorysExpenses || {},
-      }));
-  
       const extractedCategories = [
         ...new Set(slides.map((slide) => slide.type).filter(Boolean)),
       ];
       setCategories(extractedCategories);
     }
   }, [isOpen, slides]);
+  
   
   const openModal = async (slide = null) => {
     if (!slides.length) {
@@ -194,6 +189,9 @@ export default function ActionsPage() {
   
   const closeModal = () => {
     setIsOpen(false);
+    setIsSaving(false);
+    setSelectedCategory(null); 
+    setNewCategory("");
     setEditingSlide({
       name: "",
       type: "",
@@ -412,7 +410,6 @@ const updateSlideImage = async (slideId) => {
 
     const updatedImage = await response.json();
 
-    // 🟢 FORÇA A ATUALIZAÇÃO DA IMAGEM SEM RECARGAR
     setImageUrls((prevUrls) => ({
       ...prevUrls,
       [slideId]: updatedImage.aws_url,
@@ -430,6 +427,10 @@ const updateSlideImage = async (slideId) => {
 };
   
 const handleSave = async () => {
+
+  if (isSaving) return;
+  setIsSaving(true);
+
   if (!editingSlide.name || !editingSlide.type) {
     toast.error("Erro: Nome e tipo são obrigatórios.");
     return;
@@ -506,6 +507,8 @@ const handleSave = async () => {
     }
 
     toast.success("Ação salva com sucesso!");
+
+    setIsSaving(false);
     closeModal();
 
     setSlides((prevSlides) =>
@@ -529,18 +532,17 @@ const handleSave = async () => {
       <h1 className="text-center text-4xl font-bold text-[#2E4049] mt-20">Ações</h1>
       
       {/* Filtro idêntico ao page3 */}
-      <div className="relative w-full max-w-md mx-auto mt-6 px-4">
-        <Search className="absolute left-6 top-3"/>
-        <input
-          type="text"
-          placeholder="         Buscar por nome ou meta"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
-          
-        />
+      <div className="relative w-full max-w-xl mx-auto mt-10 px-4">
+        <Search className="absolute left-6 top-3" />
+          <input
+            type="text"
+            placeholder="Buscar por nome ou meta"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full p-3 pl-12 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+          />
       </div>
-      
+
  
       {(() => {
         const filteredSlides = slides.filter(slide =>
@@ -735,309 +737,313 @@ const handleSave = async () => {
       })()}
  
       {isOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white border border-gray-200 rounded-3xl shadow-xl p-8 w-[500px]">
-            <h2 className="text-2xl font-semibold text-gray-900">
-              {editingSlide?.id ? "Editar Ação" : "Nova Ação"}
-            </h2>
-            <p className="text-gray-500 text-sm mb-4">Preencha os detalhes da ação</p>
+        <ModalPortal>
+          <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white border border-gray-200 rounded-3xl shadow-xl p-8 w-[500px]">
+              <h2 className="text-2xl font-semibold text-gray-900">
+                {editingSlide?.id ? "Editar Ação" : "Nova Ação"}
+              </h2>
+              <p className="text-gray-500 text-sm mb-4">Preencha os detalhes da ação</p>
 
-            <div className="flex pb-2">
-              <button
-                className={`flex-1 text-lg font-medium py-2 transition-colors duration-200 ${
-                  modalTab === "detalhes"
-                    ? "border-b-4 border-blue-500 text-blue-500"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-                onClick={() => setModalTab("detalhes")}
-              >
-                Detalhes
-              </button>
-              <button
-                className={`flex-1 text-lg font-medium py-2 transition-colors duration-200 ${
-                  modalTab === "imagem"
-                    ? "border-b-4 border-blue-500 text-blue-500"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-                onClick={() => setModalTab("imagem")}
-              >
-                Imagem
-              </button>
-            </div>
+              <div className="flex pb-2">
+                <button
+                  className={`flex-1 text-lg font-medium py-2 transition-colors duration-200 ${
+                    modalTab === "detalhes"
+                      ? "border-b-4 border-blue-500 text-blue-500"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                  onClick={() => setModalTab("detalhes")}
+                >
+                  Detalhes
+                </button>
+                <button
+                  className={`flex-1 text-lg font-medium py-2 transition-colors duration-200 ${
+                    modalTab === "imagem"
+                      ? "border-b-4 border-blue-500 text-blue-500"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                  onClick={() => setModalTab("imagem")}
+                >
+                  Imagem
+                </button>
+              </div>
 
-            {modalTab === "detalhes" && (
-              <div className="mt-6 grid grid-cols-2 gap-4">
-                {/* Campo de Título (Ocupa linha inteira) */}
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">Título</label>
-                  <input
-                    type="text"
-                    className="w-full mt-1 p-4 border rounded-[16px] border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
-                    placeholder="Digite o título"
-                    value={editingSlide?.name || ""}
-                    onChange={(e) =>
-                      setEditingSlide({ ...editingSlide, name: e.target.value })
-                    }
-                  />
-                </div>
+              {modalTab === "detalhes" && (
+                <div className="mt-6 grid grid-cols-2 gap-4">
+                  {/* Campo de Título (Ocupa linha inteira) */}
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">Título</label>
+                    <input
+                      type="text"
+                      className="w-full mt-1 p-4 border rounded-[16px] border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                      placeholder="Digite o título"
+                      value={editingSlide?.name || ""}
+                      onChange={(e) =>
+                        setEditingSlide({ ...editingSlide, name: e.target.value })
+                      }
+                    />
+                  </div>
 
-                {/* Campo de Tipo */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Tipo</label>
-                  <input
-                    type="text"
-                    className="w-full mt-1 p-4 border rounded-[16px] border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
-                    placeholder="Digite o tipo"
-                    value={editingSlide?.type || ""}
-                    onChange={(e) =>
-                      setEditingSlide({ ...editingSlide, type: e.target.value })
-                    }
-                  />
-                </div>
+                  {/* Campo de Tipo */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Tipo</label>
+                    <input
+                      type="text"
+                      className="w-full mt-1 p-4 border rounded-[16px] border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                      placeholder="Digite o tipo"
+                      value={editingSlide?.type || ""}
+                      onChange={(e) =>
+                        setEditingSlide({ ...editingSlide, type: e.target.value })
+                      }
+                    />
+                  </div>
 
-                {/* Meta (Goal) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Meta (R$)</label>
-                  <input
-                    type="text"
-                    className="w-full mt-1 p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
-                    placeholder="Digite o valor"
-                    value={editingSlide.goal?.toString() || ""}
-                    onChange={(e) => {
-                      let rawValue = e.target.value;
-                      rawValue = rawValue.replace(/[^0-9.]/g, "");
-                      const parts = rawValue.split(".");
-                      if (parts.length > 2) return; 
-                      if (parts[1]) rawValue = parts[0] + "." + parts[1].slice(0, 2); 
+                  {/* Meta (Goal) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Meta (R$)</label>
+                    <input
+                      type="text"
+                      className="w-full mt-1 p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                      placeholder="Digite o valor"
+                      value={editingSlide.goal?.toString() || ""}
+                      onChange={(e) => {
+                        let rawValue = e.target.value;
+                        rawValue = rawValue.replace(/[^0-9.]/g, "");
+                        const parts = rawValue.split(".");
+                        if (parts.length > 2) return; 
+                        if (parts[1]) rawValue = parts[0] + "." + parts[1].slice(0, 2); 
 
-                      setEditingSlide((prev) => ({
-                        ...prev,
-                        goal: rawValue, 
-                      }));
-                    }}
-                    onBlur={() => {
-                      const parsed = parseFloat(editingSlide.goal || "0");
-                      if (!isNaN(parsed)) {
                         setEditingSlide((prev) => ({
                           ...prev,
-                          goal: parsed,
+                          goal: rawValue, 
                         }));
-                      }
-                    }}
-                    inputMode="decimal"
-                  />
+                      }}
+                      onBlur={() => {
+                        const parsed = parseFloat(editingSlide.goal || "0");
+                        if (!isNaN(parsed)) {
+                          setEditingSlide((prev) => ({
+                            ...prev,
+                            goal: parsed,
+                          }));
+                        }
+                      }}
+                      inputMode="decimal"
+                    />
 
 
-                </div>
+                  </div>
 
-                {/* Arrecadado (Collected) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Arrecadado (R$)</label>
-                  <input
-                    type="text"
-                    className="w-full mt-1 p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
-                    placeholder="Digite o valor"
-                    value={editingSlide.colected?.toString() || ""}
-                    onChange={(e) => {
-                      let rawValue = e.target.value;
-                      rawValue = rawValue.replace(/[^0-9.]/g, ""); 
-                      const parts = rawValue.split(".");
-                      if (parts.length > 2) return;
-                      if (parts[1]) rawValue = parts[0] + "." + parts[1].slice(0, 2);
+                  {/* Arrecadado (Collected) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Arrecadado (R$)</label>
+                    <input
+                      type="text"
+                      className="w-full mt-1 p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                      placeholder="Digite o valor"
+                      value={editingSlide.colected?.toString() || ""}
+                      onChange={(e) => {
+                        let rawValue = e.target.value;
+                        rawValue = rawValue.replace(/[^0-9.]/g, ""); 
+                        const parts = rawValue.split(".");
+                        if (parts.length > 2) return;
+                        if (parts[1]) rawValue = parts[0] + "." + parts[1].slice(0, 2);
 
-                      setEditingSlide((prev) => ({
-                        ...prev,
-                        colected: rawValue,
-                      }));
-                    }}
-                    onBlur={() => {
-                      const parsed = parseFloat(editingSlide.colected || "0");
-                      if (!isNaN(parsed)) {
                         setEditingSlide((prev) => ({
                           ...prev,
-                          colected: parsed,
+                          colected: rawValue,
                         }));
-                      }
-                    }}
-                    inputMode="decimal"
-                  />
+                      }}
+                      onBlur={() => {
+                        const parsed = parseFloat(editingSlide.colected || "0");
+                        if (!isNaN(parsed)) {
+                          setEditingSlide((prev) => ({
+                            ...prev,
+                            colected: parsed,
+                          }));
+                        }
+                      }}
+                      inputMode="decimal"
+                    />
 
 
-                </div>
+                  </div>
 
 
-                {/* Categorias de Despesas */}
-                <div className="col-span-2">
-                  <label className="block text-sm mb-2 font-medium text-gray-700">
-                    Categorias de Despesas
-                  </label>
+                  {/* Categorias de Despesas */}
+                  <div className="col-span-2">
+                    <label className="block text-sm mb-2 font-medium text-gray-700">
+                      Categorias de Despesas
+                    </label>
 
-                  <div className="flex gap-4">
-                    {/* Dropdown de Seleção de Categoria */}
-                    <div className="relative flex-1">
-                      <select
-                        className="appearance-none rounded-[16px] w-full p-4 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all pr-10"
-                        value={selectedCategory || ""}
-                        onChange={(e) => setSelectedCategory(e.target.value || null)}
-                      >
-                        <option value="">Selecione uma categoria</option>
-                        {Object.keys(editingSlide.categorysExpenses || {}).map((category, index) => (
-                          <option key={index} value={category}>{category}</option>
-                        ))}
-                      </select>
-                      <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-                    </div>
+                    <div className="flex gap-4">
+                      {/* Dropdown de Seleção de Categoria */}
+                      <div className="relative flex-1">
+                        <select
+                          className="appearance-none rounded-[16px] w-full p-4 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all pr-10"
+                          value={selectedCategory || ""}
+                          onChange={(e) => setSelectedCategory(e.target.value || null)}
+                        >
+                          <option value="">Selecione uma categoria</option>
+                          {Object.keys(editingSlide.categorysExpenses || {}).map((category, index) => (
+                            <option key={index} value={category}>{category}</option>
+                          ))}
+                        </select>
+                        <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                      </div>
 
-                    {/* Valor da Categoria Selecionada (Só aparece se selectedCategory não for nulo) */}
-                    {selectedCategory && (
-                      <div className="flex-1">
-                        <input
-                          type="text"
-                          className="w-full p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
-                          placeholder="Digite o valor"
-                          value={editingSlide.categorysExpenses[selectedCategory]?.toString() || ""}
-                          onChange={(e) => {
-                            let rawValue = e.target.value;
-                            rawValue = rawValue.replace(/[^0-9.]/g, "");
-                            const parts = rawValue.split(".");
-                            if (parts.length > 2) return;
-                            if (parts[1]) rawValue = parts[0] + "." + parts[1].slice(0, 2); 
+                      {/* Valor da Categoria Selecionada (Só aparece se selectedCategory não for nulo) */}
+                      {selectedCategory && (
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            className="w-full p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                            placeholder="Digite o valor"
+                            value={editingSlide.categorysExpenses[selectedCategory]?.toString() || ""}
+                            onChange={(e) => {
+                              let rawValue = e.target.value;
+                              rawValue = rawValue.replace(/[^0-9.]/g, "");
+                              const parts = rawValue.split(".");
+                              if (parts.length > 2) return;
+                              if (parts[1]) rawValue = parts[0] + "." + parts[1].slice(0, 2); 
 
-                            setEditingSlide((prev) => ({
-                              ...prev,
-                              categorysExpenses: {
-                                ...prev.categorysExpenses,
-                                [selectedCategory]: rawValue,
-                              },
-                            }));
-                          }}
-                          onBlur={() => {
-                            const raw = editingSlide.categorysExpenses[selectedCategory];
-                            const parsed = parseFloat(raw || "0");
-                            if (!isNaN(parsed)) {
                               setEditingSlide((prev) => ({
                                 ...prev,
                                 categorysExpenses: {
                                   ...prev.categorysExpenses,
-                                  [selectedCategory]: parsed,
+                                  [selectedCategory]: rawValue,
                                 },
                               }));
-                            }
-                          }}
-                          inputMode="decimal"
-                        />
+                            }}
+                            onBlur={() => {
+                              const raw = editingSlide.categorysExpenses[selectedCategory];
+                              const parsed = parseFloat(raw || "0");
+                              if (!isNaN(parsed)) {
+                                setEditingSlide((prev) => ({
+                                  ...prev,
+                                  categorysExpenses: {
+                                    ...prev.categorysExpenses,
+                                    [selectedCategory]: parsed,
+                                  },
+                                }));
+                              }
+                            }}
+                            inputMode="decimal"
+                          />
 
-                      </div>
+                        </div>
+                      )}
+
+                    </div>
+                  </div>
+
+                  {/* Adicionar Nova Categoria */}
+                  <div className="col-span-2 flex items-center gap-2">
+                    <input
+                      type="text"
+                      className="flex-1 p-3 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                      placeholder="Nova categoria"
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                    />
+                    <button
+                      className="p-3 bg-blue-500 text-white rounded-[16px] hover:bg-blue-600 transition-all"
+                      onClick={() => {
+                        if (
+                          newCategory.trim() !== "" &&
+                          !editingSlide.categorysExpenses?.[newCategory.trim()]
+                        ) {
+                          setEditingSlide({
+                            ...editingSlide,
+                            categorysExpenses: {
+                              ...editingSlide.categorysExpenses,
+                              [newCategory.trim()]: 0,
+                            },
+                          });
+                          setNewCategory("");
+                        }
+                      }}
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Total Gasto (Spent) */}
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">Total Gasto (R$)</label>
+                    <input
+                      type="text"
+                      className="w-full mt-1 p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all bg-gray-100 cursor-not-allowed"
+                      value={
+                        editingSlide?.spent !== undefined && editingSlide?.spent !== null
+                          ? parseFloat(editingSlide.spent)
+                              .toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                          : ""
+                      }
+                      readOnly
+                    />
+                  </div>
+
+                </div>
+
+
+              )}
+
+              {modalTab === "imagem" && (
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Imagem da Ação
+                  </label>
+                  <div className="flex flex-col items-center gap-2 border border-gray-300 p-4 rounded-[16px]">
+                    <label
+                      htmlFor="file-upload"
+                      className="w-full flex justify-center items-center bg-gray-200 text-gray-700 py-2 px-4 rounded-[16px] cursor-pointer hover:bg-gray-300 transition-all"
+                    >
+                      <UploadCloud className="mr-2 text-blue-500" /> Escolher Arquivo
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    {imagePreview && (
+                      <img
+                        src={imagePreview}
+                        alt="Pré-visualização"
+                        className="mt-4 rounded-lg w-full h-auto"
+                      />
                     )}
-
                   </div>
                 </div>
+              )}
 
-                {/* Adicionar Nova Categoria */}
-                <div className="col-span-2 flex items-center gap-2">
-                  <input
-                    type="text"
-                    className="flex-1 p-3 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
-                    placeholder="Nova categoria"
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                  />
-                  <button
-                    className="p-3 bg-blue-500 text-white rounded-[16px] hover:bg-blue-600 transition-all"
-                    onClick={() => {
-                      if (
-                        newCategory.trim() !== "" &&
-                        !editingSlide.categorysExpenses?.[newCategory.trim()]
-                      ) {
-                        setEditingSlide({
-                          ...editingSlide,
-                          categorysExpenses: {
-                            ...editingSlide.categorysExpenses,
-                            [newCategory.trim()]: 0,
-                          },
-                        });
-                        setNewCategory("");
-                      }
-                    }}
-                  >
-                    +
-                  </button>
-                </div>
-
-                {/* Total Gasto (Spent) */}
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">Total Gasto (R$)</label>
-                  <input
-                    type="text"
-                    className="w-full mt-1 p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all bg-gray-100 cursor-not-allowed"
-                    value={
-                      editingSlide?.spent !== undefined && editingSlide?.spent !== null
-                        ? parseFloat(editingSlide.spent)
-                            .toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                        : ""
+              <div className="mt-6 pt-4 flex justify-between">
+                <button
+                  className="px-5 py-2 border border-gray-400 text-gray-600 rounded-[16px] hover:bg-gray-300 transition-all duration-200"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="px-5 py-2 bg-blue-600 text-white rounded-[16px] hover:bg-blue-500/90 transition-all duration-200"
+                  onClick={() => {
+                    if (document.activeElement instanceof HTMLElement) {
+                      document.activeElement.blur();
                     }
-                    readOnly
-                  />
-                </div>
+                    handleSave();
+                  }}
+                  disabled={isSaving}
+                >
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : "Salvar"}
+                </button>
 
               </div>
-
-
-            )}
-
-            {modalTab === "imagem" && (
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700">
-                  Imagem da Ação
-                </label>
-                <div className="flex flex-col items-center gap-2 border border-gray-300 p-4 rounded-[16px]">
-                  <label
-                    htmlFor="file-upload"
-                    className="w-full flex justify-center items-center bg-gray-200 text-gray-700 py-2 px-4 rounded-[16px] cursor-pointer hover:bg-gray-300 transition-all"
-                  >
-                    <UploadCloud className="mr-2 text-blue-500" /> Escolher Arquivo
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  {imagePreview && (
-                    <img
-                      src={imagePreview}
-                      alt="Pré-visualização"
-                      className="mt-4 rounded-lg w-full h-auto"
-                    />
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div className="mt-6 pt-4 flex justify-between">
-              <button
-                className="px-5 py-2 border border-gray-400 text-gray-600 rounded-[16px] hover:bg-gray-300 transition-all duration-200"
-                onClick={() => setIsOpen(false)}
-              >
-                Cancelar
-              </button>
-              <button
-                className="px-5 py-2 bg-blue-600 text-white rounded-[16px] hover:bg-blue-500/90 transition-all duration-200"
-                onClick={() => {
-                  if (document.activeElement instanceof HTMLElement) {
-                    document.activeElement.blur();
-                  }
-                  handleSave();
-                }}
-              >
-                Salvar
-              </button>
-
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
+      
         {/* Tabs */}
         <div className="w-full flex justify-center border-b border-gray-300 mt-6">
             <div className="flex space-x-6">
