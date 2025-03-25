@@ -1,31 +1,35 @@
-import prismaClient from "@shared/prismaClient";
 import { Log } from "../entities/Log";
+import prismaClient from "@shared/prismaClient";
 
 class LogRepository {
   async create(log: Log): Promise<void> {
     await prismaClient.log.create({
-      data: {
-        ngoId: log.ngoId,
-        userId: log.userId,
-        userName: log.userName,
-        action: log.action,
-        model: log.model,
-        modelId: log.modelId.toString(), // Converter para string para garantir
-        changes: log.changes,
-        description: log.description,
-        timestamp: log.timestamp,
-      },
+      data: log,
     });
-  }
-
-  async findAll(): Promise<Log[]> {
-    return prismaClient.log.findMany();
   }
 
   async findByNgoId(ngoId: number): Promise<Log[]> {
-    return prismaClient.log.findMany({
-      where: { ngoId },
+    const logs = await prismaClient.log.findMany({
+      where: {
+        ngoId,
+      },
+      orderBy: {
+        timestamp: 'desc',
+      },
     });
+    return logs;
+  }
+
+  async findLastByNgoId(ngoId: number): Promise<Log | null> {
+    const log = await prismaClient.log.findFirst({
+      where: {
+        ngoId,
+      },
+      orderBy: {
+        timestamp: 'desc',
+      },
+    });
+    return log;
   }
 }
 

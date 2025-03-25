@@ -8,25 +8,35 @@ class LogController {
     this.logService = logService;
   }
 
-  async getAll(request: FastifyRequest, reply: FastifyReply) {
+  // método para obter apenas o último log da ONG do usuário autenticado
+  async getLastLog(request: FastifyRequest, reply: FastifyReply) {
+    if (!request.user || !request.user.ngoId) {
+      return reply.status(401).send({ error: "Usuário não autenticado ou sem permissão" });
+    }
+
     try {
-      const logs = await this.logService.getAllLogs();
-      reply.send(logs);
+      const lastLog = await this.logService.getLastLogByNgoId(request.user.ngoId);
+      reply.send(lastLog ? [lastLog] : []);
     } catch (error) {
-      console.error("Erro ao obter logs:", error);
-      reply.status(500).send({ error: "Erro ao obter logs" });
+      console.error("Erro ao obter último log:", error);
+      reply.status(500).send({ error: "Erro ao obter último log" });
     }
   }
 
-  async getByNgoId(request: FastifyRequest, reply: FastifyReply) {
-    const { ngoId } = request.params as { ngoId: number };
+  // Método para usar o ngoId do token
+  async getOngLogs(request: FastifyRequest, reply: FastifyReply) {
+    if (!request.user || !request.user.ngoId) {
+      return reply.status(401).send({ error: "Usuário não autenticado ou sem permissão" });
+    }
+
     try {
-      const logs = await this.logService.getLogsByNgoId(Number(ngoId));
+      const logs = await this.logService.getLogsByNgoId(request.user.ngoId);
       reply.send(logs);
     } catch (error) {
-      console.error("Erro ao obter logs por ONG:", error);
-      reply.status(500).send({ error: "Erro ao obter logs por ONG" });
+      console.error("Erro ao obter logs da ONG:", error);
+      reply.status(500).send({ error: "Erro ao obter logs da ONG" });
     }
+
   }
 }
 

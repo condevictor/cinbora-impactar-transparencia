@@ -1,5 +1,4 @@
-import { LogRepository } from "@modules/log/domain/repositories/LogRepository";
-import { Log } from "../../domain/entities/Log";
+import { LogRepository, Log } from "@modules/log";
 
 class LogService {
   private logRepository: LogRepository;
@@ -27,12 +26,13 @@ class LogService {
     await this.logRepository.create(log);
   }
 
-  async getAllLogs() {
-    return this.logRepository.findAll();
-  }
-
   async getLogsByNgoId(ngoId: number) {
     return this.logRepository.findByNgoId(ngoId);
+  }
+
+  // Novo método para obter apenas o último log de uma ONG
+  async getLastLogByNgoId(ngoId: number) {
+    return this.logRepository.findLastByNgoId(ngoId);
   }
 }
 
