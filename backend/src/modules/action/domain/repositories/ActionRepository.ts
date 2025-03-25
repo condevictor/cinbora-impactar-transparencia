@@ -236,6 +236,9 @@ class ActionRepository {
         throw new CustomError("Ação não encontrada", 404);
       }
   
+      const actionName = action.name;
+      const ngoId = action.ngoId;
+  
       // Usar a nova abordagem para excluir toda a pasta da ação de uma vez
       try {
         // Exclui tudo em /{ngoId}/actions/{actionId}/
@@ -253,6 +256,9 @@ class ActionRepository {
         prismaClient.action.delete({ where: { id: id } })
       ]);
   
+      // Após excluir a ação, atualize o NGO graphic para remover a ação excluída
+      await this.updateNgoGraphicAfterActionDeletion(ngoId, actionName);
+  
       return;
     } catch (error) {
       console.error("Erro ao deletar ação:", error);
@@ -260,6 +266,71 @@ class ActionRepository {
         throw new CustomError("Erro ao deletar ação", 400);
       }
       throw new CustomError("Erro ao deletar ação", 500);
+    }
+  }
+  
+  private async updateNgoGraphicAfterActionDeletion(ngoId: number, deletedActionName: string): Promise<void> {
+    try {
+      // Buscar o gráfico da ONG
+      const ngoGraphic = await prismaClient.ngoGraphic.findUnique({
+        where: { ngoId },
+      });
+  
+      if (!ngoGraphic) {
+        console.log(`NGO graphic não encontrado para ngoId: ${ngoId}`);
+        return;
+      }
+  
+      // Buscar todas as ações restantes da ONG
+      const remainingActions = await prismaClient.action.findMany({
+        where: { ngoId },
+      });
+  
+      // Calcular o total de despesas das ações restantes
+      const totalExpenses = remainingActions.reduce((sum, action) => sum + (action.spent || 0), 0);
+  
+      // Obter o array de expenses do NGO graphic
+      const expensesArray = ngoGraphic.expensesByAction as any[];
+      let updated = false;
+  
+      if (expensesArray && expensesArray.length > 0) {
+        // Encontrar o último ano no array
+        const latestYear = expensesArray[expensesArray.length - 1];
+        
+        if (latestYear?.months && latestYear.months.length > 0) {
+          // Encontrar o último mês no último ano
+          const latestMonth = latestYear.months[latestYear.months.length - 1];
+          
+          if (latestMonth?.dailyRecords && latestMonth.dailyRecords.length > 0) {
+            // Encontrar o último dia no último mês
+            const latestDailyRecords = latestMonth.dailyRecords;
+            
+            // Atualizar todos os registros diários recentes (últimos 30 dias, por exemplo) para remover a ação excluída
+            for (const dailyRecord of latestDailyRecords) {
+              if (dailyRecord.expensesByAction && dailyRecord.expensesByAction[deletedActionName] !== undefined) {
+                // Remover a ação excluída do registro
+                delete dailyRecord.expensesByAction[deletedActionName];
+                updated = true;
+              }
+            }
+          }
+        }
+      }
+  
+      if (updated) {
+        // Atualizar o NGO graphic com os dados atualizados
+        await prismaClient.ngoGraphic.update({
+          where: { ngoId },
+          data: {
+            expensesByAction: expensesArray,
+            totalExpenses,
+          },
+        });
+        console.log(`NGO graphic atualizado após exclusão da ação: ${deletedActionName}`);
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar NGO graphic após exclusão da ação:", error);
+      // Não lançamos o erro para não afetar o fluxo principal de exclusão da ação
     }
   }
 
