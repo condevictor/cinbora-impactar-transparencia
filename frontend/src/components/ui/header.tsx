@@ -24,16 +24,34 @@ const UserSidebar = dynamic(() => import("./user-sidebar").then((mod) => mod.Use
 
 export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkAuth = () => {
-      setIsLoggedIn(!!Cookies.get("auth_token"));
-    };
-
-    const interval = setInterval(checkAuth, 500);
-
+    const interval = setInterval(() => {
+      const token = Cookies.get("auth_token");
+  
+      if (token) {
+        setIsLoggedIn(true);
+  
+        if (!avatarUrl) {
+          fetch("http://127.0.0.1:3333/user", {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+            .then((res) => res.json())
+            .then((data) => setAvatarUrl(data?.profileUrl || null))
+            .catch(() => setAvatarUrl(null));
+        }
+      } else {
+        setIsLoggedIn(false);
+      }
+    }, 500);
+  
     return () => clearInterval(interval);
-  }, []);
+  }, [avatarUrl]);
+  
 
   return (
     <header className="bg-[#00B3FF] py-5 px-12 flex items-center justify-between max-sm:px-5">
@@ -59,7 +77,8 @@ export default function Header() {
         </MenubarMenu>
       </Menubar>
 
-      {isLoggedIn ? <UserSidebar /> : (
+      {isLoggedIn ? <UserSidebar avatarUrl={avatarUrl} setAvatarUrl={setAvatarUrl} />
+ : (
         <div>
           <Link href="/login">
             <Button className="bg-[#294BB6] text-lg font-semibold text-white rounded-xl px-14 py-3 transition-colors duration-300 delay-150 hover:bg-white hover:text-[#294BB6] max-lg:hidden">

@@ -21,7 +21,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 
-export function UserSidebar() {
+export function UserSidebar({
+  avatarUrl,
+  setAvatarUrl,
+}: {
+  avatarUrl: string | null;
+  setAvatarUrl: (url: string | null) => void;
+}) {
   const [userName, setUserName] = useState("Carregando...");
   const [userEmail, setUserEmail] = useState("...");
   const [actions, setActions] = useState([]);
@@ -31,7 +37,6 @@ export function UserSidebar() {
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const [newProfileFile, setNewProfileFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const ngoId = Cookies.get("ngo_id");
   const ngoName = Cookies.get("ngo_name");
@@ -58,13 +63,11 @@ export function UserSidebar() {
   useEffect(() => {
     if (isOpen && authToken) {
       fetch("http://127.0.0.1:3333/user", {
-        method: "POST",
+        method: "GET",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({}),
-      })
+      })      
         .then((res) => res.json())
         .then((data) => {
           setAvatarUrl(data?.profileUrl || null);
@@ -81,13 +84,11 @@ export function UserSidebar() {
 
   useEffect(() => {
     if (showEditProfileModal && authToken) {
-      fetch("http://127.0.0.1:3333/user", {
-        method: "POST",
+      fetch(`http://127.0.0.1:3333/user`, {
+        method: "GET",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({}),
       })
         .then((res) => res.json())
         .then((data) => {
@@ -124,13 +125,11 @@ export function UserSidebar() {
 
   const fetchUserData = useCallback(() => {
     if (authToken) {
-      fetch(`http://127.0.0.1:3333/user`, {
-        method: "POST",
+      fetch("http://127.0.0.1:3333/user", {
+        method: "GET",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({}),
       })
         .then((res) => res.json())
         .then((data) => {
@@ -243,10 +242,7 @@ export function UserSidebar() {
       setUploading(false);
     }
   };
-  
-  
-  
-  
+
   return (
     <>
       <button
@@ -255,20 +251,24 @@ export function UserSidebar() {
       >
         <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
           {avatarUrl ? (
-            <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover rounded-full" />
+            <img
+              src={avatarUrl}
+              alt="avatar"
+              className="w-full h-full object-cover rounded-full"
+            />
           ) : (
             <User className="w-6 h-6 text-gray-600" />
           )}
         </div>
       </button>
-  
+
       {isOpen && (
         <>
           <div
             className="fixed inset-0 bg-black bg-opacity-30 z-40"
             onClick={() => !showEditOngModal && setIsOpen(false)}
           />
-  
+
           <div
             className={`fixed right-0 top-0 h-full w-[320px] sm:w-[350px] md:w-[400px] 
               bg-white shadow-xl rounded-l-xl z-50 transition-transform duration-300 transform 
@@ -283,12 +283,16 @@ export function UserSidebar() {
                 ×
               </button>
             </div>
-  
+
             <div className="px-6 pb-6 overflow-y-auto h-[calc(100%-64px)] flex flex-col items-center gap-4">
               <div className="relative flex flex-col items-center">
                 <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover rounded-full" />
+                    <img
+                      src={avatarUrl}
+                      alt="avatar"
+                      className="w-full h-full object-cover rounded-full"
+                    />
                   ) : (
                     <User className="w-8 h-8 text-gray-600" />
                   )}
@@ -301,10 +305,10 @@ export function UserSidebar() {
                   Editar foto
                 </Button>
               </div>
-  
+
               <h2 className="text-lg font-bold mt-2">{userName}</h2>
               <p className="text-sm text-gray-500">{userEmail}</p>
-  
+
               {ngoName && (
                 <div className="w-full mt-2 text-center">
                   <p className="text-sm text-gray-600 font-medium">{ngoName}</p>
@@ -317,14 +321,19 @@ export function UserSidebar() {
                   </Button>
                 </div>
               )}
-  
+
               <Separator className="my-4" />
-  
-              <h3 className="text-md font-semibold text-gray-700">Ações da ONG</h3>
+
+              <h3 className="text-md font-semibold text-gray-700">
+                Ações da ONG
+              </h3>
               <div className="w-full max-h-60 overflow-y-auto border rounded-lg p-3 shadow-sm bg-gray-50">
                 {actions.length > 0 ? (
                   actions.map((action: any) => (
-                    <div key={action.id} className="p-3 mb-2 rounded-lg bg-white shadow-md border">
+                    <div
+                      key={action.id}
+                      className="p-3 mb-2 rounded-lg bg-white shadow-md border"
+                    >
                       <h4 className="text-sm font-medium text-gray-900 flex justify-between items-center gap-2">
                         <span className="truncate max-w-[60%] overflow-hidden text-ellipsis">
                           {action.name}
@@ -373,10 +382,12 @@ export function UserSidebar() {
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-gray-500">Nenhuma ação cadastrada.</p>
+                  <p className="text-sm text-gray-500">
+                    Nenhuma ação cadastrada.
+                  </p>
                 )}
               </div>
-  
+
               <div className="flex w-full gap-2 mt-6">
                 <Button
                   className="w-1/2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all shadow-md"
@@ -391,7 +402,7 @@ export function UserSidebar() {
                   Histórico da ONG
                 </Button>
               </div>
-  
+
               <div className="mt-8 w-full">
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
@@ -405,7 +416,8 @@ export function UserSidebar() {
                         Tem certeza que deseja sair?
                       </AlertDialogTitle>
                       <AlertDialogDescription className="text-gray-600 dark:text-gray-300 text-center mt-2">
-                        Você será desconectado e precisará fazer login novamente para acessar sua conta.
+                        Você será desconectado e precisará fazer login novamente
+                        para acessar sua conta.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="flex gap-4 mt-4">
@@ -426,14 +438,17 @@ export function UserSidebar() {
           </div>
         </>
       )}
-  
+
       {showEditOngModal && (
         <ModalPortal>
           <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-[9999]">
             <div className="bg-white border border-gray-200 rounded-3xl shadow-xl p-8 w-[500px]">
-              <h2 className="text-2xl pb-2 font-semibold text-gray-900">Editar ONG</h2>
+              <h2 className="text-2xl pb-2 font-semibold text-gray-900">
+                Editar ONG
+              </h2>
               <p className="text-gray-500 text-sm mb-4">
-                Modifique abaixo as informações da sua ONG. Clique em SALVAR ALTERAÇÕES e seus dados serão atualizados.
+                Modifique abaixo as informações da sua ONG. Clique em SALVAR
+                ALTERAÇÕES e seus dados serão atualizados.
               </p>
 
               <div className="grid grid-cols-1 gap-4 mt-6">
@@ -443,18 +458,27 @@ export function UserSidebar() {
                     className="p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     placeholder="Nome da ONG"
                     value={editFields.nome}
-                    onChange={(e) => setEditFields({ ...editFields, nome: e.target.value })}
+                    onChange={(e) =>
+                      setEditFields({ ...editFields, nome: e.target.value })
+                    }
                   />
                 </div>
 
                 <div className="flex flex-col">
-                  <label className="text-sm text-gray-600 mb-1">Descrição</label>
+                  <label className="text-sm text-gray-600 mb-1">
+                    Descrição
+                  </label>
                   <textarea
                     className="p-4 border border-gray-300 rounded-[16px] resize-none focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     placeholder="Descrição da ONG"
                     rows={3}
                     value={editFields.descricao}
-                    onChange={(e) => setEditFields({ ...editFields, descricao: e.target.value })}
+                    onChange={(e) =>
+                      setEditFields({
+                        ...editFields,
+                        descricao: e.target.value,
+                      })
+                    }
                   />
                 </div>
 
@@ -464,27 +488,40 @@ export function UserSidebar() {
                     className="p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     placeholder="(xx) xxxxx-xxxx"
                     value={editFields.telefone}
-                    onChange={(e) => setEditFields({ ...editFields, telefone: e.target.value })}
+                    onChange={(e) =>
+                      setEditFields({ ...editFields, telefone: e.target.value })
+                    }
                   />
                 </div>
 
                 <div className="flex flex-col">
-                  <label className="text-sm text-gray-600 mb-1">Instagram</label>
+                  <label className="text-sm text-gray-600 mb-1">
+                    Instagram
+                  </label>
                   <input
                     className="p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     placeholder="Link do Instagram"
                     value={editFields.instagram}
-                    onChange={(e) => setEditFields({ ...editFields, instagram: e.target.value })}
+                    onChange={(e) =>
+                      setEditFields({
+                        ...editFields,
+                        instagram: e.target.value,
+                      })
+                    }
                   />
                 </div>
 
                 <div className="flex flex-col">
-                  <label className="text-sm text-gray-600 mb-1">Ano de fundação</label>
+                  <label className="text-sm text-gray-600 mb-1">
+                    Ano de fundação
+                  </label>
                   <input
                     type="date"
                     className="p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     value={editFields.fundacao}
-                    onChange={(e) => setEditFields({ ...editFields, fundacao: e.target.value })}
+                    onChange={(e) =>
+                      setEditFields({ ...editFields, fundacao: e.target.value })
+                    }
                   />
                 </div>
               </div>
@@ -508,21 +545,26 @@ export function UserSidebar() {
         </ModalPortal>
       )}
 
-  
       {showEditProfileModal && (
         <ModalPortal>
           <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-[9999]">
             <div className="bg-white border border-gray-200 rounded-3xl shadow-xl p-8 w-[500px]">
-              <h2 className="text-2xl font-semibold text-gray-900 text-center">Editar perfil</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 text-center">
+                Editar perfil
+              </h2>
               <p className="text-gray-500 text-sm text-center mt-2">
-                Modifique abaixo sua foto de perfil. Clique em SALVAR <br />
-                e sua foto de perfil será atualizada.
+                Modifique abaixo sua foto de perfil. Clique em SALVAR <br />e
+                sua foto de perfil será atualizada.
               </p>
 
               <div className="flex flex-col items-center mt-6 gap-4">
                 <div className="w-32 h-32 rounded-full bg-gray-300 overflow-hidden">
                   {profilePreview && (
-                    <img src={profilePreview} alt="Perfil" className="w-full h-full object-cover" />
+                    <img
+                      src={profilePreview}
+                      alt="Perfil"
+                      className="w-full h-full object-cover"
+                    />
                   )}
                 </div>
 
@@ -550,7 +592,11 @@ export function UserSidebar() {
                   className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleUpdateProfilePicture}
                 >
-                  {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Salvar"}
+                  {uploading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    "Salvar"
+                  )}
                 </Button>
 
                 <button
@@ -564,7 +610,6 @@ export function UserSidebar() {
           </div>
         </ModalPortal>
       )}
-
     </>
   );
-} 
+}

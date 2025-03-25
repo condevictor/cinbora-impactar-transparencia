@@ -42,7 +42,6 @@ export default function LoginPage() {
       if (data.token) {
         Cookies.remove("auth_token");
         Cookies.set("auth_token", data.token, { expires: 7, secure: true, sameSite: "Strict" });
-        toast.success("Sessão iniciada com sucesso!");
       }
 
       if (data.user?.name) {
@@ -52,7 +51,6 @@ export default function LoginPage() {
 
       if (data.ngo?.name) {
         Cookies.set("ngo_name", data.ngo.name);
-        toast.success(`ONG vinculada: ${data.ngo.name}`);
       }
 
       if (data.ngo?.id) {
