@@ -39,12 +39,38 @@ class S3Storage {
    * @returns URL completa do arquivo salvo
    */
   async saveFile(fileBuffer: Buffer, filename: string, path?: string): Promise<string> {
-    const mime = await import('mime');
-    const ContentType = mime.default.getType(filename);
-
-    if (!ContentType) {
-      throw new Error('File type could not be determined');
-    }
+    const extension = filename.split('.').pop()?.toLowerCase() || '';
+  
+    // Basic content type mapping for common file types
+    const mimeTypes: Record<string, string> = {
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'png': 'image/png',
+      'gif': 'image/gif',
+      'webp': 'image/webp',
+      'svg': 'image/svg+xml',
+      'pdf': 'application/pdf',
+      'doc': 'application/msword',
+      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'xls': 'application/vnd.ms-excel',
+      'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'ppt': 'application/vnd.ms-powerpoint',
+      'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'mp4': 'video/mp4',
+      'avi': 'video/x-msvideo',
+      'mov': 'video/quicktime',
+      'mp3': 'audio/mpeg',
+      'wav': 'audio/wav',
+      'txt': 'text/plain',
+      'csv': 'text/csv',
+      'html': 'text/html',
+      'json': 'application/json',
+      'zip': 'application/zip',
+      'rar': 'application/x-rar-compressed'
+    };
+    
+    // Get the content type from our mapping or use a generic fallback
+    const ContentType = mimeTypes[extension] || `application/${extension}` || 'application/octet-stream';
     
     // Codificar o nome do arquivo para evitar problemas com caracteres especiais
     const encodedFilename = this.encodeFilename(filename);
