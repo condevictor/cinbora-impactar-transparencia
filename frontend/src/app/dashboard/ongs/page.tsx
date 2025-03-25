@@ -631,39 +631,55 @@ const handleSave = async () => {
                             >
                               <div
                                 className="h-full bg-[#2BAFF150] transition-all duration-300"
-                                style={{ width: `${Math.min((slide.colected / slide.goal) * 100, 100).toFixed(2)}%` }}
+                                style={{ width: `${Math.min((slide.spent / slide.goal) * 100, 100).toFixed(2)}%` }}
                               />
                             </div>
+                            <p className="text-sm text-center text-gray-500 mt-2 mb-1 italic">
+                            Representa o quanto foi gasto da meta
+                            </p>
  
                             {/* Tooltip acima da barra */}
                             {hoveredSlide === slide.id && (
-                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 bg-white text-gray-900 shadow-lg rounded-lg border border-gray-300 p-4 w-[220px] text-sm">
-                                {slide.colected >= slide.goal ? (
-                                  <p className="text-center font-semibold text-green-600">🎉 Meta Concluída!</p>
-                                ) : (
-                                  <p className="text-center font-semibold text-blue-600">
-                                    🎯 {(slide.colected / slide.goal * 100).toFixed(2)}% da Meta Atingida
-                                  </p>
-                                )}
- 
-                                <div className="mt-2 space-y-1">
-                                  <p className="flex justify-between">
-                                    <span className="font-medium text-gray-600">🔹 Arrecadado:</span>
-                                    <span className="font-semibold">R$ {parseFloat(slide.colected).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                                  </p>
-                                  <p className="flex justify-between text-red-500">
-                                    <span className="font-medium">📉 Gasto:</span>
-                                    <span className="font-semibold">R$ {parseFloat(slide.spent).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                                  </p>
-                                  <p className="flex justify-between">
-                                    <span className="font-medium text-gray-600">🏆 Meta:</span>
-                                    <span className="font-semibold">R$ {parseFloat(slide.goal).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                                  </p>
-                                </div>
- 
-                                <div className="absolute left-1/2 -translate-x-1/2 top-full w-4 h-4 bg-white rotate-45 border border-gray-300 -mt-1" />
-                              </div>
-                            )}
+															<div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 bg-white/90 backdrop-blur-sm text-gray-800 shadow-xl rounded-2xl px-5 py-4 w-[240px] text-sm">
+																{slide.spent >= slide.goal ? (
+																	<p className="text-center font-semibold text-green-600">🎉 Meta Concluída!</p>
+																) : (
+																<p className="text-center font-semibold text-blue-600">
+																	🎯 {(slide.spent / slide.goal * 100).toFixed(2)}% da Meta Atingida
+																</p>
+																)}
+																<div className="mt-2 space-y-1">
+																	<p className="flex justify-between">
+																		<span className="font-medium text-gray-600">🔹 Arrecadado:</span>
+																		<span className="font-semibold">
+																			R$ {new Intl.NumberFormat("pt-BR", {
+																				notation: "compact",
+																				compactDisplay: "short",
+																			}).format(slide.colected)}
+																		</span>
+																	</p>
+																	<p className="flex justify-between text-red-500">
+																		<span className="font-medium">📉 Gasto:</span>
+																		<span className="font-semibold">
+																			R$ {new Intl.NumberFormat("pt-BR", {
+																				notation: "compact",
+																				compactDisplay: "short",
+																			}).format(slide.spent)}
+																		</span>
+																	</p>
+																	<p className="flex justify-between">
+																		<span className="font-medium text-gray-600">🏆 Meta:</span>
+																		<span className="font-semibold">
+																			R$ {new Intl.NumberFormat("pt-BR", {
+																				notation: "compact",
+																				compactDisplay: "short",
+																			}).format(slide.goal)}
+																		</span>
+																	</p>
+																</div>
+																<div className="absolute left-1/2 -translate-x-1/2 top-full w-4 h-4 bg-white rotate-45 border border-gray-300 -mt-1" />
+															</div>
+														)}
                           </div>
  
                           {/* Valores numéricos */}

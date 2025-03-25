@@ -247,7 +247,7 @@ export function UserSidebar({
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="rounded-full border p-1 bg-gray-200 hover:bg-gray-300 transition-all"
+        className="rounded-full p-1 bg-gray-200 hover:bg-gray-300 transition-all"
       >
         <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
           {avatarUrl ? (

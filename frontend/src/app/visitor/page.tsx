@@ -103,13 +103,13 @@ export default function Visitor() {
 															/>
 														</div>
 														{hoveredSlide === slide.id && (
-															<div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 bg-white text-gray-900 shadow-lg rounded-lg border border-gray-300 p-4 w-[220px] text-sm">
+															<div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 bg-white/90 backdrop-blur-sm text-gray-800 shadow-xl rounded-2xl px-5 py-4 w-[240px] text-sm">
 																{slide.colected >= slide.goal ? (
 																	<p className="text-center font-semibold text-green-600">🎉 Meta Concluída!</p>
 																) : (
-																	<p className="text-center font-semibold text-blue-600">
-																		🎯 {(slide.colected / slide.goal * 100).toFixed(2)}% da Meta Atingida
-																	</p>
+																<p className="text-center font-semibold text-blue-600">
+																	🎯 {(slide.colected / slide.goal * 100).toFixed(2)}% da Meta Atingida
+																</p>
 																)}
 																<div className="mt-2 space-y-1">
 																	<p className="flex justify-between">

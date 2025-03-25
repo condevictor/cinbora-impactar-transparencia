@@ -59,7 +59,7 @@ export default function LoginPage() {
 
       toast.success("Redirecionando para o painel...");
 
-      setTimeout(() => router.push("/dashboard/ongs"), 1000);
+      setTimeout(() => router.push("/"), 1000);
 
     } catch (error) {
       toast.error("Falha ao conectar ao servidor. Tente novamente mais tarde.");
