@@ -573,19 +573,19 @@ const handleSave = async () => {
         }
  
         return (
-          <Carousel opts={{ align: "start" }} className="w-[100%] p-4 mt-16">
+          <Carousel opts={{ align: "start" }} className="w-[100%] mt-16 p-4">
             <CarouselContent>
               {(displaySlides.reverse()).map((slide, index) => (
                 <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 w-full border-none shadow-none">
                   {'isAddCard' in slide ? (
                     <div
-                      className="p-1 flex items-center justify-center bg-gray-200 rounded-lg h-64 cursor-pointer"
+                      className="p- flex items-center justify-center bg-gray-200 rounded-lg h-64 cursor-pointer"
                       onClick={() => openModal()}
                     >
                       <p className="text-lg font-semibold text-gray-600">+ Adicionar Ação</p>
                     </div>
                   ) : (
-                    <div className="p-1">
+                    <div>
                       <div className="relative w-full">
                         {/* Container da Imagem */}
                         <div className="relative w-full h-[180px] overflow-hidden rounded-t-lg">
@@ -599,9 +599,9 @@ const handleSave = async () => {
                         </div>
  
                         {/* Container do Card */}
-                        <div className="relative z-10 -mt-12 bg-white p-6 border border-gray-200 rounded-lg shadow-lg w-[90%] mx-auto">
+                        <div className="relative z-10 -mt-12 bg-white p-3 py-6 border border-gray-200 rounded-lg shadow-lg w-[90%] mx-auto">
                           {/* Botão Editar */}
-                          <div className="absolute top-6 right-3 flex space-x-2">
+                          <div id="editar" className="absolute top-6 right-3 flex space-x-2">
                             <button
                               onClick={() => openModal(slide)}
                               className="bg-[#294BB6] text-white text-xs font-bold px-4 py-1 rounded shadow-sm hover:bg-[#003C99] transition-all"
@@ -646,7 +646,7 @@ const handleSave = async () => {
                           </div>
  
                           {/* Tag do Tipo */}
-                          <p title={slide.type} className="inline-block max-w-28 text-xs font-semibold text-[#0056D2] bg-[#E9F2FF] px-3 py-1 rounded-lg uppercase whitespace-nowrap overflow-hidden text-ellipsis">
+                          <p title={slide.type} className="inline-block max-w-32 text-xs font-semibold text-[#0056D2] bg-[#E9F2FF] px-3 py-1 rounded-lg uppercase whitespace-nowrap overflow-hidden text-ellipsis">
                             {slide.type}
                           </p>
  
@@ -741,6 +741,7 @@ const handleSave = async () => {
                           <div className="mt-5 flex justify-between items-center">
                             {/* Botão de Transparência com novo estilo e lógica */}
                             <Button
+                              id="acao"
                               onClick={() => router.push("./actions" + "?action_id=" + String(slide.id))}
                               className="w-4/5 h-full font-bold rounded-[34px] bg-[#294BB6] text-white border-solid border-[#2E4049] border hover:text-[#294BB6] hover:bg-white transition-all"
                             >
@@ -770,8 +771,8 @@ const handleSave = async () => {
  
       {isOpen && (
         <ModalPortal>
-          <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white border border-gray-200 rounded-3xl shadow-xl p-8 w-[500px]">
+          <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in z-50">
+            <div className="bg-white border border-gray-200 rounded-3xl shadow-xl p-8 w-[500px] max-h-[85vh] overflow-y-auto">
               <h2 className="text-2xl font-semibold text-gray-900">
                 {editingSlide?.id ? "Editar Ação" : "Nova Ação"}
               </h2>
@@ -789,6 +790,7 @@ const handleSave = async () => {
                   Detalhes
                 </button>
                 <button
+                  id="imagemSelecionar"
                   className={`flex-1 text-lg font-medium py-2 transition-colors duration-200 ${
                     modalTab === "imagem"
                       ? "border-b-4 border-blue-500 text-blue-500"
@@ -803,9 +805,10 @@ const handleSave = async () => {
               {modalTab === "detalhes" && (
                 <div className="mt-6 grid grid-cols-2 gap-4">
                   {/* Campo de Título (Ocupa linha inteira) */}
-                  <div className="col-span-2">
+                  <div id="titulo" className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700">Título</label>
                     <input
+                      id="tituloAcao"
                       type="text"
                       className="w-full mt-1 p-4 border rounded-[16px] border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
                       placeholder="Digite o título"
@@ -817,9 +820,10 @@ const handleSave = async () => {
                   </div>
 
                   {/* Campo de Tipo */}
-                  <div>
+                  <div id="tipo">
                     <label className="block text-sm font-medium text-gray-700">Tipo</label>
                     <input
+                      id="tipoAcao"
                       type="text"
                       className="w-full mt-1 p-4 border rounded-[16px] border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
                       placeholder="Digite o tipo"
@@ -831,9 +835,10 @@ const handleSave = async () => {
                   </div>
 
                   {/* Meta (Goal) */}
-                  <div>
+                  <div id="meta">
                     <label className="block text-sm font-medium text-gray-700">Meta (R$)</label>
                     <input
+                      id="metaAcao"
                       type="text"
                       className="w-full mt-1 p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
                       placeholder="Digite o valor"
@@ -861,14 +866,13 @@ const handleSave = async () => {
                       }}
                       inputMode="decimal"
                     />
-
-
                   </div>
 
                   {/* Arrecadado (Collected) */}
-                  <div>
+                  <div id="arrecadado">
                     <label className="block text-sm font-medium text-gray-700">Arrecadado (R$)</label>
                     <input
+                      id="arrecadadoAcao"
                       type="text"
                       className="w-full mt-1 p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
                       placeholder="Digite o valor"
@@ -896,8 +900,6 @@ const handleSave = async () => {
                       }}
                       inputMode="decimal"
                     />
-
-
                   </div>
 
 
@@ -907,10 +909,11 @@ const handleSave = async () => {
                       Categorias de Despesas
                     </label>
 
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 mb-2">
                       {/* Dropdown de Seleção de Categoria */}
                       <div className="relative flex-1">
                         <select
+                          id="selecionar"
                           className="appearance-none rounded-[16px] w-full p-4 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all pr-10"
                           value={selectedCategory || ""}
                           onChange={(e) => setSelectedCategory(e.target.value || null)}
@@ -925,11 +928,11 @@ const handleSave = async () => {
 
                       {/* Valor da Categoria Selecionada (Só aparece se selectedCategory não for nulo) */}
                       {selectedCategory && (
-                        <div className="flex-1">
+                        <div id="gasto" className="flex-1">
                           <input
                             type="text"
                             className="w-full p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
-                            placeholder="Digite o valor"
+                            placeholder="Valor"
                             value={editingSlide.categorysExpenses[selectedCategory]?.toString() || ""}
                             onChange={(e) => {
                               let rawValue = e.target.value;
@@ -961,42 +964,40 @@ const handleSave = async () => {
                             }}
                             inputMode="decimal"
                           />
-
                         </div>
                       )}
-
                     </div>
-                  </div>
 
-                  {/* Adicionar Nova Categoria */}
-                  <div className="col-span-2 flex items-center gap-2">
-                    <input
-                      type="text"
-                      className="flex-1 p-3 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
-                      placeholder="Nova categoria"
-                      value={newCategory}
-                      onChange={(e) => setNewCategory(e.target.value)}
-                    />
-                    <button
-                      className="p-3 bg-blue-500 text-white rounded-[16px] hover:bg-blue-600 transition-all"
-                      onClick={() => {
-                        if (
-                          newCategory.trim() !== "" &&
-                          !editingSlide.categorysExpenses?.[newCategory.trim()]
-                        ) {
-                          setEditingSlide({
-                            ...editingSlide,
-                            categorysExpenses: {
-                              ...editingSlide.categorysExpenses,
-                              [newCategory.trim()]: 0,
-                            },
-                          });
-                          setNewCategory("");
-                        }
-                      }}
-                    >
-                      +
-                    </button>
+                    {/* Adicionar Nova Categoria */}
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        className="flex-1 p-3 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                        placeholder="Nova categoria"
+                        value={newCategory}
+                        onChange={(e) => setNewCategory(e.target.value)}
+                      />
+                      <button
+                        className="p-3 bg-blue-500 text-white rounded-[16px] hover:bg-blue-600 transition-all"
+                        onClick={() => {
+                          if (
+                            newCategory.trim() !== "" &&
+                            !editingSlide.categorysExpenses?.[newCategory.trim()]
+                          ) {
+                            setEditingSlide({
+                              ...editingSlide,
+                              categorysExpenses: {
+                                ...editingSlide.categorysExpenses,
+                                [newCategory.trim()]: 0,
+                              },
+                            });
+                            setNewCategory("");
+                          }
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
 
                   {/* Total Gasto (Spent) */}
@@ -1014,12 +1015,10 @@ const handleSave = async () => {
                           : ""
                       }
                       readOnly
+                      disabled
                     />
                   </div>
-
                 </div>
-
-
               )}
 
               {modalTab === "imagem" && (
@@ -1027,7 +1026,7 @@ const handleSave = async () => {
                   <label className="block text-sm font-medium text-gray-700">
                     Imagem da Ação
                   </label>
-                  <div className="flex flex-col items-center gap-2 border border-gray-300 p-4 rounded-[16px]">
+                  <div className="flex flex-col items-center gap-2 border border-gray-300 p-4 rounded-[16px] mt-2">
                     <label
                       htmlFor="file-upload"
                       className="w-full flex justify-center items-center bg-gray-200 text-gray-700 py-2 px-4 rounded-[16px] cursor-pointer hover:bg-gray-300 transition-all"
@@ -1060,6 +1059,7 @@ const handleSave = async () => {
                   Cancelar
                 </button>
                 <button
+                  id="salvarBotao"
                   className="px-5 py-2 bg-blue-600 text-white rounded-[16px] hover:bg-blue-500/90 transition-all duration-200"
                   onClick={() => {
                     if (document.activeElement instanceof HTMLElement) {
@@ -1069,9 +1069,9 @@ const handleSave = async () => {
                   }}
                   disabled={isSaving}
                 >
-                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : "Salvar"}
+                  {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2 inline" /> : null}
+                  {isSaving ? "Salvando..." : "Salvar"}
                 </button>
-
               </div>
             </div>
           </div>
@@ -1083,6 +1083,7 @@ const handleSave = async () => {
             <div className="flex space-x-6">
             {["gallery", "balance", "documents"].map((tab) => (
                 <button
+                id="tab"
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`px-4 py-2 text-sm font-medium transition-all ${

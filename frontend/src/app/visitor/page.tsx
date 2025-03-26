@@ -19,15 +19,26 @@ import VisitorGallery from "@/components/ui/visitorGallery";
 import VisitorBalance from "@/components/ui/visitorBalance";
 import VisitorDocuments from "@/components/ui/visitorDocuments";
 
+// Define interface for slide data
+interface Slide {
+  id: number;
+  name: string;
+  type: string;
+  colected: number;
+  spent: number;
+  goal: number;
+  aws_url: string;
+}
+
 export default function Visitor() {
 	const searchParams = useSearchParams();
 	const ngoId = searchParams.get("ngo_id");
 
-	const [slides, setSlides] = useState([]);
+	const [slides, setSlides] = useState<Slide[]>([]);
 	const [activeTab, setActiveTab] = useState("gallery");
 	const [loading, setLoading] = useState(true);
 	const [searchTerm, setSearchTerm] = useState("");
-	const [hoveredSlide, setHoveredSlide] = useState(null);
+	const [hoveredSlide, setHoveredSlide] = useState<number | null>(null);
 
 	useEffect(() => {
 		if (ngoId) {
@@ -86,11 +97,11 @@ export default function Visitor() {
 											<div className="relative z-10 bg-white mt-32 w-full">
 												<div className="flex flex-col justify-between p-4 w-full h-64 border-solid border border-white rounded shadow-[0_1px_4px_1px_rgba(16,24,40,0.1)]">
 													<div>
-														<p className="inline text-sm font-semibold text-[#294BB6] px-2 py-1 bg-[#2BAFF1] bg-opacity-20 rounded">
+														<p title={slide.type} className="inline-block text-sm font-semibold text-[#294BB6] px-2 py-1 bg-[#2BAFF1] bg-opacity-20 rounded whitespace-nowrap overflow-hidden text-ellipsis max-w-[95%]">
 															{slide.type}
 														</p>
 													</div>
-													<div className="font-semibold">{slide.name}</div>
+													<div title={slide.name} className="font-semibold whitespace-nowrap overflow-hidden text-ellipsis">{slide.name}</div>
 													<div className="relative w-full mt-3">
 														<div
 															className="relative w-full h-2 rounded-full bg-gray-300 overflow-hidden transition-all duration-300 hover:bg-gray-400"
@@ -99,16 +110,16 @@ export default function Visitor() {
 														>
 															<div
 																className="h-full bg-[#2BAFF150] transition-all duration-300"
-																style={{ width: `${Math.min((slide.colected / slide.goal) * 100, 100).toFixed(2)}%` }}
+																style={{ width: `${Math.min((slide.spent / slide.goal) * 100, 100).toFixed(2)}%` }}
 															/>
 														</div>
 														{hoveredSlide === slide.id && (
 															<div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 bg-white/90 backdrop-blur-sm text-gray-800 shadow-xl rounded-2xl px-5 py-4 w-[240px] text-sm">
-																{slide.colected >= slide.goal ? (
+																{slide.spent >= slide.goal ? (
 																	<p className="text-center font-semibold text-green-600">🎉 Meta Concluída!</p>
 																) : (
 																<p className="text-center font-semibold text-blue-600">
-																	🎯 {(slide.colected / slide.goal * 100).toFixed(2)}% da Meta Atingida
+																		🎯 {(slide.spent / slide.goal * 100).toFixed(2)}% da Meta Atingida
 																</p>
 																)}
 																<div className="mt-2 space-y-1">
@@ -180,7 +191,7 @@ export default function Visitor() {
 																TRANSPARÊNCIA
 															</Button>
 														</Link>
-														<Link href={`https://api.whatsapp.com/send?text=${window.location.origin}/actions?action_id=${slide.id}`} target="_blank" className="w-2/12 h-full">
+														<Link href={`https://api.whatsapp.com/send?text=${typeof window !== 'undefined' ? window.location.origin : ''}/actions?action_id=${slide.id}`} target="_blank" className="w-2/12 h-full">
 															<div className="w-full rounded-full h-full bg-[#F2F4F7] flex justify-center items-center">
 																<Image className="w-6 h-6" src={shareButton} alt="share" />
 															</div>

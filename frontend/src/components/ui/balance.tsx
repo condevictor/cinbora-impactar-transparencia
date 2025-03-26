@@ -206,9 +206,9 @@ export default function Balance() {
           </DropdownMenu>
         </div>
 
-        <div className="rounded-3xl border-4 border-[#00B3FF] p-6 shadow-xl">
-          <ResponsiveContainer width="100%" height={700}>
-            <LineChart data={data} margin={{ top: 40, right: 40, left: 20, bottom: 50 }}>
+        <div className="rounded-3xl border-4 border-[#00B3FF] p-0 shadow-xl">
+          <ResponsiveContainer  width="100%" height={700}>
+            <LineChart data={data} margin={{ top: 40, right: 20, left: 0, bottom: 50 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="month"
@@ -219,6 +219,7 @@ export default function Balance() {
                 tick={{ fontSize: 16 }}
               />
               <YAxis
+                className="max-sm:none"
                 label={{ value: "", angle: -90, position: "insideLeft", fontSize: 18 }}
                 tick={{ fontSize: 16 }}
               />
@@ -251,9 +252,9 @@ export default function Balance() {
 
           <div className="grid grid-cols-4 gap-6 mt-6 text-xl">
             {Object.keys(visibleLines).map((key) => (
-              <div key={key} className="flex flex-col items-center" title={key}>
-                <span className="w-48 h-4 rounded-full" style={{ backgroundColor: actionColors[key] }}></span>
-                <span className="text-gray-700 font-bold text-3xl">
+              <div key={key} className="flex flex-col items-center max-md:overflow-scroll" title={key}>
+                <span className="w-48 h-4 rounded-full max-xl:w-32 max-md:w-24 max-sm:w-12" style={{ backgroundColor: actionColors[key] }}></span>
+                <span className="text-gray-700 font-bold text-3xl max-xl:text-xl max-md:text-[10px]">
                   {key.length > 15 ? key.slice(0, 15) + "..." : key}
                 </span>
               </div>

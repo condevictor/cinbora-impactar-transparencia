@@ -87,18 +87,18 @@ export default function Header() {
           </Link>
           <DropdownMenu>
             <DropdownMenuTrigger className="text-white text-4xl hidden max-lg:block">
-              ☰
+              <div id="mobile">☰</div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white rounded-xl border-solid border-2 mr-4 mt-2 border-white hidden max-lg:block">
+            <DropdownMenuContent id="start" className="bg-white rounded-xl border-solid border-2 mr-4 mt-2 border-white hidden max-lg:block">
               <Link href="/">
-                <DropdownMenuItem className="block text-center text-8 font-semibold text-[#294BB6] hover:scale-110">Início</DropdownMenuItem>
+                <DropdownMenuItem id="partners" className="block text-center text-8 font-semibold text-[#294BB6] hover:scale-110">Início</DropdownMenuItem>
               </Link>
               <Link href="/partners">
-                <DropdownMenuItem className="block text-center text-8 font-semibold text-[#294BB6] hover:scale-110">Ongs</DropdownMenuItem>
+                <DropdownMenuItem className="block text-center text-8 font-semibold text-[#294BB6] hover:scale-110">Parceiros</DropdownMenuItem>
               </Link>
               <DropdownMenuItem className="px-4 py-2 hover:bg-gray-200">
                 <Link href="/login">
-                  <Button className="bg-[#294BB6] text-8 font-semibold text-white rounded-xl px-14 py-3 transition-colors duration-300 delay-150 hover:bg-white hover:text-[#294BB6]">Entrar como Ong</Button>
+                  <Button id="loginMobile" className="bg-[#294BB6] text-8 font-semibold text-white rounded-xl px-14 py-3 transition-colors duration-300 delay-150 hover:bg-white hover:text-[#294BB6]">Entrar como Ong</Button>
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>

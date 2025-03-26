@@ -313,6 +313,7 @@ export function UserSidebar({
                 <div className="w-full mt-2 text-center">
                   <p className="text-sm text-gray-600 font-medium">{ngoName}</p>
                   <Button
+                    id="informacaoOngs"
                     variant="outline"
                     className="text-sm mt-2 px-4 py-2 rounded-full bg-white border border-gray-300 hover:bg-gray-100"
                     onClick={() => setShowEditOngModal(true)}
@@ -396,6 +397,7 @@ export function UserSidebar({
                   Minha ONG
                 </Button>
                 <Button
+                  id="historico"
                   className="w-1/2 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 transition-all shadow-md"
                   onClick={() => (window.location.href = "/dashboard/history")}
                 >
@@ -442,7 +444,7 @@ export function UserSidebar({
       {showEditOngModal && (
         <ModalPortal>
           <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-[9999]">
-            <div className="bg-white border border-gray-200 rounded-3xl shadow-xl p-8 w-[500px]">
+            <div className="bg-white border border-gray-200 rounded-3xl shadow-xl p-8 w-[500px] h-full overflow-scroll">
               <h2 className="text-2xl pb-2 font-semibold text-gray-900">
                 Editar ONG
               </h2>
@@ -469,6 +471,7 @@ export function UserSidebar({
                     Descrição
                   </label>
                   <textarea
+                    id="descricao"
                     className="p-4 border border-gray-300 rounded-[16px] resize-none focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     placeholder="Descrição da ONG"
                     rows={3}
@@ -534,6 +537,7 @@ export function UserSidebar({
                   Cancelar
                 </button>
                 <button
+                  id="salvarOngs"
                   className="px-5 py-2 bg-blue-600 text-white rounded-[16px] hover:bg-blue-500 transition-all"
                   onClick={handleSaveEdit}
                 >

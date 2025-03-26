@@ -59,7 +59,7 @@ export default function LoginPage() {
 
       toast.success("Redirecionando para o painel...");
 
-      setTimeout(() => router.push("/"), 1000);
+      setTimeout(() => router.push("/dashboard/ongs"), 0);
 
     } catch (error) {
       toast.error("Falha ao conectar ao servidor. Tente novamente mais tarde.");
@@ -77,6 +77,7 @@ export default function LoginPage() {
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <Input 
+            id="email"
             className="bg-white rounded-xl border-[#D4D7E3]" 
             type="email" 
             placeholder="Email" 
@@ -87,6 +88,7 @@ export default function LoginPage() {
 
           <div className="relative">
             <Input 
+              id="password"
               className="bg-white rounded-xl border-[#D4D7E3] pr-10" 
               type={showPassword ? "text" : "password"} 
               placeholder="Senha" 

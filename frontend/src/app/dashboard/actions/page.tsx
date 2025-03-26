@@ -11,8 +11,19 @@ import Gallery from "@/components/ui/DAgallery"
 import Balance from "@/components/ui/DAbalance"
 import Documents from "@/components/ui/DAdocuments"
 import { FiChevronDown } from "react-icons/fi"
-import { UploadCloud, Loader2 } from "lucide-react"
+import { UploadCloud, Loader2, Trash2 } from "lucide-react"
 import { toast } from "sonner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface Action {
   id: number;
@@ -59,6 +70,7 @@ export default function DashboardAction() {
   const [originalCategorysExpenses, setOriginalCategorysExpenses] = useState<Record<string, number>>({})
   const [isSaving, setIsSaving] = useState(false)
   const [hoveredCard, setHoveredCard] = useState(false);
+  const [actionToDelete, setActionToDelete] = useState<string | null>(null)
   
   useEffect(() => {
     if (!token) {
@@ -334,6 +346,29 @@ export default function DashboardAction() {
     setIsEditModalOpen(true);
   };
 
+  const deleteAction = async () => {
+    if (!action?.id) return;
+    
+    try {
+      const res = await fetch(`http://127.0.0.1:3333/ongs/actions/${action.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error("Erro ao deletar ação");
+      }
+
+      toast.success("Ação deletada com sucesso!");
+      router.push("/dashboard/ongs");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao deletar a ação.");
+    }
+  };
+
   if (!action) return <p className="p-4">Carregando...</p>
 
   return (
@@ -344,14 +379,49 @@ export default function DashboardAction() {
         <CardContent className="relative p-4 min-w-72">
           <div className="relative z-10 bg-white mt-8 w-5/6 m-auto">
             <div className="relative">
-              <button 
-                onClick={() => openEditModal(action)}
-                className="absolute right-4 top-4 bg-[#0056D2] text-white text-xs font-bold px-4 py-1 rounded shadow-sm hover:bg-[#003C99] transition-all">
-                Editar
-              </button>
-              <div className="flex flex-col justify-between p-6 w-full border-solid border border-gray-200 rounded-lg shadow-lg">
+              <div className="absolute right-4 top-6 flex space-x-2">
+                <button 
+                  onClick={() => openEditModal(action)}
+                  id="editarAcao"
+                  className="bg-[#0056D2] text-white text-xs font-bold px-4 py-1 rounded shadow-sm hover:bg-[#003C99] transition-all">
+                  Editar
+                </button>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      className="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded shadow-sm hover:bg-red-700 transition-all"
+                      title="Deletar ação"
+                    >
+                      <Trash2 className="text-white w-4 h-4" />
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="rounded-2xl shadow-lg p-6 w-[380px] flex flex-col items-center bg-white">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-lg font-semibold text-gray-900 text-center">
+                        Deseja deletar esta ação?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription className="text-gray-600 text-center mt-2">
+                        Esta operação não poderá ser desfeita.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="flex gap-4 mt-4">
+                      <AlertDialogCancel className="bg-gray-200 text-gray-800 rounded-full px-6 py-3 hover:bg-gray-300 transition-all w-full sm:w-auto">
+                        Cancelar
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-red-500 text-white rounded-full px-6 py-3 hover:bg-red-600 transition-all w-full sm:w-auto"
+                        onClick={deleteAction}
+                      >
+                        Deletar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+              <div className="flex flex-col justify-between p-3 py-6 w-full border-solid border border-gray-200 rounded-lg shadow-lg">
                 <div>
-                  <p title={action.type} className="inline text-xs font-semibold text-[#0056D2] bg-[#E9F2FF] px-3 py-1 rounded-lg uppercase whitespace-nowrap overflow-hidden text-ellipsis">
+                  <p title={action.type} className="inline-block max-w-[45%] text-xs font-semibold text-[#0056D2] bg-[#E9F2FF] px-3 py-1 rounded-lg uppercase whitespace-nowrap overflow-hidden text-ellipsis">
                     {action.type}
                   </p>
                 </div>
@@ -418,7 +488,7 @@ export default function DashboardAction() {
                 </div>
                 
                 {/* Valores numéricos */}
-                <div className="flex justify-between text-sm font-semibold text-gray-700 mt-4">
+                <div className="flex justify-around text-sm font-semibold text-gray-700 mt-4">
                   <div className="text-center">
                     <p className="text-xs text-gray-500">Arrecadado</p>
                     <p className="text-lg font-bold whitespace-nowrap">
@@ -447,6 +517,7 @@ export default function DashboardAction() {
           <div className="flex space-x-6">
             {["gallery", "balance", "documents"].map((tab) => (
               <button
+                id="tabAcao"
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`px-4 py-2 text-sm font-medium transition-all ${
@@ -470,14 +541,12 @@ export default function DashboardAction() {
       </main>
 
       {isEditModalOpen && editingAction && (
-        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-          <DialogContent className="bg-white rounded-xl shadow-2xl p-8 border border-[#2E4049] w-[500px]">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-semibold text-gray-900">
-                Editar Ação
-              </DialogTitle>
-              <p className="text-gray-500 text-sm">Preencha os detalhes da ação</p>
-            </DialogHeader>
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in z-50">
+          <div className="bg-white border border-gray-200 rounded-3xl shadow-xl p-8 w-[500px] max-h-[85vh] overflow-y-auto">
+            <h2 className="text-2xl font-semibold text-gray-900">
+              Editar Ação
+            </h2>
+            <p className="text-gray-500 text-sm mb-4">Preencha os detalhes da ação</p>
             
             {/* Tabs for Details and Image */}
             <div className="flex pb-2">
@@ -492,6 +561,7 @@ export default function DashboardAction() {
                 Detalhes
               </button>
               <button
+                id="imagemAcao"
                 className={`flex-1 text-lg font-medium py-2 transition-colors duration-200 ${
                   modalTab === "imagem"
                     ? "border-b-4 border-blue-500 text-blue-500"
@@ -504,32 +574,92 @@ export default function DashboardAction() {
             </div>
             
             {modalTab === "detalhes" && (
-              <div className="space-y-4">
-                <Input
-                  value={editingAction.name}
-                  onChange={(e) => setEditingAction({ ...editingAction, name: e.target.value })}
-                  placeholder="Nome"
-                />
-                <Input
-                  value={editingAction.type}
-                  onChange={(e) => setEditingAction({ ...editingAction, type: e.target.value })}
-                  placeholder="Tipo"
-                />
-                <Input
-                  type="number"
-                  value={editingAction.colected}
-                  onChange={(e) => setEditingAction({ ...editingAction, colected: +e.target.value })}
-                  placeholder="Coletado"
-                />
-                <Input
-                  type="number"
-                  value={editingAction.goal}
-                  onChange={(e) => setEditingAction({ ...editingAction, goal: +e.target.value })}
-                  placeholder="Meta"
-                />
-                
-                {/* Categorias de Despesas */}
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                {/* Campo de Título (Ocupa linha inteira) */}
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">Título</label>
+                  <input
+                    id="tituloAcao"
+                    type="text"
+                    className="w-full mt-1 p-4 border rounded-[16px] border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                    placeholder="Digite o título"
+                    value={editingAction.name}
+                    onChange={(e) => setEditingAction({ ...editingAction, name: e.target.value })}
+                  />
+                </div>
+
+                {/* Campo de Tipo */}
                 <div>
+                  
+                  <label className="block text-sm font-medium text-gray-700">Tipo</label>
+                  <input
+                    id="tipoAcao"
+                    type="text"
+                    className="w-full mt-1 p-4 border rounded-[16px] border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                    placeholder="Digite o tipo"
+                    value={editingAction.type}
+                    onChange={(e) => setEditingAction({ ...editingAction, type: e.target.value })}
+                  />
+                </div>
+
+                {/* Meta (Goal) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Meta (R$)</label>
+                  <input
+                    id="metaAcao"
+                    type="text"
+                    className="w-full mt-1 p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                    placeholder="Digite o valor"
+                    value={editingAction.goal?.toString() || ""}
+                    onChange={(e) => {
+                      let rawValue = e.target.value;
+                      rawValue = rawValue.replace(/[^0-9.]/g, "");
+                      const parts = rawValue.split(".");
+                      if (parts.length > 2) return; 
+                      if (parts[1]) rawValue = parts[0] + "." + parts[1].slice(0, 2); 
+
+                      setEditingAction({ ...editingAction, goal: +rawValue });
+                    }}
+                    onBlur={() => {
+                      const parsed = parseFloat(editingAction.goal.toString() || "0");
+                      if (!isNaN(parsed)) {
+                        setEditingAction({ ...editingAction, goal: parsed });
+                      }
+                    }}
+                    inputMode="decimal"
+                  />
+                </div>
+
+                {/* Arrecadado (Collected) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Arrecadado (R$)</label>
+                  <input
+                    id="arrecadadoAcao"
+                    type="text"
+                    className="w-full mt-1 p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                    placeholder="Digite o valor"
+                    value={editingAction.colected?.toString() || ""}
+                    onChange={(e) => {
+                      let rawValue = e.target.value;
+                      rawValue = rawValue.replace(/[^0-9.]/g, ""); 
+                      const parts = rawValue.split(".");
+                      if (parts.length > 2) return;
+                      if (parts[1]) rawValue = parts[0] + "." + parts[1].slice(0, 2);
+
+                      setEditingAction({ ...editingAction, colected: +rawValue });
+                    }}
+                    onBlur={() => {
+                      const parsed = parseFloat(editingAction.colected.toString() || "0");
+                      if (!isNaN(parsed)) {
+                        setEditingAction({ ...editingAction, colected: parsed });
+                      }
+                    }}
+                    inputMode="decimal"
+                  />
+                </div>
+
+                {/* Categorias de Despesas */}
+                <div className="col-span-2">
                   <label className="block text-sm mb-2 font-medium text-gray-700">
                     Categorias de Despesas
                   </label>
@@ -538,7 +668,8 @@ export default function DashboardAction() {
                     {/* Dropdown de Seleção de Categoria */}
                     <div className="relative flex-1">
                       <select
-                        className="appearance-none rounded w-full p-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all pr-10"
+                        id="selectAcao"
+                        className="appearance-none rounded-[16px] w-full p-4 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all pr-10"
                         value={selectedCategory || ""}
                         onChange={(e) => setSelectedCategory(e.target.value || null)}
                       >
@@ -553,20 +684,40 @@ export default function DashboardAction() {
                     {/* Valor da Categoria Selecionada */}
                     {selectedCategory && (
                       <div className="flex-1">
-                        <Input
-                          type="number"
+                        <input
+                          id="gastoAcao"
+                          type="text"
+                          className="w-full p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                          placeholder="Valor"
                           value={(editingAction.categorysExpenses?.[selectedCategory] || 0).toString()}
                           onChange={(e) => {
-                            const value = e.target.value;
+                            let rawValue = e.target.value;
+                            rawValue = rawValue.replace(/[^0-9.]/g, "");
+                            const parts = rawValue.split(".");
+                            if (parts.length > 2) return;
+                            if (parts[1]) rawValue = parts[0] + "." + parts[1].slice(0, 2);
+
                             setEditingAction({
                               ...editingAction,
                               categorysExpenses: {
                                 ...editingAction.categorysExpenses,
-                                [selectedCategory]: +value
+                                [selectedCategory]: +rawValue
                               }
                             });
                           }}
-                          placeholder="Valor"
+                          onBlur={() => {
+                            const parsed = parseFloat((editingAction.categorysExpenses?.[selectedCategory] || 0).toString());
+                            if (!isNaN(parsed)) {
+                              setEditingAction({
+                                ...editingAction,
+                                categorysExpenses: {
+                                  ...editingAction.categorysExpenses,
+                                  [selectedCategory]: parsed
+                                }
+                              });
+                            }
+                          }}
+                          inputMode="decimal"
                         />
                       </div>
                     )}
@@ -574,19 +725,22 @@ export default function DashboardAction() {
 
                   {/* Adicionar Nova Categoria */}
                   <div className="flex items-center gap-2">
-                    <Input
+                    <input
+                      type="text"
+                      className="flex-1 p-3 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                      placeholder="Nova categoria"
                       value={newCategory}
                       onChange={(e) => setNewCategory(e.target.value)}
-                      placeholder="Nova categoria"
-                      className="flex-1"
                     />
-                    <Button
+                    <button
+                      className="p-3 bg-blue-500 text-white rounded-[16px] hover:bg-blue-600 transition-all"
                       onClick={() => {
                         if (newCategory.trim() !== "" && !editingAction.categorysExpenses?.[newCategory.trim()]) {
                           setEditingAction({
                             ...editingAction,
                             categorysExpenses: {
-                              [newCategory.trim()]: 0
+                              ...editingAction.categorysExpenses,
+                              [newCategory.trim()]: 0,
                             }
                           });
                           setNewCategory("");
@@ -594,19 +748,21 @@ export default function DashboardAction() {
                       }}
                     >
                       +
-                    </Button>
+                    </button>
                   </div>
                 </div>
                 
                 {/* Total Gasto (Spent) - calculado automaticamente */}
-                <div>
+                <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700">Total Gasto (R$)</label>
-                  <Input
+                  <input
                     type="text"
-                    value={editingAction.spent !== undefined ? editingAction.spent : ""}
+                    value={editingAction.spent !== undefined 
+                      ? editingAction.spent.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                      : ""}
                     readOnly
                     disabled
-                    className="bg-gray-100 cursor-not-allowed"
+                    className="w-full mt-1 p-4 border border-gray-300 rounded-[16px] bg-gray-100 cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -617,10 +773,10 @@ export default function DashboardAction() {
                 <label className="block text-sm font-medium text-gray-700">
                   Imagem da Ação
                 </label>
-                <div className="flex flex-col items-center gap-2 border border-gray-300 p-4 rounded mt-2">
+                <div className="flex flex-col items-center gap-2 border border-gray-300 p-4 rounded-[16px] mt-2">
                   <label
                     htmlFor="file-upload"
-                    className="w-full flex justify-center items-center bg-gray-200 text-gray-700 py-2 px-4 rounded cursor-pointer hover:bg-gray-300 transition-all"
+                    className="w-full flex justify-center items-center bg-gray-200 text-gray-700 py-2 px-4 rounded-[16px] cursor-pointer hover:bg-gray-300 transition-all"
                   >
                     <UploadCloud className="mr-2 text-blue-500" /> Escolher Arquivo
                   </label>
@@ -642,18 +798,25 @@ export default function DashboardAction() {
               </div>
             )}
             
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>
-              <Button 
+            <div className="mt-6 pt-4 flex justify-between">
+              <button
+                className="px-5 py-2 border border-gray-400 text-gray-600 rounded-[16px] hover:bg-gray-300 transition-all duration-200"
+                onClick={() => setIsEditModalOpen(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                id="salvarAcao"
                 onClick={handleEditAction}
                 disabled={isSaving}
+                className="px-5 py-2 bg-blue-600 text-white rounded-[16px] hover:bg-blue-500/90 transition-all duration-200"
               >
-                {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+                {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2 inline" /> : null}
                 {isSaving ? "Salvando..." : "Salvar"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   )
