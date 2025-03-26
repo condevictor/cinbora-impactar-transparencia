@@ -25,6 +25,22 @@ interface Action {
   aws_url?: string;
 }
 
+// Add these new interfaces for the data structure
+interface DailyRecord {
+  categorysExpenses: Record<string, number>;
+  date?: string;
+}
+
+interface Month {
+  dailyRecords: DailyRecord[];
+  month?: string;
+}
+
+interface Year {
+  months: Month[];
+  year?: string;
+}
+
 export default function DashboardAction() {
   const searchParams = useSearchParams()
   const router = useRouter();
@@ -40,7 +56,7 @@ export default function DashboardAction() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
-  const [originalCategorysExpenses, setOriginalCategorysExpenses] = useState({})
+  const [originalCategorysExpenses, setOriginalCategorysExpenses] = useState<Record<string, number>>({})
   const [isSaving, setIsSaving] = useState(false)
   const [hoveredCard, setHoveredCard] = useState(false);
   
@@ -122,12 +138,12 @@ export default function DashboardAction() {
       const data = await response.json();
 
       // Objeto para armazenar a soma total de cada categoria
-      let aggregatedExpenses = {};
+      let aggregatedExpenses: Record<string, number> = {};
 
       // Percorre todos os registros diários e soma os valores de cada categoria
-      data?.actionGrafic?.[0]?.categorysExpenses?.forEach((year) => {
-        year.months.forEach((month) => {
-          month.dailyRecords.forEach((record) => {
+      data?.actionGrafic?.[0]?.categorysExpenses?.forEach((year: Year) => {
+        year.months.forEach((month: Month) => {
+          month.dailyRecords.forEach((record: DailyRecord) => {
             Object.entries(record.categorysExpenses).forEach(([category, value]) => {
               aggregatedExpenses[category] = (aggregatedExpenses[category] || 0) + value;
             });
@@ -190,15 +206,15 @@ export default function DashboardAction() {
   const validateAndFixCategories = () => {
     if (!editingAction?.categorysExpenses) return {};
     
-    let updatedCategories = { ...editingAction.categorysExpenses };
+    let updatedCategories: Record<string, number> = { ...editingAction.categorysExpenses };
   
     Object.keys(updatedCategories).forEach((category) => {
       const currentValue = updatedCategories[category];
       const originalValue = originalCategorysExpenses[category] || 0;
   
-      if (currentValue === "" || currentValue === null || currentValue === undefined) {
+      if (currentValue === null || currentValue === undefined) {
         updatedCategories[category] = 0;
-      } else if (currentValue < originalValue) {
+      } else if (currentValue < originalValue) { 
         toast.error(
           `O valor de "${category}" não pode ser menor que ${originalValue.toLocaleString("pt-BR", {
             style: "currency",
@@ -570,7 +586,6 @@ export default function DashboardAction() {
                           setEditingAction({
                             ...editingAction,
                             categorysExpenses: {
-                              ...editingAction.categorysExpenses,
                               [newCategory.trim()]: 0
                             }
                           });

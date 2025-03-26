@@ -35,23 +35,29 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 
+// Improved type definition to properly handle mixed types
+type EditingSlideType = {
+	id?: string;
+	name: string;
+	type: string;
+	categorysExpenses: Record<string, number | string>;
+	spent: number | string;
+	goal: number | string;
+	colected: number | string;
+	aws_url?: string;
+};
+
+// Define type for slide objects
+type SlideType = EditingSlideType | { isAddCard: boolean; id?: never };
+
 export default function ActionsPage() {
-  const [slides, setSlides] = useState([]);
+  const [slides, setSlides] = useState<SlideType[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [actionToDelete, setActionToDelete] = useState<string | null>(null)
-  const [editingSlide, setEditingSlide] = useState<{
-    id?: string;
-    name: string;
-    type: string;
-    categorysExpenses: Record<string, number>;
-    spent: number;
-    goal: number;
-    colected: number;
-    aws_url?: string;
-  }>({
+  const [editingSlide, setEditingSlide] = useState<EditingSlideType>({
     name: "",
     type: "",
-    categorysExpenses: {},
+    categorysExpenses: {} as Record<string, number | string>,
     spent: 0,
     goal: 0,
     colected: 0,
@@ -64,14 +70,14 @@ export default function ActionsPage() {
   const [modalTab, setModalTab] = useState("detalhes");  
   const [categories, setCategories] = useState<string[]>([]);
   const [newCategory, setNewCategory] = useState("");
-  const [hoveredSlide, setHoveredSlide] = useState(null);
+  const [hoveredSlide, setHoveredSlide] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [originalCategorysExpenses, setOriginalCategorysExpenses] = useState({});
+  const [originalCategorysExpenses, setOriginalCategorysExpenses] = useState<Record<string, number>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState(""); 
   const router = useRouter();
   
-  const generateHash = async (name) => {
+  const generateHash = async (name: string): Promise<string> => {
   const encoder = new TextEncoder();
   const data = encoder.encode(name);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
@@ -83,7 +89,8 @@ export default function ActionsPage() {
   useEffect(() => {
     setEditingSlide((prev) => ({
       ...prev,
-      spent: Object.values(prev?.categorysExpenses).reduce((acc, val) => acc + val, 0),
+      spent: Object.values(prev?.categorysExpenses || {}).reduce<number>((acc, val) =>
+        acc + (typeof val === 'string' ? (parseFloat(val) || 0) : Number(val)), 0),
     }));
   }, [editingSlide?.categorysExpenses]);
 
@@ -106,7 +113,8 @@ export default function ActionsPage() {
   useEffect(() => {
     setEditingSlide((prev) => ({
       ...prev,
-      spent: Object.values(prev?.categorysExpenses || {}).reduce((acc, val) => acc + (parseFloat(val) || 0), 0),
+      spent: Object.values(prev?.categorysExpenses || {}).reduce<number>((acc, val) =>
+        acc + (typeof val === 'string' ? (parseFloat(val) || 0) : Number(val)), 0),
     }));
   }, [editingSlide?.categorysExpenses]);
   
@@ -140,14 +148,18 @@ export default function ActionsPage() {
   useEffect(() => {
     if (isOpen) {
       const extractedCategories = [
-        ...new Set(slides.map((slide) => slide.type).filter(Boolean)),
+        ...Array.from(new Set(slides
+          .map((slide: SlideType) => 
+            'isAddCard' in slide ? undefined : slide.type)
+          .filter(Boolean) as string[]
+        ))
       ];
       setCategories(extractedCategories);
     }
   }, [isOpen, slides]);
   
   
-  const openModal = async (slide = null) => {
+  const openModal = async (slide?: EditingSlideType | null) => {
     if (!slides.length) {
       console.log("Carregando ações antes de abrir o modal...");
       await fetchActions();
@@ -165,7 +177,7 @@ export default function ActionsPage() {
         aws_url: slide.aws_url || "",
       });
   
-      setImagePreview(slide.aws_url || null);
+      setImagePreview(slide.aws_url ?? null);
   
       await fetchActionDetails(slide.id); 
     } else {
@@ -207,7 +219,7 @@ export default function ActionsPage() {
   
   
   
-  const handleImageUpload = async (event) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
   
@@ -227,7 +239,7 @@ export default function ActionsPage() {
     }
   };
 
-  const deleteAction = async (actionId: string) => {
+  const deleteAction = async (actionId: string): Promise<void> => {
     const token = Cookies.get("auth_token");
 
     try{
@@ -243,7 +255,7 @@ export default function ActionsPage() {
         }
 
         toast.success("Ação deletada com sucesso!");
-        setSlides((prev) => prev.filter((s) => s.id !== actionId));
+        setSlides((prev) => prev.filter((s) => !('isAddCard' in s) && s.id !== actionId));
         setActionToDelete(null);
       } catch (error) {
         console.error(error);
@@ -251,7 +263,10 @@ export default function ActionsPage() {
       }
     };
   
-  const updateCategoryExpenses = async (actionId, categorysExpenses) => {
+  const updateCategoryExpenses = async (
+    actionId: string, 
+    categorysExpenses: Record<string, number | string>
+  ): Promise<boolean> => {
     const token = Cookies.get("auth_token");
   
     try {
@@ -300,9 +315,11 @@ export default function ActionsPage() {
       const data = await response.json();
       setSlides(data);
   
-      const urls = {};
-      data.forEach((slide) => {
-        urls[slide.id] = slide.aws_url || "";
+      const urls: Record<string, string> = {};
+      data.forEach((slide: any) => {
+        if (slide.id) {
+          urls[slide.id] = slide.aws_url || "";
+        }
       });
       setImageUrls(urls);
     } catch (error) {
@@ -310,51 +327,56 @@ export default function ActionsPage() {
     }
   };
   
-  const fetchActionDetails = async (actionId) => {
-    try {
-      const response = await fetch(`http://127.0.0.1:3333/ongs/actions/${actionId}`);
-      if (!response.ok) throw new Error("Erro ao buscar detalhes da ação.");
-  
-      const data = await response.json();
-  
-      // Objeto para armazenar a soma total de cada categoria
-      let aggregatedExpenses = {};
-  
-      // Percorre todos os registros diários e soma os valores de cada categoria
-      data?.actionGrafic?.[0]?.categorysExpenses?.forEach((year) => {
-        year.months.forEach((month) => {
-          month.dailyRecords.forEach((record) => {
-            Object.entries(record.categorysExpenses).forEach(([category, value]) => {
-              aggregatedExpenses[category] = (aggregatedExpenses[category] || 0) + value;
-            });
+const fetchActionDetails = async (actionId: string): Promise<void> => {
+  try {
+    const response = await fetch(`http://127.0.0.1:3333/ongs/actions/${actionId}`);
+    if (!response.ok) throw new Error("Erro ao buscar detalhes da ação.");
+
+    const data = await response.json();
+
+    // Objeto para armazenar a soma total de cada categoria
+    let aggregatedExpenses: Record<string, number> = {};
+
+    // Percorre todos os registros diários e soma os valores de cada categoria
+    data?.actionGrafic?.[0]?.categorysExpenses?.forEach((year: any) => {
+      year.months.forEach((month: any) => {
+        month.dailyRecords.forEach((record: any) => {
+          Object.entries(record.categorysExpenses).forEach(([category, value]) => {
+            aggregatedExpenses[category] = (aggregatedExpenses[category] || 0) + (typeof value === 'number' ? value : 0);
           });
         });
       });
-  
-      setOriginalCategorysExpenses(aggregatedExpenses);
-      setEditingSlide((prev) => ({
-        ...prev,
-        ...data.action,
-        aws_url: data.action.aws_url || "",
-        categorysExpenses: aggregatedExpenses,
-      }));
-  
-      setImagePreview(data.action.aws_url || null);
-    } catch (error) {
-      console.error("Erro ao carregar detalhes da ação:", error);
-      toast.error("Erro ao carregar detalhes da ação.");
-    }
-  };
+    });
+
+    setOriginalCategorysExpenses(aggregatedExpenses);
+    
+    // Fix: Using explicit null instead of allowing undefined
+    const awsUrl = data.action.aws_url || "";
+    
+    setEditingSlide((prev) => ({
+      ...prev,
+      ...data.action,
+      aws_url: awsUrl,
+      categorysExpenses: aggregatedExpenses,
+    }));
+
+    // Fix: Using explicit null instead of allowing undefined
+    setImagePreview(awsUrl ?? null);
+  } catch (error) {
+    console.error("Erro ao carregar detalhes da ação:", error);
+    toast.error("Erro ao carregar detalhes da ação.");
+  }
+};
   
   
   const validateAndFixCategories = () => {
     let updatedCategories = { ...editingSlide.categorysExpenses };
   
     Object.keys(updatedCategories).forEach((category) => {
-      const currentValue = updatedCategories[category];
+      const currentValue = Number(updatedCategories[category]);
       const originalValue = originalCategorysExpenses[category] || 0;
   
-      if (currentValue === "" || currentValue === null || currentValue === undefined) {
+      if (currentValue === 0 || isNaN(currentValue)) {
         updatedCategories[category] = 0;
       } else if (currentValue < originalValue) {
         toast.error(
@@ -374,8 +396,8 @@ export default function ActionsPage() {
   
     return updatedCategories;
   };
-  
-const updateSlideImage = async (slideId) => {
+
+const updateSlideImage = async (slideId: string): Promise<void> => {
   const token = Cookies.get("auth_token");
   if (!imageFile) return;
   
@@ -385,7 +407,9 @@ const updateSlideImage = async (slideId) => {
   try {
     const response = await fetch(`http://127.0.0.1:3333/ongs/actions/${slideId}/image`, {
       method: "PUT",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { 
+        Authorization: `Bearer ${token}` 
+      } as Record<string, string>,
       body: formData,
     });
 
@@ -419,12 +443,14 @@ const handleSave = async () => {
 
   if (!editingSlide.name || !editingSlide.type) {
     toast.error("Erro: Nome e tipo são obrigatórios.");
+    setIsSaving(false);
     return;
   }
 
   const isUpdate = !!editingSlide.id;
   if (!isUpdate && !imageFile) {
     toast.error("Erro: É obrigatório anexar uma imagem antes de salvar.");
+    setIsSaving(false);
     return;
   }
 
@@ -437,8 +463,8 @@ const handleSave = async () => {
     : `http://127.0.0.1:3333/ongs/actions`;
 
   let body;
-  let headers = {
-    Authorization: `Bearer ${token}`,
+  let headers: Record<string, string> = {
+    Authorization: `Bearer ${token || ""}`,
   };
 
   if (isUpdate) {
@@ -483,13 +509,16 @@ const handleSave = async () => {
 
     const updatedSlide = await response.json();
 
-    if (isUpdate && updatedSlide.id) {
-      const categoryRes = await updateCategoryExpenses(updatedSlide.id, updatedCategories);
+    // Fix: Ensure id is always converted to string
+    const slideId = updatedSlide.id ? String(updatedSlide.id) : "";
+
+    if (isUpdate && slideId) {
+      const categoryRes = await updateCategoryExpenses(slideId, updatedCategories);
       if (categoryRes === false) throw new Error("Erro nas categorias.");
     }
 
-    if (isUpdate && updatedSlide.id && imageFile) {
-      await updateSlideImage(updatedSlide.id);
+    if (isUpdate && slideId && imageFile) {
+      await updateSlideImage(slideId);
     }
 
     toast.success("Ação salva com sucesso!");
@@ -509,6 +538,7 @@ const handleSave = async () => {
   } catch (error) {
     console.error(error);
     toast.error("Erro ao salvar a ação. Nenhuma alteração foi aplicada.");
+    setIsSaving(false);
   }
 };
 
@@ -532,8 +562,9 @@ const handleSave = async () => {
  
       {(() => {
         const filteredSlides = slides.filter(slide =>
-          slide.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          slide.type?.toLowerCase().includes(searchTerm.toLowerCase())
+          !('isAddCard' in slide) && 
+          (slide.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          slide.type?.toLowerCase().includes(searchTerm.toLowerCase()))
         );
         const displaySlides = searchTerm ? filteredSlides : [...filteredSlides, { isAddCard: true }];
  
@@ -546,7 +577,7 @@ const handleSave = async () => {
             <CarouselContent>
               {(displaySlides.reverse()).map((slide, index) => (
                 <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 w-full border-none shadow-none">
-                  {slide.isAddCard ? (
+                  {'isAddCard' in slide ? (
                     <div
                       className="p-1 flex items-center justify-center bg-gray-200 rounded-lg h-64 cursor-pointer"
                       onClick={() => openModal()}
@@ -559,7 +590,7 @@ const handleSave = async () => {
                         {/* Container da Imagem */}
                         <div className="relative w-full h-[180px] overflow-hidden rounded-t-lg">
                           <Image
-                            src={imageUrls[slide.id] || capa.src}
+                            src={imageUrls[slide.id || ''] || capa.src}
                             alt="Imagem da ação"
                             layout="fill"
                             objectFit="cover"
@@ -582,7 +613,7 @@ const handleSave = async () => {
                               <AlertDialogTrigger asChild>
                                 <button
                                   className="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded shadow-sm hover:bg-red-700 transition-all"
-                                  onClick={() => setActionToDelete(slide.id)}
+                                  onClick={() => setActionToDelete(slide.id ?? null)}
                                   title="Deletar ação"
                                 >
                                   <Trash2 className="text-white w-4 h-4" />
@@ -604,7 +635,7 @@ const handleSave = async () => {
                                   <AlertDialogAction
                                     className="bg-red-500 text-white rounded-full px-6 py-3 hover:bg-red-600 transition-all w-full sm:w-auto"
                                     onClick={async () => {
-                                      await deleteAction(slide.id)
+                                      await deleteAction(String(slide.id))
                                     }}
                                   >
                                     Deletar
@@ -626,12 +657,12 @@ const handleSave = async () => {
                             {/* Barra de Progresso */}
                             <div
                               className="relative w-full h-2 rounded-full bg-gray-300 overflow-hidden transition-all duration-300  hover:bg-gray-400"
-                              onMouseEnter={() => setHoveredSlide(slide.id)}
+                              onMouseEnter={() => setHoveredSlide(slide.id ?? null)}
                               onMouseLeave={() => setHoveredSlide(null)}
                             >
                               <div
                                 className="h-full bg-[#2BAFF150] transition-all duration-300"
-                                style={{ width: `${Math.min((slide.spent / slide.goal) * 100, 100).toFixed(2)}%` }}
+                                style={{ width: `${Math.min((Number(slide.spent) / Number(slide.goal)) * 100, 100).toFixed(2)}%` }}
                               />
                             </div>
                             <p className="text-sm text-center text-gray-500 mt-2 mb-1 italic">
@@ -641,11 +672,11 @@ const handleSave = async () => {
                             {/* Tooltip acima da barra */}
                             {hoveredSlide === slide.id && (
 															<div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 bg-white/90 backdrop-blur-sm text-gray-800 shadow-xl rounded-2xl px-5 py-4 w-[240px] text-sm">
-																{slide.spent >= slide.goal ? (
+																{Number(slide.spent) >= Number(slide.goal) ? (
 																	<p className="text-center font-semibold text-green-600">🎉 Meta Concluída!</p>
 																) : (
 																<p className="text-center font-semibold text-blue-600">
-																	🎯 {(slide.spent / slide.goal * 100).toFixed(2)}% da Meta Atingida
+																	🎯 {(Number(slide.spent) / Number(slide.goal) * 100).toFixed(2)}% da Meta Atingida
 																</p>
 																)}
 																<div className="mt-2 space-y-1">
@@ -655,7 +686,7 @@ const handleSave = async () => {
 																			R$ {new Intl.NumberFormat("pt-BR", {
 																				notation: "compact",
 																				compactDisplay: "short",
-																			}).format(slide.colected)}
+																			}).format(Number(slide.colected))}
 																		</span>
 																	</p>
 																	<p className="flex justify-between text-red-500">
@@ -664,7 +695,7 @@ const handleSave = async () => {
 																			R$ {new Intl.NumberFormat("pt-BR", {
 																				notation: "compact",
 																				compactDisplay: "short",
-																			}).format(slide.spent)}
+																			}).format(Number(slide.spent))}
 																		</span>
 																	</p>
 																	<p className="flex justify-between">
@@ -673,7 +704,7 @@ const handleSave = async () => {
 																			R$ {new Intl.NumberFormat("pt-BR", {
 																				notation: "compact",
 																				compactDisplay: "short",
-																			}).format(slide.goal)}
+																			}).format(Number(slide.goal))}
 																		</span>
 																	</p>
 																</div>
@@ -688,21 +719,21 @@ const handleSave = async () => {
                               <p className="text-xs text-gray-500">Arrecadado</p>
                               <p className="text-lg font-bold whitespace-nowrap">
                                 R${" "}
-                                {new Intl.NumberFormat("pt-BR", { notation: "compact", compactDisplay: "short" }).format(slide.colected)}
+                                {new Intl.NumberFormat("pt-BR", { notation: "compact", compactDisplay: "short" }).format(Number(slide.colected))}
                               </p>
                             </div>
                             <div className="text-center">
                               <p className="text-xs text-gray-500">Gasto</p>
                               <p className="text-lg font-bold text-red-500 whitespace-nowrap">
                                 R${" "}
-                                {new Intl.NumberFormat("pt-BR", { notation: "compact", compactDisplay: "short" }).format(slide.spent)}
+                                {new Intl.NumberFormat("pt-BR", { notation: "compact", compactDisplay: "short" }).format(Number(slide.spent))}
                               </p>
                             </div>
                             <div className="text-center">
                               <p className="text-xs text-gray-500">Meta</p>
                               <p className="text-lg font-bold whitespace-nowrap">
                                 R${" "}
-                                {new Intl.NumberFormat("pt-BR", { notation: "compact", compactDisplay: "short" }).format(slide.goal)}
+                                {new Intl.NumberFormat("pt-BR", { notation: "compact", compactDisplay: "short" }).format(Number(slide.goal))}
                               </p>
                             </div>
                           </div>
@@ -710,13 +741,13 @@ const handleSave = async () => {
                           <div className="mt-5 flex justify-between items-center">
                             {/* Botão de Transparência com novo estilo e lógica */}
                             <Button
-                              onClick={() => router.push("./actions" + "?action_id=" + slide.id)}
+                              onClick={() => router.push("./actions" + "?action_id=" + String(slide.id))}
                               className="w-4/5 h-full font-bold rounded-[34px] bg-[#294BB6] text-white border-solid border-[#2E4049] border hover:text-[#294BB6] hover:bg-white transition-all"
                             >
                               TRANSPARÊNCIA
                             </Button>
                             {/* ShareBn estilizado */}
-                            <Link className="w-2/12 h-full" href={`https://api.whatsapp.com/send?text=${window.location.origin}/actions?action_id=${slide.id}`} target="_blank">
+                            <Link className="w-2/12 h-full" href={`https://api.whatsapp.com/send?text=${window.location.origin}/actions?action_id=${String(slide.id)}`} target="_blank">
                               <div className="w-full rounded-full h-full bg-[#F2F4F7] flex justify-center cursor-pointer">
                                 <Image className="w-6 h-10" src={shareButton} alt="share" />
                               </div>
@@ -820,7 +851,7 @@ const handleSave = async () => {
                         }));
                       }}
                       onBlur={() => {
-                        const parsed = parseFloat(editingSlide.goal || "0");
+                        const parsed = parseFloat(String(editingSlide.goal || "0"));
                         if (!isNaN(parsed)) {
                           setEditingSlide((prev) => ({
                             ...prev,
@@ -855,7 +886,7 @@ const handleSave = async () => {
                         }));
                       }}
                       onBlur={() => {
-                        const parsed = parseFloat(editingSlide.colected || "0");
+                        const parsed = parseFloat(String(editingSlide.colected || "0"));
                         if (!isNaN(parsed)) {
                           setEditingSlide((prev) => ({
                             ...prev,
@@ -916,14 +947,14 @@ const handleSave = async () => {
                               }));
                             }}
                             onBlur={() => {
-                              const raw = editingSlide.categorysExpenses[selectedCategory];
+                              const raw = editingSlide.categorysExpenses[selectedCategory!] as string;
                               const parsed = parseFloat(raw || "0");
                               if (!isNaN(parsed)) {
                                 setEditingSlide((prev) => ({
                                   ...prev,
                                   categorysExpenses: {
                                     ...prev.categorysExpenses,
-                                    [selectedCategory]: parsed,
+                                    [selectedCategory!]: parsed,
                                   },
                                 }));
                               }
@@ -976,7 +1007,9 @@ const handleSave = async () => {
                       className="w-full mt-1 p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all bg-gray-100 cursor-not-allowed"
                       value={
                         editingSlide?.spent !== undefined && editingSlide?.spent !== null
-                          ? parseFloat(editingSlide.spent)
+                          ? (typeof editingSlide.spent === 'string' 
+                              ? parseFloat(editingSlide.spent) 
+                              : editingSlide.spent)
                               .toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                           : ""
                       }

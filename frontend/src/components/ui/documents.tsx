@@ -18,10 +18,18 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+// Define interface for file documents
+interface FileDocument {
+  id: string;
+  name: string;
+  aws_url?: string;
+  // Add other properties as needed
+}
+
 export default function Documents() {
-  const [others, setOthers] = useState([]);
-  const [taxInvoices, setTaxInvoices] = useState([]);
-  const [reports, setReports] = useState([]);
+  const [others, setOthers] = useState<FileDocument[]>([]);
+  const [taxInvoices, setTaxInvoices] = useState<FileDocument[]>([]);
+  const [reports, setReports] = useState<FileDocument[]>([]);
   const [isNotasFiscaisOpen, setIsNotasFiscaisOpen] = useState(false);
   const [isRelatoriosOpen, setIsRelatoriosOpen] = useState(false);
   const [isOutrosOpen, setIsOutrosOpen] = useState(false);
@@ -83,7 +91,7 @@ export default function Documents() {
     }
   };
 
-  const handleDownload = (file: any) => {
+  const handleDownload = (file: FileDocument) => {
     if (file.aws_url) {
       window.open(file.aws_url, "_blank");
     } else {

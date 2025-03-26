@@ -6,12 +6,20 @@ import arrowDown from "../../assets/downArrow.svg";
 import arrowUP from "../../assets/upArrow.svg";
 import download from "../../assets/Documents.svg";
 
+// Add proper type for file data
+interface FileData {
+  id?: string;
+  name: string;
+  aws_url?: string;
+  [key: string]: any;
+}
+
 export default function ActionsDocuments() {
   const searchParams = useSearchParams();
   const actionId = searchParams.get("action_id");
-  const [others, setOthers] = useState([]);
-  const [taxInvoices, setTaxInvoices] = useState([]);
-  const [reports, setReports] = useState([]);
+  const [others, setOthers] = useState<FileData[]>([]);
+  const [taxInvoices, setTaxInvoices] = useState<FileData[]>([]);
+  const [reports, setReports] = useState<FileData[]>([]);
   const [isNotasFiscaisOpen, setIsNotasFiscaisOpen] = useState(false);
   const [isRelatoriosOpen, setIsRelatoriosOpen] = useState(false);
   const [isOutrosOpen, setIsOutrosOpen] = useState(false);
@@ -35,7 +43,7 @@ export default function ActionsDocuments() {
 
   useEffect(() => { if (actionId) getFiles(); }, [actionId]);
 
-  const handleDownload = (file: any) => {
+  const handleDownload = (file: FileData) => {
     if (file.aws_url) {
       window.open(file.aws_url, "_blank");
     } else {

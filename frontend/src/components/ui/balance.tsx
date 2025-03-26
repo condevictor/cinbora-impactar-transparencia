@@ -20,6 +20,28 @@ import {
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 
+// Add TypeScript interfaces for API response
+interface DailyRecord {
+  day: number;
+  expensesByAction: { [key: string]: number };
+}
+
+interface MonthData {
+  month: number;
+  dailyRecords: DailyRecord[];
+}
+
+interface YearData {
+  year: number;
+  months: MonthData[];
+}
+
+interface NgoData {
+  ngoGrafic?: {
+    expensesByAction: YearData[];
+  };
+}
+
 const monthNames = [
   "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
   "Jul", "Ago", "Set", "Out", "Nov", "Dez"
@@ -41,9 +63,9 @@ const generateUniqueColor = (usedColors: Set<string>) => {
 };
 
 export default function Balance() {
-  const [selectedYear, setSelectedYear] = useState("");
+  const [selectedYear, setSelectedYear] = useState<string>("");
   const [availableYears, setAvailableYears] = useState<string[]>([]);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<Array<{[key: string]: any}>>([]);
   const [visibleLines, setVisibleLines] = useState<{ [key: string]: boolean }>({});
   const [actionColors, setActionColors] = useState<{ [key: string]: string }>({});
 
@@ -53,7 +75,7 @@ export default function Balance() {
   
     fetch(`http://127.0.0.1:3333/ongs/${ngoId}`)
       .then((res) => res.json())
-      .then((response) => {
+      .then((response: NgoData) => {
         if (!response?.ngoGrafic?.expensesByAction?.length) return;
   
         const { expensesByAction } = response.ngoGrafic;
@@ -79,17 +101,17 @@ export default function Balance() {
           expensesByMonth[monthNames[i]] = { month: monthNames[i] };
         }
   
-        expensesByAction.forEach((yearData: any) => {
+        expensesByAction.forEach((yearData) => {
           const yearStr = yearData.year.toString();
           allYears.add(yearStr);
   
           if (yearStr !== selectedYear) return;
   
-          yearData.months.forEach((monthData: any) => {
+          yearData.months.forEach((monthData) => {
             const monthIndex = monthData.month - 1;
             const monthName = monthNames[monthIndex];
   
-            monthData.dailyRecords.forEach((record: any) => {
+            monthData.dailyRecords.forEach((record) => {
               Object.entries(record.expensesByAction).forEach(([action, value]) => {
                 if (!actionsToDisplay.includes(action)) return;
   
@@ -107,7 +129,7 @@ export default function Balance() {
         Object.entries(expensesByMonth).forEach(([monthName, monthData], index) => {
           actionsToDisplay.forEach((action) => {
             if (!(action in monthData)) {
-              monthData[action] = index <= lastRecordedMonth[action] ? 0 : null;
+              monthData[action] = index <= (lastRecordedMonth[action] || 0) ? 0 : null;
             }
           });
         });
@@ -132,8 +154,9 @@ export default function Balance() {
         const sortedYears = Array.from(allYears).sort().reverse();
         setAvailableYears(sortedYears);
         if (!selectedYear) setSelectedYear(sortedYears[0]);
-      });
-  }, [selectedYear]);
+      })
+      .catch(error => console.error("Error fetching NGO data:", error));
+  }, [selectedYear, actionColors]);
   
 
   return (

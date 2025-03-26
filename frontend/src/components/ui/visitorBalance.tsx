@@ -40,10 +40,16 @@ const generateUniqueColor = (usedColors: Set<string>) => {
   return color;
 };
 
+// Define interface for expense data
+interface ExpenseData {
+  month: string;
+  [action: string]: string | number | null;
+}
+
 export default function Balance() {
   const [selectedYear, setSelectedYear] = useState("");
   const [availableYears, setAvailableYears] = useState<string[]>([]);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<ExpenseData[]>([]); // Fix the type here
   const [visibleLines, setVisibleLines] = useState<{ [key: string]: boolean }>({});
   const [actionColors, setActionColors] = useState<{ [key: string]: string }>({});
 

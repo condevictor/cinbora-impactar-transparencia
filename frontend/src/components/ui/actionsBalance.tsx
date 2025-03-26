@@ -20,6 +20,29 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 
+// Define type interfaces for API response
+interface DailyRecord {
+  day: number;
+  categorysExpenses: { [key: string]: number };
+}
+
+interface MonthData {
+  month: number;
+  dailyRecords: DailyRecord[];
+}
+
+interface YearData {
+  year: number;
+  months: MonthData[];
+}
+
+interface ActionData {
+  actionGrafic?: [{
+    categorysExpenses: YearData[];
+  }];
+}
+
+// Existing code for month names
 const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
 
 const fullMonthNames = [
@@ -41,9 +64,9 @@ export default function Balance() {
   const searchParams = useSearchParams()
   const actionId = searchParams.get("action_id")
 
-  const [selectedYear, setSelectedYear] = useState("")
+  const [selectedYear, setSelectedYear] = useState<string>("")
   const [availableYears, setAvailableYears] = useState<string[]>([])
-  const [data, setData] = useState([])
+  const [data, setData] = useState<Array<{[key: string]: any}>>([])
   const [visibleLines, setVisibleLines] = useState<{ [key: string]: boolean }>({})
   const [actionColors, setActionColors] = useState<{ [key: string]: string }>({})
 
@@ -51,77 +74,81 @@ export default function Balance() {
     const fetchData = async () => {
       if (!actionId) return
 
-      const res = await fetch(`http://localhost:3333/ongs/actions/${actionId}`)
-      const data = await res.json()
-      const grafics = data.actionGrafic?.[0]?.categorysExpenses
+      try {
+        const res = await fetch(`http://localhost:3333/ongs/actions/${actionId}`)
+        const data: ActionData = await res.json()
+        const grafics = data.actionGrafic?.[0]?.categorysExpenses
 
-      if (!Array.isArray(grafics)) return
+        if (!Array.isArray(grafics)) return
 
-      const allYears = new Set<string>()
-      const allCategories = new Set<string>()
-      const expensesByMonth: { [month: string]: any } = {}
-      const lastMonthUsed: { [category: string]: number } = {}
+        const allYears = new Set<string>()
+        const allCategories = new Set<string>()
+        const expensesByMonth: { [month: string]: any } = {}
+        const lastMonthUsed: { [category: string]: number } = {}
 
-      for (let i = 0; i < 12; i++) {
-        expensesByMonth[monthNames[i]] = { month: monthNames[i] }
-      }
+        for (let i = 0; i < 12; i++) {
+          expensesByMonth[monthNames[i]] = { month: monthNames[i] }
+        }
 
-      grafics.forEach((yearData) => {
-        const yearStr = yearData.year.toString()
-        allYears.add(yearStr)
+        grafics.forEach((yearData) => {
+          const yearStr = yearData.year.toString()
+          allYears.add(yearStr)
 
-        if (yearStr !== selectedYear) return
+          if (yearStr !== selectedYear) return
 
-        yearData.months.forEach((monthData) => {
-          const monthIndex = monthData.month - 1
-          const monthName = monthNames[monthIndex]
+          yearData.months.forEach((monthData) => {
+            const monthIndex = monthData.month - 1
+            const monthName = monthNames[monthIndex]
 
-          monthData.dailyRecords.forEach((record) => {
-            Object.entries(record.categorysExpenses).forEach(([category, value]) => {
-              allCategories.add(category)
+            monthData.dailyRecords.forEach((record) => {
+              Object.entries(record.categorysExpenses).forEach(([category, value]) => {
+                allCategories.add(category)
 
-              if (!expensesByMonth[monthName][category]) {
-                expensesByMonth[monthName][category] = 0
-              }
+                if (!expensesByMonth[monthName][category]) {
+                  expensesByMonth[monthName][category] = 0
+                }
 
-              expensesByMonth[monthName][category] += Number(value)
-              lastMonthUsed[category] = monthIndex
+                expensesByMonth[monthName][category] += Number(value)
+                lastMonthUsed[category] = monthIndex
+              })
             })
           })
         })
-      })
 
-      Object.entries(expensesByMonth).forEach(([monthName, monthData], index) => {
+        Object.entries(expensesByMonth).forEach(([monthName, monthData], index) => {
+          allCategories.forEach((category) => {
+            if (!(category in monthData)) {
+              monthData[category] = index <= (lastMonthUsed[category] ?? -1) ? 0 : null
+            }
+          })
+        })
+
+        const usedColors = new Set<string>()
+        const newColors: { [key: string]: string } = {}
+        const initialVisibility: { [key: string]: boolean } = {}
+
         allCategories.forEach((category) => {
-          if (!(category in monthData)) {
-            monthData[category] = index <= (lastMonthUsed[category] ?? -1) ? 0 : null
+          initialVisibility[category] = true
+          if (!actionColors[category]) {
+            newColors[category] = generateUniqueColor(usedColors)
           }
         })
-      })
 
-      const usedColors = new Set<string>()
-      const newColors: { [key: string]: string } = {}
-      const initialVisibility: { [key: string]: boolean } = {}
+        setData(Object.values(expensesByMonth))
+        setVisibleLines(initialVisibility)
+        setActionColors((prev) => ({ ...prev, ...newColors }))
+        setAvailableYears(Array.from(allYears).sort().reverse())
 
-      allCategories.forEach((category) => {
-        initialVisibility[category] = true
-        if (!actionColors[category]) {
-          newColors[category] = generateUniqueColor(usedColors)
+        if (!selectedYear && allYears.size > 0) {
+          setSelectedYear(Array.from(allYears).sort().reverse()[0])
         }
-      })
-
-      setData(Object.values(expensesByMonth))
-      setVisibleLines(initialVisibility)
-      setActionColors((prev) => ({ ...prev, ...newColors }))
-      setAvailableYears(Array.from(allYears).sort().reverse())
-
-      if (!selectedYear && allYears.size > 0) {
-        setSelectedYear(Array.from(allYears).sort().reverse()[0])
+      } catch (error) {
+        console.error("Error fetching action data:", error)
       }
     }
 
     fetchData()
-  }, [actionId, selectedYear])
+  }, [actionId, selectedYear, actionColors])
 
   return (
     <div className="flex justify-center py-10">

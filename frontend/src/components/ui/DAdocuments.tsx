@@ -19,6 +19,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import Cookies from "js-cookie";
 
+// Define interface for file object
+interface FileObject {
+	id: string;
+	name: string;
+	aws_url?: string;
+	// Add other properties if needed
+}
+
 export default function DADocuments() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
@@ -26,9 +34,9 @@ export default function DADocuments() {
 
 	if (!action_id) return <div>Loading...</div>;
 
-	const [others, setOthers] = useState([]);
-	const [taxInvoices, setTaxInvoices] = useState([]);
-	const [reports, setReports] = useState([]);
+	const [others, setOthers] = useState<FileObject[]>([]);
+	const [taxInvoices, setTaxInvoices] = useState<FileObject[]>([]);
+	const [reports, setReports] = useState<FileObject[]>([]);
 	const [isNotasFiscaisOpen, setIsNotasFiscaisOpen] = useState(false);
 	const [isRelatoriosOpen, setIsRelatoriosOpen] = useState(false);
 	const [isOutrosOpen, setIsOutrosOpen] = useState(false);
@@ -89,7 +97,7 @@ export default function DADocuments() {
 		}
 	};
 
-	const handleDownload = (file: any) => {
+	const handleDownload = (file: FileObject) => {
 		if (file.aws_url) {
 			window.open(file.aws_url, "_blank");
 		} else {
@@ -259,4 +267,3 @@ export default function DADocuments() {
 		</div>
 	  );
 	}
-	

@@ -30,7 +30,7 @@ export function UserSidebar({
 }) {
   const [userName, setUserName] = useState("Carregando...");
   const [userEmail, setUserEmail] = useState("...");
-  const [actions, setActions] = useState([]);
+  const [actions, setActions] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [showEditOngModal, setShowEditOngModal] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
@@ -397,7 +397,7 @@ export function UserSidebar({
                 </Button>
                 <Button
                   className="w-1/2 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 transition-all shadow-md"
-                  onClick={() => (window.location.href = "/historico/ongs")}
+                  onClick={() => (window.location.href = "/dashboard/history")}
                 >
                   Histórico da ONG
                 </Button>

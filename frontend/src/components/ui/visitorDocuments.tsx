@@ -6,12 +6,19 @@ import arrowDown from "../../assets/downArrow.svg";
 import arrowUP from "../../assets/upArrow.svg";
 import download from "../../assets/Documents.svg";
 
+// Define interface for file objects
+interface FileObject {
+  name: string;
+  aws_url?: string;
+  // Add other properties that might be in the file objects
+}
+
 export default function VisitorDocuments() {
   const searchParams = useSearchParams();
   const ngoId = searchParams.get("ngo_id");
-  const [others, setOthers] = useState([]);
-  const [taxInvoices, setTaxInvoices] = useState([]);
-  const [reports, setReports] = useState([]);
+  const [others, setOthers] = useState<FileObject[]>([]);
+  const [taxInvoices, setTaxInvoices] = useState<FileObject[]>([]);
+  const [reports, setReports] = useState<FileObject[]>([]);
   const [isNotasFiscaisOpen, setIsNotasFiscaisOpen] = useState(false);
   const [isRelatoriosOpen, setIsRelatoriosOpen] = useState(false);
   const [isOutrosOpen, setIsOutrosOpen] = useState(false);
@@ -20,22 +27,22 @@ export default function VisitorDocuments() {
     if (ngoId) {
       fetch(`http://127.0.0.1:3333/ongs/${ngoId}/files/others`)
         .then(response => { if (!response.ok) throw new Error("Erro ao buscar outros arquivos"); return response.json(); })
-        .then(data => setOthers(data))
+        .then((data: FileObject[]) => setOthers(data))
         .catch(err => console.error(err));
       fetch(`http://127.0.0.1:3333/ongs/${ngoId}/files/tax_invoices`)
         .then(response => { if (!response.ok) throw new Error("Erro ao buscar notas fiscais"); return response.json(); })
-        .then(data => setTaxInvoices(data))
+        .then((data: FileObject[]) => setTaxInvoices(data))
         .catch(err => console.error(err));
       fetch(`http://127.0.0.1:3333/ongs/${ngoId}/files/reports`)
         .then(response => { if (!response.ok) throw new Error("Erro ao buscar relatórios"); return response.json(); })
-        .then(data => setReports(data))
+        .then((data: FileObject[]) => setReports(data))
         .catch(err => console.error(err));
     }
   };
 
   useEffect(() => { if (ngoId) getFiles(); }, [ngoId]);
 
-  const handleDownload = (file: any) => {
+  const handleDownload = (file: FileObject) => {
     if (file.aws_url) {
       window.open(file.aws_url, "_blank");
     } else {
