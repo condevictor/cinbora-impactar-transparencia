@@ -9,10 +9,11 @@ import dateIcon from "../assets/date_icon.svg";
 import phoneIcon from "../assets/phone_icon.svg";
 import shareButton from "../assets/share.svg";
 import Link from "next/link";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ModalPortal from "@/components/ui/modalPortal";
 import { Search } from "lucide-react";
+import TypedHeader from "@/components/ui/typedHeader";
+
 
 
 interface Ong {
@@ -32,6 +33,7 @@ export default function Ongs() {
 
   const openModal = (ong: Ong) => setSelectedOng(ong);
   const closeModal = () => setSelectedOng(null);
+  
 
   useEffect(() => {
     fetch("http://127.0.0.1:3333/ongs")
@@ -54,9 +56,8 @@ export default function Ongs() {
           <h1 className="font-semibold text-5xl max-lg:text-4xl max-md:text-3xl max-sm:text-xl">
             Portal da Transparência
           </h1>
-          <h2 className="font-semibold text-3xl max-w-96 mt-auto max-lg:text-2xl max-md:text-xl max-sm:text-sm">
-            Transparência gera confiança, acompanhe cada passo das nossas atuações.
-          </h2>
+          <TypedHeader />
+
         </div>
         <div className="flex flex-col">
           <Image
@@ -79,7 +80,7 @@ export default function Ongs() {
         <p className="mt-4 text-gray-700 text-lg">Selecione uma ONG abaixo para conhecer seu trabalho.</p>
       </div>
 
-      <div className="relative w-full max-w-2xl mx-auto mb-12 px-4">
+      <div className="relative w-full max-w-2xl mx-auto mb-20 px-4">
         <input
           type="text"
           placeholder="Buscar ONG..."

@@ -32,9 +32,10 @@ input::-webkit-outer-spin-button {
   display: none !important;
 }
 
-.neon-border {
-  box-shadow: 0 0 8px #00e0ff, 0 0 16px #00e0ff, 0 0 24px #00e0ff;
-  border-left: 2px solid #00e0ff;
-  border-top-right-radius: 9999px;
-  border-bottom-right-radius: 9999px;
+
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
+

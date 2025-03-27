@@ -65,13 +65,17 @@ export default function Header() {
       <Menubar className="border-none shadow-none text-white justify-between max-lg:hidden">
         <MenubarMenu>
           <Link href="/">
-            <MenubarTrigger className="px-20 pl-0 text-xl font-semibold text-white transition-all duration-300 hover:text-[#d4dbf0] hover:scale-110">
-              Início
+            <MenubarTrigger className="px-20 text-xl font-semibold text-white relative group">
+              <span className="relative inline-block after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-white after:transition-all after:duration-300 group-hover:after:w-full">
+                Início
+              </span>
             </MenubarTrigger>
           </Link>
           <Link href="/partners">
-            <MenubarTrigger className="px-20 pr-0 text-xl font-semibold text-white transition-all duration-300 hover:text-[#d4dbf0] hover:scale-110">
-              Parceiros
+            <MenubarTrigger className="px-20 text-xl font-semibold text-white relative group">
+              <span className="relative inline-block after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-white after:transition-all after:duration-300 group-hover:after:w-full">
+                Parceiros
+              </span>
             </MenubarTrigger>
           </Link>
         </MenubarMenu>

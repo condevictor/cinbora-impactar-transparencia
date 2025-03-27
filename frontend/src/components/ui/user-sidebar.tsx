@@ -408,14 +408,14 @@ export function UserSidebar({
 
               <div className="flex w-full gap-2 mt-6">
                 <Button
-                  className="w-1/2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all shadow-md"
+                  className="w-1/2 bg-blue-500 text-white rounded-full hover:bg-blue-700 transition-all shadow-md"
                   onClick={() => (window.location.href = "/dashboard/ongs")}
                 >
                   Minha ONG
                 </Button>
                 <Button
                   id="historico"
-                  className="w-1/2 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 transition-all shadow-md"
+                  className="w-1/2 bg-blue-800 text-white rounded-full hover:bg-blue-950 transition-all shadow-md"
                   onClick={() => (window.location.href = "/dashboard/history")}
                 >
                   Histórico da ONG

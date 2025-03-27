@@ -225,7 +225,7 @@ export default function Balance() {
           </DropdownMenu>
         </div>
         
-        <div className="rounded-3xl border-4 border-[#00B3FF] p-0 shadow-xl">
+        <div className="rounded-3xl p-8 border-4 border-[#00B3FF] shadow-xl">
           <ResponsiveContainer  width="100%" height={700}>
             <LineChart data={data} margin={{ top: 40, right: 20, left: 0, bottom: 50 }}>
               <CartesianGrid strokeDasharray="3 3" />
