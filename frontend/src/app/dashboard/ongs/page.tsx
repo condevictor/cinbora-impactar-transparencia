@@ -7,7 +7,7 @@ import Cookies from "js-cookie";
 import { Button } from "@/components/ui/button";
 import ModalPortal from "@/components/ui/modalPortal";
 import { UploadCloud, Loader2 } from "lucide-react";
-import { FiChevronDown } from "react-icons/fi";
+import { FiChevronDown, FiTrash2 } from "react-icons/fi";
 import {
   Carousel,
   CarouselContent,
@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 
-// Improved type definition to properly handle mixed types
+
 type EditingSlideType = {
 	id?: string;
 	name: string;
@@ -47,13 +47,20 @@ type EditingSlideType = {
 	aws_url?: string;
 };
 
-// Define type for slide objects
 type SlideType = EditingSlideType | { isAddCard: boolean; id?: never };
+
+const calculateSpent = (expenses: Record<string, number | string>): number =>
+  Object.values(expenses).reduce(
+    (acc, val) => acc + (typeof val === 'string' ? parseFloat(val) || 0 : Number(val)),
+    0
+  );
+
 
 export default function ActionsPage() {
   const [slides, setSlides] = useState<SlideType[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [actionToDelete, setActionToDelete] = useState<string | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [editingSlide, setEditingSlide] = useState<EditingSlideType>({
     name: "",
     type: "",
@@ -86,13 +93,7 @@ export default function ActionsPage() {
     .join("");
 };
 
-  useEffect(() => {
-    setEditingSlide((prev) => ({
-      ...prev,
-      spent: Object.values(prev?.categorysExpenses || {}).reduce<number>((acc, val) =>
-        acc + (typeof val === 'string' ? (parseFloat(val) || 0) : Number(val)), 0),
-    }));
-  }, [editingSlide?.categorysExpenses]);
+
 
   useEffect(() => {
     if (editingSlide.id) {
@@ -142,6 +143,30 @@ export default function ActionsPage() {
   
   useEffect(() => {
     fetchActions();
+  }, []);
+  
+  useEffect(() => {
+    const token = Cookies.get("auth_token");
+  
+    fetch("http://127.0.0.1:3333/logs/last", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          const timestamp = data[0]?.timestamp;
+          if (timestamp) {
+            const date = new Date(timestamp);
+            const formatted = date.toLocaleDateString("pt-BR");
+            setLastUpdated(formatted);
+          }
+        }
+      })
+      .catch(err => {
+        console.error("Erro ao buscar última atualização:", err);
+      });
   }, []);
   
   
@@ -283,7 +308,6 @@ export default function ActionsPage() {
         throw new Error(`Erro ao atualizar categorias: ${response.statusText}`);
       }
   
-      toast.success("Categorias de despesas atualizadas com sucesso!");
       return true;
     } catch (error) {
       console.error("Erro ao atualizar categorias de despesas:", error);
@@ -350,7 +374,6 @@ const fetchActionDetails = async (actionId: string): Promise<void> => {
 
     setOriginalCategorysExpenses(aggregatedExpenses);
     
-    // Fix: Using explicit null instead of allowing undefined
     const awsUrl = data.action.aws_url || "";
     
     setEditingSlide((prev) => ({
@@ -358,9 +381,11 @@ const fetchActionDetails = async (actionId: string): Promise<void> => {
       ...data.action,
       aws_url: awsUrl,
       categorysExpenses: aggregatedExpenses,
+      spent: calculateSpent(aggregatedExpenses),
     }));
+    
 
-    // Fix: Using explicit null instead of allowing undefined
+
     setImagePreview(awsUrl ?? null);
   } catch (error) {
     console.error("Erro ao carregar detalhes da ação:", error);
@@ -543,16 +568,21 @@ const handleSave = async () => {
 };
 
   return (
-    <main className="flex flex-col items-center min-h-screen py-10">
+    <main className="relative flex flex-col items-center min-h-screen py-10">
       <h1 className="text-center text-5xl font-bold text-[#2E4049] mt-20">{ngoName}</h1>
+      {lastUpdated && (
+        <div className="absolute top-6 right-10 text-gray-600 text-lg">
+          Dados atualizados pela última vez em: <strong>{lastUpdated}</strong>
+        </div>
+      )}
+
       <h1 className="text-center text-4xl font-bold text-[#2E4049] mt-20">Ações</h1>
-      
-      {/* Filtro idêntico ao page3 */}
+
       <div className="relative w-full max-w-xl mx-auto mt-10 px-4">
         <Search className="absolute left-6 top-3" />
           <input
             type="text"
-            placeholder="Buscar por nome ou meta"
+            placeholder="Buscar por nome ou causa da ação"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full p-3 pl-12 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
@@ -665,18 +695,15 @@ const handleSave = async () => {
                                 style={{ width: `${Math.min((Number(slide.spent) / Number(slide.goal)) * 100, 100).toFixed(2)}%` }}
                               />
                             </div>
-                            <p className="text-sm text-center text-gray-500 mt-2 mb-1 italic">
-                            Representa o quanto foi gasto da meta
-                            </p>
  
                             {/* Tooltip acima da barra */}
                             {hoveredSlide === slide.id && (
 															<div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 bg-white/90 backdrop-blur-sm text-gray-800 shadow-xl rounded-2xl px-5 py-4 w-[240px] text-sm">
-																{Number(slide.spent) >= Number(slide.goal) ? (
+																{Number(slide.colected) >= Number(slide.goal) ? (
 																	<p className="text-center font-semibold text-green-600">🎉 Meta Concluída!</p>
 																) : (
 																<p className="text-center font-semibold text-blue-600">
-																	🎯 {(Number(slide.spent) / Number(slide.goal) * 100).toFixed(2)}% da Meta Atingida
+																	🎯 {(Number(slide.colected) / Number(slide.goal) * 100).toFixed(2)}% da Meta Atingida
 																</p>
 																)}
 																<div className="mt-2 space-y-1">
@@ -803,7 +830,7 @@ const handleSave = async () => {
               </div>
 
               {modalTab === "detalhes" && (
-                <div className="mt-6 grid grid-cols-2 gap-4">
+                <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Campo de Título (Ocupa linha inteira) */}
                   <div id="titulo" className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700">Título</label>
@@ -847,23 +874,38 @@ const handleSave = async () => {
                         let rawValue = e.target.value;
                         rawValue = rawValue.replace(/[^0-9.]/g, "");
                         const parts = rawValue.split(".");
-                        if (parts.length > 2) return; 
-                        if (parts[1]) rawValue = parts[0] + "." + parts[1].slice(0, 2); 
-
+                        if (parts.length > 2) return;
+                        if (parts[1]) rawValue = parts[0] + "." + parts[1].slice(0, 2);
+                      
+                        const newExpenses = {
+                          ...editingSlide.categorysExpenses,
+                          [selectedCategory]: rawValue,
+                        };
+                      
                         setEditingSlide((prev) => ({
                           ...prev,
-                          goal: rawValue, 
+                          categorysExpenses: newExpenses,
+                          spent: calculateSpent(newExpenses),
                         }));
                       }}
+                      
                       onBlur={() => {
-                        const parsed = parseFloat(String(editingSlide.goal || "0"));
+                        const raw = editingSlide.categorysExpenses[selectedCategory!] as string;
+                        const parsed = parseFloat(raw || "0");
                         if (!isNaN(parsed)) {
+                          const newExpenses = {
+                            ...editingSlide.categorysExpenses,
+                            [selectedCategory!]: parsed,
+                          };
+                      
                           setEditingSlide((prev) => ({
                             ...prev,
-                            goal: parsed,
+                            categorysExpenses: newExpenses,
+                            spent: calculateSpent(newExpenses),
                           }));
                         }
                       }}
+                      
                       inputMode="decimal"
                     />
                   </div>
@@ -928,44 +970,94 @@ const handleSave = async () => {
 
                       {/* Valor da Categoria Selecionada (Só aparece se selectedCategory não for nulo) */}
                       {selectedCategory && (
-                        <div id="gasto" className="flex-1">
-                          <input
-                            type="text"
-                            className="w-full p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
-                            placeholder="Valor"
-                            value={editingSlide.categorysExpenses[selectedCategory]?.toString() || ""}
-                            onChange={(e) => {
-                              let rawValue = e.target.value;
-                              rawValue = rawValue.replace(/[^0-9.]/g, "");
-                              const parts = rawValue.split(".");
-                              if (parts.length > 2) return;
-                              if (parts[1]) rawValue = parts[0] + "." + parts[1].slice(0, 2); 
+                        <>
+                          <div id="gasto" className="flex-1">
+                            <input
+                              type="text"
+                              className="w-full p-4 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                              placeholder="Valor"
+                              value={editingSlide.categorysExpenses[selectedCategory]?.toString() || ""}
+                              onChange={(e) => {
+                                let rawValue = e.target.value;
+                                rawValue = rawValue.replace(/[^0-9.]/g, "");
+                                const parts = rawValue.split(".");
+                                if (parts.length > 2) return;
+                                if (parts[1]) rawValue = parts[0] + "." + parts[1].slice(0, 2);
 
-                              setEditingSlide((prev) => ({
-                                ...prev,
-                                categorysExpenses: {
-                                  ...prev.categorysExpenses,
-                                  [selectedCategory]: rawValue,
-                                },
-                              }));
-                            }}
-                            onBlur={() => {
-                              const raw = editingSlide.categorysExpenses[selectedCategory!] as string;
-                              const parsed = parseFloat(raw || "0");
-                              if (!isNaN(parsed)) {
                                 setEditingSlide((prev) => ({
                                   ...prev,
                                   categorysExpenses: {
                                     ...prev.categorysExpenses,
-                                    [selectedCategory!]: parsed,
+                                    [selectedCategory]: rawValue,
                                   },
                                 }));
-                              }
-                            }}
-                            inputMode="decimal"
-                          />
-                        </div>
+                              }}
+                              onBlur={() => {
+                                const raw = editingSlide.categorysExpenses[selectedCategory!] as string;
+                                const parsed = parseFloat(raw || "0");
+                                if (!isNaN(parsed)) {
+                                  setEditingSlide((prev) => ({
+                                    ...prev,
+                                    categorysExpenses: {
+                                      ...prev.categorysExpenses,
+                                      [selectedCategory!]: parsed,
+                                    },
+                                  }));
+                                }
+                              }}
+                              inputMode="decimal"
+                            />
+                          </div>
+
+                          {/* Botão de deletar categoria */}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <button
+                                className="text-red-600 hover:text-red-800 transition-all"
+                                title="Excluir categoria"
+                              >
+                                <FiTrash2 className="w-5 h-5 ml-2 mt-4" />
+                              </button>
+                            </AlertDialogTrigger>
+
+                            <AlertDialogContent className="rounded-2xl shadow-lg p-6 w-[380px] flex flex-col items-center bg-white">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-lg font-semibold text-gray-900 text-center">
+                                  Tem certeza que deseja excluir essa categoria?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="text-gray-600 text-center mt-2">
+                                  Isso fará com que todos os seus registros sejam apagados.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter className="flex gap-4 mt-4">
+                                <AlertDialogCancel className="bg-gray-200 text-gray-800 rounded-full px-6 py-3 hover:bg-gray-300 transition-all w-full sm:w-auto">
+                                  Cancelar
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  className="bg-red-500 text-white rounded-full px-6 py-3 hover:bg-red-600 transition-all w-full sm:w-auto"
+                                  onClick={() => {
+                                    setEditingSlide((prev) => {
+                                      const updated = { ...prev.categorysExpenses };
+                                      delete updated[selectedCategory!];
+                                      return {
+                                        ...prev,
+                                        categorysExpenses: updated,
+                                        spent: calculateSpent(updated),
+                                      };
+                                    });
+                                    setSelectedCategory(null);
+                                  }}                                  
+                                >
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+
+                        </>
                       )}
+
+
                     </div>
 
                     {/* Adicionar Nova Categoria */}
@@ -984,16 +1076,18 @@ const handleSave = async () => {
                             newCategory.trim() !== "" &&
                             !editingSlide.categorysExpenses?.[newCategory.trim()]
                           ) {
+                            const updated = {
+                              ...editingSlide.categorysExpenses,
+                              [newCategory.trim()]: 0,
+                            };
                             setEditingSlide({
                               ...editingSlide,
-                              categorysExpenses: {
-                                ...editingSlide.categorysExpenses,
-                                [newCategory.trim()]: 0,
-                              },
+                              categorysExpenses: updated,
+                              spent: calculateSpent(updated),
                             });
                             setNewCategory("");
                           }
-                        }}
+                        }}                        
                       >
                         +
                       </button>

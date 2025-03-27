@@ -38,9 +38,13 @@ interface YearData {
 
 interface NgoData {
   ngoGrafic?: {
+    id: string;
+    ngoId: number;
+    totalExpenses: number;
     expensesByAction: YearData[];
   };
 }
+
 
 const monthNames = [
   "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
@@ -68,6 +72,7 @@ export default function Balance() {
   const [data, setData] = useState<Array<{[key: string]: any}>>([]);
   const [visibleLines, setVisibleLines] = useState<{ [key: string]: boolean }>({});
   const [actionColors, setActionColors] = useState<{ [key: string]: string }>({});
+  const [totalExpenses, setTotalExpenses] = useState<number>(0);
 
   useEffect(() => {
     const ngoId = Cookies.get("ngo_id");
@@ -76,6 +81,8 @@ export default function Balance() {
     fetch(`http://127.0.0.1:3333/ongs/${ngoId}`)
       .then((res) => res.json())
       .then((response: NgoData) => {
+
+        
         if (!response?.ngoGrafic?.expensesByAction?.length) return;
   
         const { expensesByAction } = response.ngoGrafic;
@@ -92,6 +99,7 @@ export default function Balance() {
           curr.day > acc.day ? curr : acc
         );
   
+        setTotalExpenses(response.ngoGrafic?.totalExpenses || 0);
         const actionsToDisplay = Object.keys(lastDayRecord.expensesByAction || {});
         const allYears = new Set<string>();
         const expensesByMonth: { [month: string]: any } = {};
@@ -156,13 +164,24 @@ export default function Balance() {
         if (!selectedYear) setSelectedYear(sortedYears[0]);
       })
       .catch(error => console.error("Error fetching NGO data:", error));
-  }, [selectedYear, actionColors]);
+}, [selectedYear]);
+
   
 
   return (
     <div className="flex justify-center py-10">
       <div className="w-[95%] max-w-[1400px]">
         <h2 className="text-center font-bold text-5xl mb-16">Balanço de gastos</h2>
+
+
+        <div className="flex justify-between items-center mb-16">
+          <div className="text-left">
+            <p className="text-gray-500 text-xl">Total gasto</p>
+            <p className="text-4xl font-bold text-gray-800">
+              {totalExpenses.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+            </p>
+          </div>
+        </div>
 
         <div className="flex justify-between items-center mb-4 relative text-lg">
           <DropdownMenu>
@@ -205,7 +224,7 @@ export default function Balance() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-
+        
         <div className="rounded-3xl border-4 border-[#00B3FF] p-0 shadow-xl">
           <ResponsiveContainer  width="100%" height={700}>
             <LineChart data={data} margin={{ top: 40, right: 20, left: 0, bottom: 50 }}>

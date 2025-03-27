@@ -249,7 +249,7 @@ export function UserSidebar({
         onClick={() => setIsOpen(true)}
         className="rounded-full p-1 bg-gray-200 hover:bg-gray-300 transition-all"
       >
-        <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
+        <div className="w-12 h-12 rounded-full overflow-hidden bg-white flex items-center justify-center">
           {avatarUrl ? (
             <img
               src={avatarUrl}
@@ -286,7 +286,7 @@ export function UserSidebar({
 
             <div className="px-6 pb-6 overflow-y-auto h-[calc(100%-64px)] flex flex-col items-center gap-4">
               <div className="relative flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
+                <div className="w-20 h-20 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
                   {avatarUrl ? (
                     <img
                       src={avatarUrl}
@@ -343,18 +343,30 @@ export function UserSidebar({
                           {action.type.toUpperCase()}
                         </Badge>
                       </h4>
-                      <div className="flex justify-between text-sm font-semibold text-gray-700 mt-4">
-                        <div className="text-center">
-                          <p className="text-xs text-gray-500">Arrecadado</p>
-                          <p className="text-lg font-bold whitespace-nowrap">
-                            R${" "}
-                            {new Intl.NumberFormat("pt-BR", {
-                              notation: "compact",
-                              compactDisplay: "short",
-                            }).format(action.colected)}
-                          </p>
+                      <div className="mt-4 text-sm font-semibold text-gray-700 flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0">
+                        <div className="flex justify-center gap-4 sm:flex-col sm:items-center sm:text-center w-full">
+                          <div className="text-center">
+                            <p className="text-xs text-gray-500">Arrecadado</p>
+                            <p className="text-lg font-bold whitespace-nowrap">
+                              R${" "}
+                              {new Intl.NumberFormat("pt-BR", {
+                                notation: "compact",
+                                compactDisplay: "short",
+                              }).format(action.colected)}
+                            </p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-gray-500">Meta</p>
+                            <p className="text-lg font-bold whitespace-nowrap">
+                              R${" "}
+                              {new Intl.NumberFormat("pt-BR", {
+                                notation: "compact",
+                                compactDisplay: "short",
+                              }).format(action.goal)}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-center">
+                        <div className="text-center w-full">
                           <p className="text-xs text-gray-500">Gasto</p>
                           <p className="text-lg font-bold text-red-500 whitespace-nowrap">
                             R${" "}
@@ -364,20 +376,10 @@ export function UserSidebar({
                             }).format(action.spent)}
                           </p>
                         </div>
-                        <div className="text-center">
-                          <p className="text-xs text-gray-500">Meta</p>
-                          <p className="text-lg font-bold whitespace-nowrap">
-                            R${" "}
-                            {new Intl.NumberFormat("pt-BR", {
-                              notation: "compact",
-                              compactDisplay: "short",
-                            }).format(action.goal)}
-                          </p>
-                        </div>
                       </div>
                       <Progress
                         className="w-full h-2 mt-2 bg-gray-200 rounded-full"
-                        indicatorClass="bg-green-500 rounded-full"
+                        indicatorClass="bg-green-500 rounded-full bg-[#2BAFF150]"
                         value={(action.colected / action.goal) * 100}
                       />
                     </div>
