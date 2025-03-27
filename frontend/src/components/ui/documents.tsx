@@ -1,7 +1,8 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import arrowDown from "../../assets/downArrow.svg";
-import arrowUP from "../../assets/upArrow.svg";
 import download from "../../assets/Documents.svg";
 import { UploadCloud, Trash2 } from "lucide-react";
 import Cookies from "js-cookie";
@@ -33,25 +34,28 @@ const AccordionSection = ({
   const ref = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState("0px");
 
-  useEffect(() => {
+  const updateHeight = () => {
     if (ref.current) {
-      if (isOpen) {
-        setHeight(`${ref.current.scrollHeight}px`);
-      } else {
-        setHeight("0px");
-      }
+      setHeight(`${ref.current.scrollHeight}px`);
     }
-  }, [isOpen]);
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      requestAnimationFrame(() => {
+        setTimeout(updateHeight, 100); 
+      });
+    } else {
+      setHeight("0px");
+    }
+  }, [isOpen, children]);
 
   return (
     <div
-      style={{ height, marginBottom: isOpen ? "1.5rem" : "0px" }}
+      style={{ maxHeight: height, marginBottom: isOpen ? "2rem" : "0px" }}
       className="transition-all duration-500 ease-in-out overflow-hidden"
     >
-
-      <div ref={ref} className="opacity-100">
-        {children}
-      </div>
+      <div ref={ref}>{children}</div>
     </div>
   );
 };
@@ -196,14 +200,28 @@ export default function Documents() {
                 <Trash2 className="text-red-600 w-6 h-6" />
               </button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="rounded-2xl bg-white shadow-lg p-6 w-[380px]">
-              <AlertDialogHeader>
-                <AlertDialogTitle>Deseja deletar este documento?</AlertDialogTitle>
-                <AlertDialogDescription>Esta operação não poderá ser desfeita.</AlertDialogDescription>
+            <AlertDialogContent className="rounded-[16px] bg-white shadow-2xl p-8 w-full max-w-md border border-gray-200 text-center">
+              <AlertDialogHeader className="flex flex-col items-center text-center justify-center space-y-4">
+                <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
+                  <Trash2 className="text-red-600 w-6 h-6" />
+                </div>
+                <AlertDialogTitle className="text-lg font-bold text-gray-800">
+                  Tem certeza que deseja deletar?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-sm text-gray-500">
+                  Essa ação é irreversível. O documento será permanentemente excluído.
+                </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={() => handleDeleteFile(item.id)}>Deletar</AlertDialogAction>
+              <AlertDialogFooter className="mt-6 flex justify-center gap-4">
+                <AlertDialogCancel className="px-4 py-2 rounded-[16px] border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                  Cancelar
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => handleDeleteFile(item.id)}
+                  className="px-4 py-2 rounded-[16px] bg-red-600 text-white hover:bg-red-700 transition"
+                >
+                  Deletar
+                </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -221,9 +239,9 @@ export default function Documents() {
           <p className="ml-12">Notas Fiscais</p>
           <Image className={`w-4 mr-12 transition-transform duration-300 ${isNotasFiscaisOpen ? "rotate-180" : ""}`} src={arrowDown} alt="toggle" />
         </div>
-        <AccordionSection isOpen={isNotasFiscaisOpen}>
+        <AccordionSection isOpen={isNotasFiscaisOpen} key={taxInvoices.length}>
           <h1 className="text-center font-bold text-2xl mb-2">Notas Fiscais</h1>
-          <div className="h-full w-full border border-black rounded-[64px] p-16 mb-10 max-[1600px]:border-none max-[1600px]:p-0">
+          <div className="h-full w-full border border-black rounded-[64px] p-16 mb-16 max-[1600px]:border-none max-[1600px]:p-0">
             <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
               {renderFiles(taxInvoices, "tax invoice")}
             </div>
@@ -235,9 +253,9 @@ export default function Documents() {
           <p className="ml-12">Relatórios</p>
           <Image className={`w-4 mr-12 transition-transform duration-300 ${isRelatoriosOpen ? "rotate-180" : ""}`} src={arrowDown} alt="toggle" />
         </div>
-        <AccordionSection isOpen={isRelatoriosOpen}>
+        <AccordionSection isOpen={isRelatoriosOpen} key={reports.length}>
           <h1 className="text-center font-bold text-2xl mb-2">Relatórios</h1>
-          <div className="h-full w-full border border-black rounded-[64px] p-16 mb-10 max-[1600px]:border-none max-[1600px]:p-0">
+          <div className="h-full w-full border border-black rounded-[64px] p-16 mb-16 max-[1600px]:border-none max-[1600px]:p-0">
             <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
               {renderFiles(reports, "report")}
             </div>
@@ -249,9 +267,9 @@ export default function Documents() {
           <p className="ml-12">Outros documentos</p>
           <Image className={`w-4 mr-12 transition-transform duration-300 ${isOutrosOpen ? "rotate-180" : ""}`} src={arrowDown} alt="toggle" />
         </div>
-        <AccordionSection isOpen={isOutrosOpen}>
+        <AccordionSection isOpen={isOutrosOpen} key={others.length}>
           <h1 className="text-center font-bold text-2xl mb-2">Outros documentos</h1>
-          <div className="h-full w-full border border-black rounded-[64px] p-16 mb-10 max-[1600px]:border-none max-[1600px]:p-0">
+          <div className="h-full w-full border border-black rounded-[64px] p-16 mb-16 max-[1600px]:border-none max-[1600px]:p-0">
             <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
               {renderFiles(others, "other")}
             </div>
