@@ -66,11 +66,26 @@ export default function Header() {
   return (
     <header className="bg-[#00B3FF] py-5 px-12 flex items-center justify-between max-sm:px-5">
       <div>
-        <div className="flex justify-between max-sm:max-w-40">
-          <Image src={prefeituraLogo} alt="Prefeitura do Recife" className="max-sm:w-[80%]"/>
-          <div className="border-solid border-l-2 border-white h-14 ml-4 mr-2 max-sm:ml-3 max-sm:mr-1 max-sm:h-12"></div>
-          <Image src={cinLogo} alt="logo do cin/ufpe" className="max-sm:w-[30%] max-s"/>
-        </div>
+      <div className="flex justify-between max-sm:max-w-40  items-center gap-4">
+        <Link href="/" className="inline-block">
+          <Image
+            src={prefeituraLogo}
+            alt="Prefeitura do Recife"
+            className=" w-auto h-auto"
+          />
+        </Link>
+
+        <div className="border-solid border-l-2 border-white h-14 max-sm:h-12" />
+
+        <Link href="/" className="inline-block">
+          <Image
+            src={cinLogo}
+            alt="logo do cin/ufpe"
+            className=" w-auto h-auto"
+          />
+        </Link>
+      </div>
+
       </div>
       <Menubar className="border-none shadow-none text-white justify-between max-lg:hidden">
         <MenubarMenu>

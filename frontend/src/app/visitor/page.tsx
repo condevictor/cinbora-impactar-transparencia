@@ -129,7 +129,7 @@ export default function Visitor() {
                         </div>
 
                         <div className="relative z-10 -mt-12 bg-white p-3 py-6 border border-gray-200 rounded-[16px] shadow-lg w-[90%] mx-auto">
-                          <p title={slide.type} className="inline-block max-w-32 text-xs font-semibold text-[#0056D2] bg-[#E9F2FF] px-3 py-1 rounded-lg uppercase whitespace-nowrap overflow-hidden text-ellipsis">
+                          <p title={slide.type} className="inline-block max-w-32 text-xs font-semibold text-[#0056D2] bg-[#E9F2FF] px-3 py-1 rounded-[8px] uppercase whitespace-nowrap overflow-hidden text-ellipsis">
                             {slide.type}
                           </p>
                           <h2 title={slide.name} className="text-lg font-semibold mt-3 text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">{slide.name}</h2>

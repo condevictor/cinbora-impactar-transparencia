@@ -473,13 +473,15 @@ const handleSave = async () => {
   }
 
   const isUpdate = !!editingSlide.id;
+  const updatedCategories = validateAndFixCategories();
+  const hasCategoryChanges =
+    JSON.stringify(updatedCategories) !== JSON.stringify(originalCategorysExpenses);
+  
   if (!isUpdate && !imageFile) {
     toast.error("Erro: É obrigatório anexar uma imagem antes de salvar.");
     setIsSaving(false);
     return;
   }
-
-  const updatedCategories = validateAndFixCategories();
 
   const token = Cookies.get("auth_token");
   const method = isUpdate ? "PUT" : "POST";
@@ -537,10 +539,11 @@ const handleSave = async () => {
     // Fix: Ensure id is always converted to string
     const slideId = updatedSlide.id ? String(updatedSlide.id) : "";
 
-    if (isUpdate && slideId) {
+    if (isUpdate && slideId && hasCategoryChanges) {
       const categoryRes = await updateCategoryExpenses(slideId, updatedCategories);
       if (categoryRes === false) throw new Error("Erro nas categorias.");
     }
+    
 
     if (isUpdate && slideId && imageFile) {
       await updateSlideImage(slideId);
@@ -675,7 +678,7 @@ const handleSave = async () => {
                           </div>
  
                           {/* Tag do Tipo */}
-                          <p title={slide.type} className="inline-block max-w-32 text-xs font-semibold text-[#0056D2] bg-[#E9F2FF] px-3 py-1 rounded-lg uppercase whitespace-nowrap overflow-hidden text-ellipsis">
+                          <p title={slide.type} className="inline-block rounded-[8px] max-w-32 text-xs font-semibold text-[#0056D2] bg-[#E9F2FF] px-3 py-1 uppercase whitespace-nowrap overflow-hidden text-ellipsis">
                             {slide.type}
                           </p>
  
