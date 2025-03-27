@@ -79,15 +79,15 @@ export default function Ongs() {
         <p className="mt-4 text-gray-700 text-lg">Selecione uma ONG abaixo para conhecer seu trabalho.</p>
       </div>
 
-      <div className="relative w-full max-w-xl mx-auto mb-12 max-lg:p-3">
+      <div className="relative w-full max-w-2xl mx-auto mb-12 px-4">
         <input
           type="text"
           placeholder="Buscar ONG..."
-          className="w-full py-3 pl-10 pr-28 rounded-full text-gray-700 placeholder-gray-400 bg-gradient-to-r from-white via-white to-[#E0F2FF] shadow-md focus:outline-none"
+          className="w-full py-3 pl-10 pr-28 rounded-full text-gray-700 placeholder-gray-400 bg-gradient-to-r from-white via-white to-[#E0F2FF] shadow-md focus:outline-none text-sm sm:text-base"
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-        <div className="absolute right-0 top-0 bottom-0 w-24 rounded-r-full overflow-hidden">
+        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
+        <div className="absolute right-[25px] top-0 bottom-0 w-20 sm:w-24 rounded-r-full overflow-hidden">
           <Image
             src={boraImpactar}
             alt="Logo Bora Impactar"
@@ -95,6 +95,7 @@ export default function Ongs() {
           />
         </div>
       </div>
+
 
 
 
