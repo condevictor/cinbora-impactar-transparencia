@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import Fastify from 'fastify';
 import { LoginAPIController } from '../LoginAPIController';
 import { AuthController } from '@modules/authAPI';

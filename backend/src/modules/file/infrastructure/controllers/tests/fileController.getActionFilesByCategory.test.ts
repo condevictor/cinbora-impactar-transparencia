@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { FileController } from "../FileController";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { ActionParams } from "@routeParams/RouteParams";

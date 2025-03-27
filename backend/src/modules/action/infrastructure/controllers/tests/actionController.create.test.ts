@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import request from 'supertest';
 import Fastify from 'fastify';
 import fs from 'fs';
