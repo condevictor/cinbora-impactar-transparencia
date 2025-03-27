@@ -129,36 +129,50 @@ export default function Documents() {
             <h1 className="text-center font-bold text-2xl mb-2">Notas Fiscais</h1>
             <div className="h-full w-full border border-black rounded-[64px] p-16 mb-20 max-[1600px]:border-none max-[1600px]:p-0">
               <div className="grid grid-cols-3 gap-10 max-lg:grid-cols-2 max-sm:grid-cols-1">
-                <div onClick={() => handleUpload("tax invoice")} className="w-full h-12 rounded bg-[#E0E0E0] flex items-center justify-center cursor-pointer">
+                <div onClick={() => handleUpload("tax invoice")} className="w-full h-14 rounded-[16px] bg-[#E0E0E0] flex items-center justify-center cursor-pointer">
                   <UploadCloud className="text-[#294BB6] mr-2" size={24}/>
                   <p>Carregar arquivo</p>
                 </div>
                 {taxInvoices.map((item, index) => (
                   
-                    <div key={index} className="w-full h-12 mr-2 border border-[#294BB6]  rounded flex items-center px-0.5">
-                      <Image className="cursor-pointer" onClick={() => handleDownload(item)} src={download} alt="download" />
-                      <span onClick={() => handleDownload(item)} title={item.name} className="cursor-pointer ml-2 whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</span>
-                    
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <button className="ml-2 ml-auto">
-                            <Trash2 className="text-red-600 w-8 h-8"/>
-                          </button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent className="rounded-2xl bg-white shadow-lg p-6 w-[380px]">
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Deseja deletar este documento?</AlertDialogTitle>
-                            <AlertDialogDescription>Esta operação não poderá ser desfeita.</AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteFile(item.id)}>
-                              Deletar
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+                  <div
+                  key={index}
+                  className="w-full h-14 mr-2 border border-[#294BB6] rounded-[16px] flex items-center justify-between p-4 bg-[#F9FAFB] hover:shadow-md transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <Image
+                      className="cursor-pointer"
+                      onClick={() => handleDownload(item)}
+                      src={download}
+                      alt="download"
+                    />
+                    <span
+                      onClick={() => handleDownload(item)}
+                      title={item.name}
+                      className="cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis"
+                    >
+                      {item.name}
+                    </span>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button>
+                        <Trash2 className="text-red-600 w-6 h-6" />
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="rounded-2xl bg-white shadow-lg p-6 w-[380px]">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Deseja deletar este documento?</AlertDialogTitle>
+                        <AlertDialogDescription>Esta operação não poderá ser desfeita.</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteFile(item.id)}>Deletar</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+                
                 ))}
               </div>
             </div>
@@ -173,12 +187,12 @@ export default function Documents() {
             <h1 className="text-center font-bold text-2xl mb-2">Relatórios</h1>
             <div className="h-full w-full border border-black rounded-[64px] p-16 mb-20 max-[1600px]:border-none max-[1600px]:p-0">
               <div className="grid grid-cols-3 gap-10 max-lg:grid-cols-2 max-sm:grid-cols-1">
-                <div onClick={() => handleUpload("report")} className="w-full h-12 rounded bg-[#E0E0E0] flex items-center justify-center cursor-pointer">
+                <div onClick={() => handleUpload("report")} className="w-full h-14 rounded-[16px] bg-[#E0E0E0] flex items-center justify-center cursor-pointer">
                   <UploadCloud className="text-[#294BB6] mr-2" size={24}/>
                   <p>Carregar arquivo</p>
                 </div>
                 {reports.map((item, index) => (
-                  <div key={index} className="w-full h-12 mr-2 border border-[#294BB6] rounded flex items-center px-0.5">
+                  <div key={index} className="w-full h-14 mr-2 border border-[#294BB6] rounded-[16px] flex items-center p-4">
                     <Image className="cursor-pointer" onClick={() => handleDownload(item)} src={download} alt="download" />
                     <span onClick={() => handleDownload(item)} title={item.name} className="cursor-pointer ml-2 whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</span>
                   
@@ -216,12 +230,12 @@ export default function Documents() {
             <h1 className="text-center font-bold text-2xl mb-2">Outros documentos</h1>
             <div className="h-full w-full border border-black rounded-[64px] p-16 mb-20 max-[1600px]:border-none max-[1600px]:p-0">
               <div className="grid grid-cols-3 gap-10 max-lg:grid-cols-2 max-sm:grid-cols-1">
-                <div onClick={() => handleUpload("other")} className="w-full h-12 rounded bg-[#E0E0E0] flex items-center justify-center cursor-pointer">
+                <div onClick={() => handleUpload("other")} className="w-full h-14 rounded-[16px] bg-[#E0E0E0] flex items-center justify-center cursor-pointer">
                   <UploadCloud className="text-[#294BB6] mr-2" size={24}/>
                   <p>Carregar arquivo</p>
                 </div>
                 {others.map((item, index) => (
-                  <div key={index} className="w-full h-12 mr-2 border border-[#294BB6] rounded flex items-center px-0.5">
+                  <div key={index} className="w-full h-14 mr-2 border border-[#294BB6] rounded-[16px] p-4 flex items-center">
                     <Image className="cursor-pointer" onClick={() => handleDownload(item)} src={download} alt="download" />
                     <span onClick={() => handleDownload(item)} title={item.name} className="cursor-pointer ml-2 whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</span>
                   

@@ -152,85 +152,90 @@ export default function Gallery() {
   };
 
   return (
-    <div className="flex flex-col items-center w-5/6 m-auto">
-      {/* Título da Galeria */}
-      <h2 className="text-2xl font-bold mb-6 mt-10 w-full">Galeria de Fotos e Vídeos</h2>
-
-      {/* Separador */}
-      <div className="w-full border-b border-black mb-6"></div>
-
+    <div className="flex flex-col items-center w-11/12 max-w-6xl m-auto">
+      <h2 className="text-3xl font-bold mb-6 mt-10 w-full text-center">Galeria de Fotos e Vídeos</h2>
+      <div className="w-full border-b border-gray-300 mb-8"></div>
+  
       <div className="flex flex-col w-full">
-        {/* Seção de Imagens */}
-        <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-          <Camera className="text-blue-600 mr-2" size={35} />
+        {/* Imagens */}
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-700">
+          <Camera className="text-blue-600 mr-2" size={28} />
           Imagens
         </h2>
-
-        <div className="grid grid-cols-3 gap-10 max-lg:grid-cols-2 max-sm:grid-cols-1">
-          {/* Botão de Upload de Imagens */}
-          <label className="border-2 border-dashed border-gray-300 w-full h-64 flex flex-col justify-center items-center cursor-pointer rounded-lg">
-            <UploadCloud className="text-blue-600" size={32} />
-            <span className="text-lg font-semibold">Carregar Imagem</span>
+  
+        <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
+          {/* Botão upload imagem */}
+          <label className="border-2 border-dashed border-gray-300 w-full h-64 flex flex-col justify-center items-center cursor-pointer rounded-[16px] hover:shadow-lg transition">
+            <UploadCloud className="text-blue-600 mb-2" size={32} />
+            <span className="text-lg font-semibold text-gray-600">Carregar Imagem</span>
             <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileSelect(e, "image")} />
           </label>
-
-          {/* Grid de Imagens com onClick para expandir */}
+  
+          {/* Galeria de imagens */}
           {images.map((img, index) => (
             <img
               key={index}
               src={img}
               alt={`Imagem ${index}`}
-              className="w-full h-64 rounded-lg shadow cursor-pointer"
+              className="w-full h-64 object-cover rounded-[16px] shadow-md cursor-pointer hover:shadow-lg transition"
               onClick={() => handleExpandImage(img)}
             />
           ))}
         </div>
-
-        {/* Seção de Vídeos */}
-        <h2 className="text-lg font-bold mt-10 mb-4 flex items-center gap-2">
-          <Video className="text-blue-600 mr-2" size={35} />
+  
+        {/* Vídeos */}
+        <h2 className="text-xl font-bold mt-12 mb-4 flex items-center gap-2 text-gray-700">
+          <Video className="text-blue-600 mr-2" size={28} />
           Vídeos
         </h2>
-
-        <div className="grid grid-cols-3 gap-10 max-lg:grid-cols-2 max-sm:grid-cols-1 mb-20">
-          {/* Botão de Upload de Vídeos */}
-          <label className="border-2 border-dashed border-gray-300 w-full h-64 flex flex-col justify-center items-center cursor-pointer rounded-lg">
-            <UploadCloud className="text-blue-600" size={32} />
-            <span className="text-lg font-semibold">Carregar Vídeo</span>
+  
+        <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1 mb-20">
+          {/* Botão upload vídeo */}
+          <label className="border-2 border-dashed border-gray-300 w-full h-64 flex flex-col justify-center items-center cursor-pointer rounded-[16px] hover:shadow-lg transition">
+            <UploadCloud className="text-blue-600 mb-2" size={32} />
+            <span className="text-lg font-semibold text-gray-600">Carregar Vídeo</span>
             <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileSelect(e, "video")} />
           </label>
-
-          {/* Grid de Vídeos */}
+  
+          {/* Galeria de vídeos */}
           {videos.map((vid, index) => (
             <video
               key={index}
               src={vid}
-              className="w-full h-64 rounded-lg shadow"
+              className="w-full h-64 object-cover rounded-[16px] shadow-md hover:shadow-lg transition"
               controls
             />
           ))}
         </div>
       </div>
-
-      {/* Modal de Pré-visualização e Upload */}
+  
+      {/* Modal de Pré-visualização */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-white rounded-xl shadow-xl p-6">
+        <DialogContent className="bg-white rounded-[16px] shadow-xl p-6">
           <DialogHeader>
-            <DialogTitle>Pré-visualização</DialogTitle>
+            <DialogTitle className="text-xl font-bold">Pré-visualização</DialogTitle>
           </DialogHeader>
-
           <div className="flex flex-col gap-4">
-            {previewType === "image" && preview && <Image src={preview} alt="Preview" width={600} height={400} />}
-            {previewType === "video" && preview && (
-              <video src={preview} className="w-full rounded-lg" controls />
+            {previewType === "image" && preview && (
+              <Image
+                src={preview}
+                alt="Preview"
+                width={600}
+                height={400}
+                className="rounded-[16px] shadow-md"
+              />
             )}
-
-            {/* Dropdown para seleção de categoria */}
-            <label className="font-semibold">Categoria:</label>
+            {previewType === "video" && preview && (
+              <video src={preview} className="w-full rounded-[16px]" controls />
+            )}
+  
+            <label className="font-semibold text-gray-700">Categoria:</label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value as "tax_invoice" | "report" | "image" | "video" | "other")}
-              className="border p-2 rounded-lg"
+              onChange={(e) =>
+                setCategory(e.target.value as "tax_invoice" | "report" | "image" | "video" | "other")
+              }
+              className="border p-2 rounded-[16px] focus:outline-none focus:ring-2 focus:ring-blue-300"
             >
               <option value="tax_invoice">Nota Fiscal</option>
               <option value="report">Relatório</option>
@@ -238,19 +243,22 @@ export default function Gallery() {
               <option value="video">Vídeo</option>
               <option value="other">Outro</option>
             </select>
-
-            <Button onClick={handleUpload}>Confirmar Upload</Button>
+  
+            <Button className="rounded-[16px]" onClick={handleUpload}>
+              Confirmar Upload
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
-
+  
+      {/* Modal de imagem expandida */}
       <Dialog open={expandedImage !== null} onOpenChange={() => setExpandedImage(null)}>
-        <DialogContent className="bg-white rounded-xl shadow-xl p-8 ">
+        <DialogContent className="bg-white rounded-[16px] shadow-xl p-6">
           {expandedImage && (
-            <img src={expandedImage} alt="Imagem Expandida" className="w-full h-auto rounded-lg" />
+            <img src={expandedImage} alt="Imagem Expandida" className="w-full h-auto rounded-[16px]" />
           )}
         </DialogContent>
       </Dialog>
     </div>
-  );
+  );  
 }

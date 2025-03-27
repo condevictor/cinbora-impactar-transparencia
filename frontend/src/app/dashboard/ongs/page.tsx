@@ -588,7 +588,6 @@ const handleSave = async () => {
             className="w-full p-3 pl-12 border border-gray-300 rounded-[16px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
           />
       </div>
-
  
       {(() => {
         const filteredSlides = slides.filter(slide =>
@@ -606,10 +605,10 @@ const handleSave = async () => {
           <Carousel opts={{ align: "start" }} className="w-[100%] mt-16 p-4">
             <CarouselContent>
               {(displaySlides.reverse()).map((slide, index) => (
-                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 w-full border-none shadow-none">
+                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 w-full border-none border-t shadow-none">
                   {'isAddCard' in slide ? (
                     <div
-                      className="p- flex items-center justify-center bg-gray-200 rounded-lg h-64 cursor-pointer"
+                      className="p- flex items-center justify-center bg-gray-200  h-64 rounded-[16px] cursor-pointer"
                       onClick={() => openModal()}
                     >
                       <p className="text-lg font-semibold text-gray-600">+ Adicionar Ação</p>
@@ -618,7 +617,7 @@ const handleSave = async () => {
                     <div>
                       <div className="relative w-full">
                         {/* Container da Imagem */}
-                        <div className="relative w-full h-[180px] overflow-hidden rounded-t-lg">
+                        <div className="relative w-full h-[180px] overflow-hidden rounded-t-[16px]">
                           <Image
                             src={imageUrls[slide.id || ''] || capa.src}
                             alt="Imagem da ação"
@@ -629,7 +628,7 @@ const handleSave = async () => {
                         </div>
  
                         {/* Container do Card */}
-                        <div className="relative z-10 -mt-12 bg-white p-3 py-6 border border-gray-200 rounded-lg shadow-lg w-[90%] mx-auto">
+                        <div className="relative z-10 -mt-12 bg-white p-3 py-6 border border-gray-200 rounded-[16px] shadow-lg w-[90%] mx-auto">
                           {/* Botão Editar */}
                           <div id="editar" className="absolute top-6 right-3 flex space-x-2">
                             <button
