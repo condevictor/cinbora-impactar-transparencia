@@ -67,40 +67,50 @@ export function UserSidebar({
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
-      })      
-        .then((res) => res.json())
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Token inválido");
+          return res.json();
+        })
         .then((data) => {
           setAvatarUrl(data?.profileUrl || null);
           setUserName(data.name || "Usuário");
           setUserEmail(data.email || "email@exemplo.com");
         })
         .catch(() => {
+          Cookies.remove("auth_token");
           setAvatarUrl(null);
           setUserName("Erro ao carregar");
           setUserEmail("Erro ao carregar");
         });
     }
   }, [isOpen, authToken]);
+  
 
   useEffect(() => {
     if (showEditProfileModal && authToken) {
-      fetch(`http://127.0.0.1:3333/user`, {
+      fetch("http://127.0.0.1:3333/user", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
       })
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) throw new Error("Token inválido");
+          return res.json();
+        })
         .then((data) => {
           if (data?.profileUrl) {
             setProfilePreview(data.profileUrl);
           }
         })
         .catch(() => {
+          Cookies.remove("auth_token");
           toast.error("Erro ao carregar imagem de perfil.");
         });
     }
   }, [showEditProfileModal, authToken]);
+  
 
   useEffect(() => {
     if (showEditOngModal && authToken && ngoId) {
@@ -131,16 +141,20 @@ export function UserSidebar({
           Authorization: `Bearer ${authToken}`,
         },
       })
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) throw new Error("Token inválido");
+          return res.json();
+        })
         .then((data) => {
           setUserName(data.name || "Usuário");
           setUserEmail(data.email || "email@exemplo.com");
         })
         .catch(() => {
+          Cookies.remove("auth_token");
           setUserName("Erro ao carregar");
           setUserEmail("Erro ao carregar");
         });
-
+  
       if (ngoId) {
         fetch(`http://127.0.0.1:3333/ongs/${ngoId}/actions`, {
           headers: { Authorization: `Bearer ${authToken}` },
@@ -151,6 +165,7 @@ export function UserSidebar({
       }
     }
   }, [authToken, ngoId]);
+  
 
   useEffect(() => {
     if (isOpen) {

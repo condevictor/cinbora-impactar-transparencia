@@ -50,10 +50,10 @@ type EditingSlideType = {
 type SlideType = EditingSlideType | { isAddCard: boolean; id?: never };
 
 const calculateSpent = (expenses: Record<string, number | string>): number =>
-  Object.values(expenses).reduce(
-    (acc, val) => acc + (typeof val === 'string' ? parseFloat(val) || 0 : Number(val)),
-    0
-  );
+  Object.values(expenses).reduce<number>((acc, val) => {
+    const numericVal = typeof val === 'string' ? parseFloat(val) || 0 : val;
+    return acc + numericVal;
+  }, 0);
 
 
 export default function ActionsPage() {
@@ -877,16 +877,22 @@ const handleSave = async () => {
                         if (parts.length > 2) return;
                         if (parts[1]) rawValue = parts[0] + "." + parts[1].slice(0, 2);
                       
-                        const newExpenses = {
-                          ...editingSlide.categorysExpenses,
-                          [selectedCategory]: rawValue,
-                        };
+                        if (selectedCategory !== null) {
+                          const newExpenses = {
+                            ...editingSlide.categorysExpenses,
+                            [selectedCategory]: rawValue,
+                          };
+
+
+                          setEditingSlide((prev) => ({
+                            ...prev,
+                            categorysExpenses: newExpenses,
+                            spent: calculateSpent(newExpenses),
+                          }));
+                          
+                        }
+                        
                       
-                        setEditingSlide((prev) => ({
-                          ...prev,
-                          categorysExpenses: newExpenses,
-                          spent: calculateSpent(newExpenses),
-                        }));
                       }}
                       
                       onBlur={() => {
