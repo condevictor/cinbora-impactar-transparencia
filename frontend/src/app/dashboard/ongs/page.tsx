@@ -147,11 +147,14 @@ export default function ActionsPage() {
   
   useEffect(() => {
     const token = Cookies.get("auth_token");
+    const ngoId = Cookies.get("ngo_id");
   
-    fetch("http://127.0.0.1:3333/logs/last", {
+    if (!ngoId) return;
+  
+    fetch(`http://127.0.0.1:3333/logs/last/${ngoId}`, {
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     })
       .then(res => res.json())
       .then(data => {
@@ -167,8 +170,8 @@ export default function ActionsPage() {
       .catch(err => {
         console.error("Erro ao buscar última atualização:", err);
       });
-  }, []);
-  
+  }, []);  
+    
   
   useEffect(() => {
     if (isOpen) {

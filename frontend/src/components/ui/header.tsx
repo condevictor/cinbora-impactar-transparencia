@@ -4,7 +4,7 @@ import Image from "next/image";
 import prefeituraLogo from "../../assets/prefeitura.svg";
 import Link from "next/link";
 import Cookies from "js-cookie";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Menubar,
@@ -25,15 +25,20 @@ const UserSidebar = dynamic(() => import("./user-sidebar").then((mod) => mod.Use
 export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const fetchedOnce = useRef(false);
+  const lastToken = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     const interval = setInterval(() => {
       const token = Cookies.get("auth_token");
-  
-      if (token) {
+
+      if (token && token !== lastToken.current) {
+        lastToken.current = token;
         setIsLoggedIn(true);
-  
-        if (!avatarUrl) {
+
+        if (!fetchedOnce.current) {
+          fetchedOnce.current = true;
+
           fetch("http://127.0.0.1:3333/user", {
             method: "GET",
             headers: {
@@ -44,13 +49,18 @@ export default function Header() {
             .then((data) => setAvatarUrl(data?.profileUrl || null))
             .catch(() => setAvatarUrl(null));
         }
-      } else {
-        setIsLoggedIn(false);
       }
-    }, 500);
-  
+
+      if (!token) {
+        lastToken.current = undefined;
+        fetchedOnce.current = false;
+        setIsLoggedIn(false);
+        setAvatarUrl(null);
+      }
+    }, 500); 
+
     return () => clearInterval(interval);
-  }, [avatarUrl]);
+  }, []);
   
 
   return (
