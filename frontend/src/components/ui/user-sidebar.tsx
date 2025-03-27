@@ -358,45 +358,84 @@ export function UserSidebar({
                           {action.type.toUpperCase()}
                         </Badge>
                       </h4>
-                      <div className="mt-4 text-sm font-semibold text-gray-700 flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0">
-                        <div className="flex justify-center gap-4 sm:flex-col sm:items-center sm:text-center w-full">
-                          <div className="text-center">
-                            <p className="text-xs text-gray-500">Arrecadado</p>
-                            <p className="text-lg font-bold whitespace-nowrap">
-                              R${" "}
-                              {new Intl.NumberFormat("pt-BR", {
-                                notation: "compact",
-                                compactDisplay: "short",
-                              }).format(action.colected)}
-                            </p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xs text-gray-500">Meta</p>
-                            <p className="text-lg font-bold whitespace-nowrap">
-                              R${" "}
-                              {new Intl.NumberFormat("pt-BR", {
-                                notation: "compact",
-                                compactDisplay: "short",
-                              }).format(action.goal)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-center w-full">
-                          <p className="text-xs text-gray-500">Gasto</p>
-                          <p className="text-lg font-bold text-red-500 whitespace-nowrap">
-                            R${" "}
-                            {new Intl.NumberFormat("pt-BR", {
-                              notation: "compact",
-                              compactDisplay: "short",
-                            }).format(action.spent)}
-                          </p>
-                        </div>
-                      </div>
-                      <Progress
-                        className="w-full h-2 mt-2 bg-gray-200 rounded-full"
-                        indicatorClass="bg-green-500 rounded-full bg-[#2BAFF150]"
-                        value={(action.colected / action.goal) * 100}
-                      />
+                      <div className="mt-4 text-sm font-semibold text-gray-700 w-full">
+  {/* Layout mobile (triangular) */}
+  <div className="flex flex-col items-center gap-2 md:hidden">
+    <div className="flex justify-center gap-4 w-full">
+      <div className="text-center flex-1">
+        <p className="text-xs text-gray-500">Arrecadado</p>
+        <p className="text-lg font-bold whitespace-nowrap">
+          R${" "}
+          {new Intl.NumberFormat("pt-BR", {
+            notation: "compact",
+            compactDisplay: "short",
+          }).format(action.colected)}
+        </p>
+      </div>
+      <div className="text-center flex-1">
+        <p className="text-xs text-gray-500">Meta</p>
+        <p className="text-lg font-bold whitespace-nowrap">
+          R${" "}
+          {new Intl.NumberFormat("pt-BR", {
+            notation: "compact",
+            compactDisplay: "short",
+          }).format(action.goal)}
+        </p>
+      </div>
+    </div>
+    <div className="text-center">
+      <p className="text-xs text-gray-500">Gasto</p>
+      <p className="text-lg font-bold text-red-500 whitespace-nowrap">
+        R${" "}
+        {new Intl.NumberFormat("pt-BR", {
+          notation: "compact",
+          compactDisplay: "short",
+        }).format(action.spent)}
+      </p>
+    </div>
+  </div>
+
+  {/* Layout desktop (linha única) */}
+  <div className="hidden md:flex justify-between w-full text-center">
+    <div className="flex-1">
+      <p className="text-xs text-gray-500">Arrecadado</p>
+      <p className="text-lg font-bold whitespace-nowrap">
+        R${" "}
+        {new Intl.NumberFormat("pt-BR", {
+          notation: "compact",
+          compactDisplay: "short",
+        }).format(action.colected)}
+      </p>
+    </div>
+    <div className="flex-1">
+      <p className="text-xs text-gray-500">Meta</p>
+      <p className="text-lg font-bold whitespace-nowrap">
+        R${" "}
+        {new Intl.NumberFormat("pt-BR", {
+          notation: "compact",
+          compactDisplay: "short",
+        }).format(action.goal)}
+      </p>
+    </div>
+    <div className="flex-1">
+      <p className="text-xs text-gray-500">Gasto</p>
+      <p className="text-lg font-bold text-red-500 whitespace-nowrap">
+        R${" "}
+        {new Intl.NumberFormat("pt-BR", {
+          notation: "compact",
+          compactDisplay: "short",
+        }).format(action.spent)}
+      </p>
+    </div>
+  </div>
+</div>
+
+<Progress
+  className="w-full h-2 mt-2 bg-gray-200 rounded-full"
+  indicatorClass="bg-green-500 rounded-full bg-[#2BAFF150]"
+  value={(action.colected / action.goal) * 100}
+/>
+
                     </div>
                   ))
                 ) : (

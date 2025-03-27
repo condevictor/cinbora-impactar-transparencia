@@ -160,6 +160,8 @@ export default function Ongs() {
                       TRANSPARÊNCIA
                     </Button>
                   </Link>
+
+                  
                   <button
                     onClick={() => openModal(ong)}
                     className="rounded-full p-3 bg-[#E6EAF1] hover:bg-[#d6deec] border border-[#c3d0e6] transition-all shadow-sm"

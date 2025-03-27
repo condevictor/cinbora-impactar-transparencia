@@ -876,40 +876,22 @@ const handleSave = async () => {
                         if (parts.length > 2) return;
                         if (parts[1]) rawValue = parts[0] + "." + parts[1].slice(0, 2);
                       
-                        if (selectedCategory !== null) {
-                          const newExpenses = {
-                            ...editingSlide.categorysExpenses,
-                            [selectedCategory]: rawValue,
-                          };
-
-
-                          setEditingSlide((prev) => ({
-                            ...prev,
-                            categorysExpenses: newExpenses,
-                            spent: calculateSpent(newExpenses),
-                          }));
-                          
-                        }
-                        
-                      
+                        setEditingSlide((prev) => ({
+                          ...prev,
+                          goal: rawValue,
+                        }));
                       }}
                       
                       onBlur={() => {
-                        const raw = editingSlide.categorysExpenses[selectedCategory!] as string;
-                        const parsed = parseFloat(raw || "0");
+                        const parsed = parseFloat(String(editingSlide.goal || "0"));
                         if (!isNaN(parsed)) {
-                          const newExpenses = {
-                            ...editingSlide.categorysExpenses,
-                            [selectedCategory!]: parsed,
-                          };
-                      
                           setEditingSlide((prev) => ({
                             ...prev,
-                            categorysExpenses: newExpenses,
-                            spent: calculateSpent(newExpenses),
+                            goal: parsed,
                           }));
                         }
                       }}
+                      
                       
                       inputMode="decimal"
                     />

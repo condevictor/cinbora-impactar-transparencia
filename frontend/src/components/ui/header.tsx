@@ -66,14 +66,14 @@ export default function Header() {
         <MenubarMenu>
           <Link href="/">
             <MenubarTrigger className="px-20 text-xl font-semibold text-white relative group">
-              <span className="relative inline-block after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-white after:transition-all after:duration-300 group-hover:after:w-full">
+              <span className="relative cursor-pointer inline-block after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-white after:transition-all after:duration-300 group-hover:after:w-full">
                 Início
               </span>
             </MenubarTrigger>
           </Link>
           <Link href="/partners">
             <MenubarTrigger className="px-20 text-xl font-semibold text-white relative group">
-              <span className="relative inline-block after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-white after:transition-all after:duration-300 group-hover:after:w-full">
+              <span className="relative cursor-pointer inline-block after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-white after:transition-all after:duration-300 group-hover:after:w-full">
                 Parceiros
               </span>
             </MenubarTrigger>
