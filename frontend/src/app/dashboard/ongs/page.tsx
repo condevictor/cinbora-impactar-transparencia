@@ -146,31 +146,28 @@ export default function ActionsPage() {
   }, []);
   
   useEffect(() => {
-    const token = Cookies.get("auth_token");
     const ngoId = Cookies.get("ngo_id");
-  
-    if (!ngoId) return;
+    const token = Cookies.get("auth_token");
   
     fetch(`http://127.0.0.1:3333/logs/last/${ngoId}`, {
       headers: {
-        Authorization: `Bearer ${token}`,
-      },
+        Authorization: `Bearer ${token}`
+      }
     })
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          const timestamp = data[0]?.timestamp;
-          if (timestamp) {
-            const date = new Date(timestamp);
-            const formatted = date.toLocaleDateString("pt-BR");
-            setLastUpdated(formatted);
-          }
+        const timestamp = data?.timestamp;
+        if (timestamp) {
+          const date = new Date(timestamp);
+          const formatted = date.toLocaleDateString("pt-BR");
+          setLastUpdated(formatted);
         }
       })
       .catch(err => {
         console.error("Erro ao buscar última atualização:", err);
       });
-  }, []);  
+  }, []);
+  
     
   
   useEffect(() => {

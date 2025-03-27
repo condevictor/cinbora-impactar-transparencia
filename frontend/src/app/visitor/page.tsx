@@ -37,7 +37,27 @@ export default function Visitor() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [hoveredSlide, setHoveredSlide] = useState<number | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
+
+  useEffect(() => {
+	if (!ngoId) return;
+  
+	fetch(`http://127.0.0.1:3333/logs/last/${ngoId}`)
+	  .then((res) => res.json())
+	  .then((data) => {
+		const timestamp = data?.timestamp;
+		if (timestamp) {
+		  const date = new Date(timestamp);
+		  const formatted = date.toLocaleDateString("pt-BR");
+		  setLastUpdated(formatted);
+		}
+	  })
+	  .catch((err) => {
+		console.error("Erro ao buscar última atualização:", err);
+	  });
+  }, [ngoId]);
+  
   useEffect(() => {
     if (ngoId) {
       fetch(`http://127.0.0.1:3333/ongs/${ngoId}/actions`)
@@ -63,6 +83,12 @@ export default function Visitor() {
       <h1 className="text-center text-5xl font-bold text-[#2E4049] mt-20">
         Transparência
       </h1>
+
+	  {lastUpdated && (
+		<div className="absolute top-6 right-10 text-gray-600 text-lg">
+			Dados atualizados pela última vez em: <strong>{lastUpdated}</strong>
+		</div>
+		)}
       <h1 className="text-center text-4xl font-bold text-[#2E4049] mt-20">
         Ações
       </h1>
