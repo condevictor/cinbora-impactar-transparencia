@@ -12,7 +12,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen h-full flex flex-col">
         <ToastProvider />
         <Header />
-        <main className="flex-grow">{children}</main>
+        <main className="flex-grow" style={{ 
+          backgroundImage: `linear-gradient(
+            rgba(255, 255, 255, 1), rgba(244, 251, 255, 1), rgba(255, 255, 255, 1)
+          )`
+        }}>
+          {children}
+        </main>
         <Footer />
         <CookieBanner />
       </body>
