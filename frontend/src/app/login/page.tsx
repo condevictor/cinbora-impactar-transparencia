@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import Image from "next/image";
 import boraImpactar from "../../assets/bora_impactar.svg";
 import { Checkbox } from "@/components/ui/checkbox";
-
+import mini_impactar from "../../assets/mini_impactar.svg"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -90,9 +90,16 @@ export default function LoginPage() {
 
         <div className="lg:w-1/2 w-full flex justify-center">
           <div className="bg-white rounded-[16px] shadow-xl border border-gray-200 p-12 w-full max-w-lg font-sans">
-            <div className="w-14 h-14 rounded-full bg-blue-100 mx-auto mb-8" />
+            <div className="w-14 h-14 rounded-full bg-blue-100 mx-auto mb-8 flex items-center justify-center">
+              <Image
+                src={mini_impactar}
+                alt="Mini Impactar Logo"
+                className="w-10 h-10 object-contain"
+                priority
+              />
+            </div>
             <h2 className="text-2xl font-semibold text-center text-blue-900 mb-8">Entrar na plataforma</h2>
-
+    
             <form onSubmit={handleSubmit} className="space-y-5">
               <input
                 type="email"
@@ -170,19 +177,6 @@ export default function LoginPage() {
                   
             </div>
 
-            <div className="relative my-8">
-              <div className="absolute inset-0 border-t border-gray-200" />
-              <p className="relative text-base text-gray-500 bg-white w-max mx-auto px-4">
-                É uma ONG nova?
-              </p>
-            </div>
-
-            <button
-              type="button"
-              className="w-full border border-blue-500 text-base bg-white text-blue-600 rounded-[24px] py-3 hover:bg-blue-50 transition"
-            >
-              Criar uma conta
-            </button>
           </div>
         </div>
       </div>

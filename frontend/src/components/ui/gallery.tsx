@@ -5,12 +5,32 @@ import Cookies from "js-cookie";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { UploadCloud, Camera, Video } from "lucide-react";
+import { UploadCloud, Camera, Video, Trash2 } from "lucide-react";
 import Image from "next/image";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+// Interface para representar os arquivos de mídia
+interface MediaFile {
+  id: string;
+  aws_url: string;
+  category: string;
+  filename: string;
+  type: "image" | "video";
+}
 
 export default function Gallery() {
-  const [images, setImages] = useState<string[]>([]);
-  const [videos, setVideos] = useState<string[]>([]);
+  const [imageFiles, setImageFiles] = useState<MediaFile[]>([]);
+  const [videoFiles, setVideoFiles] = useState<MediaFile[]>([]);
   const [preview, setPreview] = useState<string | null>(null);
   const [previewType, setPreviewType] = useState<"image" | "video" | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -46,11 +66,12 @@ export default function Gallery() {
           return;
         }
         console.log("Imagens recebidas:", data);
-        setImages(data.map((item) => item.aws_url));
+        const typedImages = data.map((item) => ({ ...item, type: "image" as const }));
+        setImageFiles(typedImages);
       })
       .catch((error) => {
         console.log("Erro ao buscar imagens:", error);
-        setImages([]);
+        setImageFiles([]);
       });
   
     // Busca os vídeos
@@ -69,11 +90,12 @@ export default function Gallery() {
           return;
         }
         console.log("Vídeos recebidos:", data);
-        setVideos(data.map((item) => item.aws_url));
+        const typedVideos = data.map((item) => ({ ...item, type: "video" as const }));
+        setVideoFiles(typedVideos);
       })
       .catch((error) => {
         console.log("Erro ao buscar vídeos:", error);
-        setVideos([]);
+        setVideoFiles([]);
       });
   }, []);
   
@@ -134,11 +156,13 @@ export default function Gallery() {
       setFile(null);
       setPreview(null);
   
+      const newFile = { ...uploadedFile, type: uploadType };
+      
       // Atualiza o estado local com base no tipo de arquivo enviado
       if (uploadType === "image") {
-        setImages((prev) => [...prev, uploadedFile.aws_url]);
+        setImageFiles((prev) => [...prev, newFile]);
       } else {
-        setVideos((prev) => [...prev, uploadedFile.aws_url]);
+        setVideoFiles((prev) => [...prev, newFile]);
       }
     } catch (error) {
       console.log("Erro no upload:", error);
@@ -149,6 +173,50 @@ export default function Gallery() {
   // Função para expandir a imagem
   const handleExpandImage = (img: string) => {
     setExpandedImage(img);
+  };
+
+  // Função única para deletar qualquer tipo de arquivo
+  const handleDeleteFile = async (fileId: string) => {
+    const authToken = Cookies.get("auth_token");
+  
+    if (!authToken) {
+      toast.error("Erro de autenticação. Faça login novamente.");
+      return;
+    }
+  
+    // Encontra o arquivo nos arrays para determinar seu tipo
+    const imageFile = imageFiles.find(img => img.id === fileId);
+    const videoFile = videoFiles.find(vid => vid.id === fileId);
+    
+    if (!imageFile && !videoFile) {
+      toast.error("Arquivo não encontrado.");
+      return;
+    }
+
+    const isImage = !!imageFile;
+  
+    try {
+      const response = await fetch(`http://127.0.0.1:3333/ongs/files/${fileId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Erro ao deletar ${isImage ? "a imagem" : "o vídeo"}.`);
+      }
+  
+      toast.success(`${isImage ? "Imagem" : "Vídeo"} removido com sucesso!`);
+      
+      // Atualiza o estado removendo o arquivo deletado
+      if (isImage) {
+        setImageFiles(prev => prev.filter(img => img.id !== fileId));
+      } else {
+        setVideoFiles(prev => prev.filter(vid => vid.id !== fileId));
+      }
+    } catch (error) {
+      console.error(`Erro ao deletar arquivo:`, error);
+      toast.error(`Falha ao remover ${isImage ? "a imagem" : "o vídeo"}. Tente novamente.`);
+    }
   };
 
   return (
@@ -171,15 +239,49 @@ export default function Gallery() {
             <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileSelect(e, "image")} />
           </label>
   
-          {/* Galeria de imagens */}
-          {images.map((img, index) => (
-            <img
-              key={index}
-              src={img}
-              alt={`Imagem ${index}`}
-              className="w-full h-64 object-cover rounded-[16px] shadow-md cursor-pointer hover:shadow-lg transition"
-              onClick={() => handleExpandImage(img)}
-            />
+          {/* Galeria de imagens com botão de exclusão */}
+          {imageFiles.map((imgFile, index) => (
+            <div key={index} className="relative group">
+              <img
+                src={imgFile.aws_url}
+                alt={`Imagem ${index}`}
+                className="w-full h-64 object-cover rounded-[16px] shadow-md cursor-pointer hover:shadow-lg transition"
+                onClick={() => handleExpandImage(imgFile.aws_url)}
+              />
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button
+                    className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="rounded-2xl shadow-lg p-6 w-[380px] flex flex-col items-center bg-white">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-lg font-semibold text-gray-900 text-center">
+                      Deseja excluir esta imagem?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-gray-600 text-center mt-2">
+                      Esta operação não poderá ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter className="flex gap-4 mt-4">
+                    <AlertDialogCancel className="bg-gray-200 text-gray-800 rounded-full px-6 py-3 hover:bg-gray-300 transition-all w-full sm:w-auto">
+                      Cancelar
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-red-500 text-white rounded-full px-6 py-3 hover:bg-red-600 transition-all w-full sm:w-auto"
+                      onClick={() => handleDeleteFile(imgFile.id)}
+                    >
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           ))}
         </div>
   
@@ -197,14 +299,48 @@ export default function Gallery() {
             <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileSelect(e, "video")} />
           </label>
   
-          {/* Galeria de vídeos */}
-          {videos.map((vid, index) => (
-            <video
-              key={index}
-              src={vid}
-              className="w-full h-64 object-cover rounded-[16px] shadow-md hover:shadow-lg transition"
-              controls
-            />
+          {/* Galeria de vídeos com botão de exclusão */}
+          {videoFiles.map((vidFile, index) => (
+            <div key={index} className="relative group">
+              <video
+                src={vidFile.aws_url}
+                className="w-full h-64 object-cover rounded-[16px] shadow-md hover:shadow-lg transition"
+                controls
+              />
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button
+                    className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="rounded-2xl shadow-lg p-6 w-[380px] flex flex-col items-center bg-white">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-lg font-semibold text-gray-900 text-center">
+                      Deseja excluir este vídeo?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-gray-600 text-center mt-2">
+                      Esta operação não poderá ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter className="flex gap-4 mt-4">
+                    <AlertDialogCancel className="bg-gray-200 text-gray-800 rounded-full px-6 py-3 hover:bg-gray-300 transition-all w-full sm:w-auto">
+                      Cancelar
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-red-500 text-white rounded-full px-6 py-3 hover:bg-red-600 transition-all w-full sm:w-auto"
+                      onClick={() => handleDeleteFile(vidFile.id)}
+                    >
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           ))}
         </div>
       </div>
