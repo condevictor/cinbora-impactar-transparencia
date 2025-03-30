@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress";
-
+import { API_BASE_URL } from "@/config/api"
 import ActionsGallery from "@/components/ui/actionsGallery"
 import ActionsDocuments from "@/components/ui/actionsDocuments"
 import ActionsBalance from "@/components/ui/actionsBalance"
@@ -32,7 +32,7 @@ export default function ActionDetail() {
 
   useEffect(() => {
     if (acaoId) {
-      fetch(`http://127.0.0.1:3333/ongs/actions/${acaoId}`)
+      fetch(`${API_BASE_URL}/ongs/actions/${acaoId}`)
         .then(res => res.json())
         .then(data => {
           if (!data.action) {
