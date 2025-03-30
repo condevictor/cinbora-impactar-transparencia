@@ -6,7 +6,7 @@ import Cookies from "js-cookie";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { UploadCloud, Camera, Video, Trash2 } from "lucide-react";
+import { UploadCloud, Camera, Video, Trash2, Loader2 } from "lucide-react";
 import Image from "next/image";
 import {
   AlertDialog,
@@ -37,8 +37,8 @@ export default function Gallery() {
   const [file, setFile] = useState<File | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploadType, setUploadType] = useState<"image" | "video" | null>(null);
-  const [category, setCategory] = useState<"tax_invoice" | "report" | "image" | "video" | "other">("image");
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const searchParams = useSearchParams();
   const actionId = searchParams.get("action_id");
 
@@ -108,11 +108,16 @@ export default function Gallery() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Check if file exceeds 10MB (10 * 1024 * 1024 bytes)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("O arquivo excede o limite de 10MB");
+      return;
+    }
+
     setUploadType(type);
     setFile(file);
     setPreview(URL.createObjectURL(file));
     setPreviewType(type);
-    setCategory(type === "image" ? "image" : "video");
     setIsDialogOpen(true);
   };
 
@@ -122,15 +127,23 @@ export default function Gallery() {
       return;
     }
 
+    // Additional safety check for file size
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("O arquivo excede o limite de 10MB");
+      return;
+    }
+
     const authToken = Cookies.get("auth_token");
     if (!actionId || !authToken) {
       toast.error("Erro de autenticação. Faça login novamente.");
       return;
     }
 
+    setIsUploading(true); // Iniciar loading
+
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("category", category);
+    formData.append("category", uploadType);
 
     try {
       const response = await fetch(`http://127.0.0.1:3333/ongs/actions/${actionId}/files/upload`, {
@@ -161,6 +174,8 @@ export default function Gallery() {
     } catch (error) {
       console.log("Erro no upload:", error);
       toast.error("Falha ao enviar o arquivo. Tente novamente.");
+    } finally {
+      setIsUploading(false); // Finalizar loading independente do resultado
     }
   };
 
@@ -328,7 +343,7 @@ export default function Gallery() {
         </div>
       </div>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-white rounded-[16px] shadow-xl p-6">
+        <DialogContent className="bg-white rounded-[16px] shadow-xl p-6 overflow-y-scroll h-full">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Pré-visualização</DialogTitle>
           </DialogHeader>
@@ -339,20 +354,19 @@ export default function Gallery() {
             {previewType === "video" && preview && (
               <video src={preview} className="w-full rounded-[16px]" controls />
             )}
-            <label className="font-semibold text-gray-700">Categoria:</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as "tax_invoice" | "report" | "image" | "video" | "other")}
-              className="border p-2 rounded-[16px] focus:outline-none focus:ring-2 focus:ring-blue-300"
+            <Button 
+              className="rounded-[16px]" 
+              onClick={handleUpload} 
+              disabled={isUploading}
             >
-              <option value="tax_invoice">Nota Fiscal</option>
-              <option value="report">Relatório</option>
-              <option value="image">Imagem</option>
-              <option value="video">Vídeo</option>
-              <option value="other">Outro</option>
-            </select>
-            <Button className="rounded-[16px]" onClick={handleUpload}>
-              Confirmar Upload
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                "Confirmar Upload"
+              )}
             </Button>
           </div>
         </DialogContent>
