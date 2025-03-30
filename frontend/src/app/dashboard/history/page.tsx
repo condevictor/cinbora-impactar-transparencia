@@ -45,11 +45,13 @@ const keyTranslations: Record<string, string> = {
   size: "Tamanho",
   actionName: "Nome da Ação",
   description: "Descrição",
-  telefone: "Telefone",
-  Instagram: "Instagram",
+  contact_phone: "Número para contato",
+  instagram_link: "Instagram",
   ano: "Ano",
+  start_year: "Ano de início",
   totalExpenses: "Total de Despesas",
   expensesByCategory: "Despesas por Categoria",
+  deletedAction: "Ação deletada"
 };
 
 const HistoryPage: React.FC = () => {
