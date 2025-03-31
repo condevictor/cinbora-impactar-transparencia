@@ -38,6 +38,9 @@ export default function DADocuments() {
   const [reports, setReports] = useState<FileObject[]>([]);
   const [uploadCategory, setUploadCategory] = useState("other");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isNotasFiscaisOpen, setIsNotasFiscaisOpen] = useState(false);
+  const [isRelatoriosOpen, setIsRelatoriosOpen] = useState(false);
+  const [isOutrosOpen, setIsOutrosOpen] = useState(false);
 
   const getFiles = () => {
     if (action_id) {
@@ -187,41 +190,74 @@ export default function DADocuments() {
   return (
     <div className="w-9/12 m-auto mb-20 mt-10 max-[1600px]:w-11/12">
       <div className="flex flex-col">
-        <div className="w-full h-20 bg-[#E0E0E0] border border-[#ADADAD] rounded-full flex items-center justify-between mb-4">
+        {/* Notas Fiscais */}
+        <div
+          onClick={() => setIsNotasFiscaisOpen(!isNotasFiscaisOpen)}
+          className="w-full h-20 bg-[#E0E0E0] border border-[#ADADAD] rounded-full flex items-center justify-between mb-4 cursor-pointer"
+        >
           <p className="ml-12">Notas Fiscais</p>
+          <Image
+            className={`w-4 mr-12 transition-transform duration-300 ${isNotasFiscaisOpen ? "rotate-180" : ""}`}
+            src={arrowDown}
+            alt="toggle"
+          />
         </div>
-        <div className="mb-10">
-          <h1 className="text-center font-bold text-2xl mb-2">Notas Fiscais</h1>
-          <div className="h-full w-full border border-black rounded-[64px] p-10 mb-16 max-[1600px]:border-none max-[1600px]:p-0">
-            <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
-              {renderFiles(taxInvoices, "tax invoice")}
+        {isNotasFiscaisOpen && (
+          <div className="mb-10">
+            <h1 className="text-center font-bold text-2xl mb-2">Notas Fiscais</h1>
+            <div className="h-full w-full border border-black rounded-[64px] p-10 mb-16 max-[1600px]:border-none max-[1600px]:p-0">
+              <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
+                {renderFiles(taxInvoices, "tax invoice")}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        <div className="w-full h-20 bg-[#E0E0E0] border border-[#ADADAD] rounded-full flex items-center justify-between mb-4">
+        {/* Relatórios */}
+        <div
+          onClick={() => setIsRelatoriosOpen(!isRelatoriosOpen)}
+          className="w-full h-20 bg-[#E0E0E0] border border-[#ADADAD] rounded-full flex items-center justify-between mb-4 cursor-pointer"
+        >
           <p className="ml-12">Relatórios</p>
+          <Image
+            className={`w-4 mr-12 transition-transform duration-300 ${isRelatoriosOpen ? "rotate-180" : ""}`}
+            src={arrowDown}
+            alt="toggle"
+          />
         </div>
-        <div className="mb-10">
-          <h1 className="text-center font-bold text-2xl mb-2">Relatórios</h1>
-          <div className="h-full w-full border border-black rounded-[64px] p-10 mb-16 max-[1600px]:border-none max-[1600px]:p-0">
-            <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
-              {renderFiles(reports, "report")}
+        {isRelatoriosOpen && (
+          <div className="mb-10">
+            <h1 className="text-center font-bold text-2xl mb-2">Relatórios</h1>
+            <div className="h-full w-full border border-black rounded-[64px] p-10 mb-16 max-[1600px]:border-none max-[1600px]:p-0">
+              <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
+                {renderFiles(reports, "report")}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        <div className="w-full h-20 bg-[#E0E0E0] border border-[#ADADAD] rounded-full flex items-center justify-between mb-4">
+        {/* Outros documentos */}
+        <div
+          onClick={() => setIsOutrosOpen(!isOutrosOpen)}
+          className="w-full h-20 bg-[#E0E0E0] border border-[#ADADAD] rounded-full flex items-center justify-between mb-4 cursor-pointer"
+        >
           <p className="ml-12">Outros documentos</p>
+          <Image
+            className={`w-4 mr-12 transition-transform duration-300 ${isOutrosOpen ? "rotate-180" : ""}`}
+            src={arrowDown}
+            alt="toggle"
+          />
         </div>
-        <div className="mb-10">
-          <h1 className="text-center font-bold text-2xl mb-2">Outros documentos</h1>
-          <div className="h-full w-full border border-black rounded-[64px] p-10 mb-16 max-[1600px]:border-none max-[1600px]:p-0">
-            <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
-              {renderFiles(others, "other")}
+        {isOutrosOpen && (
+          <div className="mb-10">
+            <h1 className="text-center font-bold text-2xl mb-2">Outros documentos</h1>
+            <div className="h-full w-full border border-black rounded-[64px] p-10 mb-16 max-[1600px]:border-none max-[1600px]:p-0">
+              <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
+                {renderFiles(others, "other")}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <input
           type="file"
