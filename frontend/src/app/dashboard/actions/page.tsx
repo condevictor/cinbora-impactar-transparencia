@@ -14,6 +14,8 @@ import Documents from "@/components/ui/DAdocuments"
 import { FiChevronDown } from "react-icons/fi"
 import { UploadCloud, Loader2, Trash2 } from "lucide-react"
 import { toast } from "sonner"
+import { Suspense } from "react"
+import { SearchParamsWrapper } from '@/components/ui/search-params-wrapper'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,8 +56,12 @@ interface Year {
 }
 
 export default function DashboardAction() {
-  const searchParams = useSearchParams()
-  const router = useRouter();
+  return(
+  <Suspense fallback={<p className="p-4">Carregando...</p>}>
+        <SearchParamsWrapper>
+          {(searchParams) => {
+
+  const router = useRouter()
   const token = Cookies.get("auth_token");
   const acaoId = searchParams.get("action_id")
   const [action, setAction] = useState<Action | null>(null)
@@ -69,9 +75,12 @@ export default function DashboardAction() {
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [originalCategorysExpenses, setOriginalCategorysExpenses] = useState<Record<string, number>>({})
+  const [hasCategoryChanges, setHasCategoryChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false)
   const [hoveredCard, setHoveredCard] = useState(false);
   const [actionToDelete, setActionToDelete] = useState<string | null>(null)
+  const [refreshBalance, setRefreshBalance] = useState(0) // Add refresh counter
+  const [categoryNotificationShown, setCategoryNotificationShown] = useState(false);
   
   useEffect(() => {
     if (!token) {
@@ -107,8 +116,14 @@ export default function DashboardAction() {
         ...prev!,
         spent: Object.values(prev?.categorysExpenses || {}).reduce((acc, val) => acc + (parseFloat(val as any) || 0), 0),
       }));
+      
+      // Check if categories have changed from original
+      if (originalCategorysExpenses && editingAction?.categorysExpenses) {
+        const hasChanges = JSON.stringify(editingAction.categorysExpenses) !== JSON.stringify(originalCategorysExpenses);
+        setHasCategoryChanges(hasChanges);
+      }
     }
-  }, [editingAction?.categorysExpenses]);
+  }, [editingAction?.categorysExpenses, originalCategorysExpenses]);
 
   const generateHash = async (name: string) => {
     const encoder = new TextEncoder();
@@ -169,10 +184,11 @@ export default function DashboardAction() {
         ...prev!,
         ...data.action,
         aws_url: data.action.aws_url || "",
-        categorysExpenses: aggregatedExpenses,
+        categorysExpenses: {...aggregatedExpenses}, // Make a copy to ensure reference changes
       }));
 
       setImagePreview(data.action.aws_url || null);
+      setHasCategoryChanges(false);
     } catch (error) {
       console.error("Erro ao carregar detalhes da ação:", error);
       toast.error("Erro ao carregar detalhes da ação.");
@@ -223,19 +239,11 @@ export default function DashboardAction() {
   
     Object.keys(updatedCategories).forEach((category) => {
       const currentValue = updatedCategories[category];
-      const originalValue = originalCategorysExpenses[category] || 0;
-  
+
       if (currentValue === null || currentValue === undefined) {
         updatedCategories[category] = 0;
-      } else if (currentValue < originalValue) { 
-        toast.error(
-          `O valor de "${category}" não pode ser menor que ${originalValue.toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-          })}.`
-        );
-        updatedCategories[category] = originalValue;
       }
+    
     });
   
     setEditingAction((prev) => ({
@@ -270,6 +278,16 @@ export default function DashboardAction() {
     }
   };
 
+  const showCategoryChangeNotification = () => {
+    if (!categoryNotificationShown) {
+      toast.info("Lembre-se de clicar em Salvar para aplicar as mudanças.", {
+        id: "category-changes",
+        duration: 5000,
+      });
+      setCategoryNotificationShown(true);
+    }
+  };
+
   const handleEditAction = async () => {
     if (isSaving) return;
     setIsSaving(true);
@@ -281,6 +299,8 @@ export default function DashboardAction() {
     }
 
     const updatedCategories = validateAndFixCategories();
+    // Check if categories have changed by comparing with original
+    const categoryChanges = JSON.stringify(updatedCategories) !== JSON.stringify(originalCategorysExpenses);
 
     try {
       // Basic action update
@@ -303,8 +323,8 @@ export default function DashboardAction() {
         throw new Error("Erro ao atualizar ação");
       }
       
-      // Update categories if needed
-      if (Object.keys(updatedCategories).length > 0) {
+      // Update categories if they've changed
+      if (categoryChanges) {
         const categoryRes = await updateCategoryExpenses(editingAction.id, updatedCategories);
         if (categoryRes === false) throw new Error("Erro nas categorias.");
       }
@@ -324,11 +344,13 @@ export default function DashboardAction() {
       if(getResponse.ok) {
         const getData = await getResponse.json();
         setAction(getData.action);
+        setRefreshBalance(prev => prev + 1); // Increment refresh counter
       } else {
         console.error("Erro ao buscar ação atualizada");
       }
       
       toast.success("Ação atualizada com sucesso!");
+      setCategoryNotificationShown(false);
       setIsEditModalOpen(false);
     } catch (err) {
       console.error("Erro:", err);
@@ -343,6 +365,7 @@ export default function DashboardAction() {
     setModalTab('detalhes');
     setImagePreview(action.aws_url || null);
     setImageFile(null);
+    setCategoryNotificationShown(false);
     fetchActionDetails(action.id);
     setIsEditModalOpen(true);
   };
@@ -536,7 +559,7 @@ export default function DashboardAction() {
         </div>
         <div className="w-full mt-6">
           {activeTab === "gallery" && <Gallery />}
-          {activeTab === "balance" && <Balance />}
+          {activeTab === "balance" && <Balance refreshTrigger={refreshBalance} />}
           {activeTab === "documents" && <Documents />}
         </div>
       </main>
@@ -704,6 +727,7 @@ export default function DashboardAction() {
                                 [selectedCategory]: +rawValue,
                               },
                             });
+                            showCategoryChangeNotification();
                           }}
                           onBlur={() => {
                             const parsed = parseFloat((editingAction?.categorysExpenses?.[selectedCategory] || 0).toString());
@@ -746,8 +770,12 @@ export default function DashboardAction() {
                                   setEditingAction({
                                     ...editingAction!,
                                     categorysExpenses: updatedCategories,
+                                    // Update spent amount immediately
+                                    spent: Object.values(updatedCategories).reduce((acc, val) => acc + (parseFloat(val as any) || 0), 0),
                                   });
+                                  setHasCategoryChanges(true);
                                   setSelectedCategory(null);
+                                  showCategoryChangeNotification();
                                 }}
                               >
                                 Excluir
@@ -780,6 +808,7 @@ export default function DashboardAction() {
                             },
                           });
                           setNewCategory("");
+                          showCategoryChangeNotification();
                         }
                       }}
                     >
@@ -855,5 +884,9 @@ export default function DashboardAction() {
         </div>
       )}
     </>
+  )
+     }}
+  </SearchParamsWrapper>
+</Suspense>
   )
 }

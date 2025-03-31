@@ -1,6 +1,7 @@
 "use client"
 
 import { useSearchParams, useRouter } from "next/navigation"
+import { SearchParamsWrapper } from '@/components/ui/search-params-wrapper'
 import { useEffect, useState } from "react"
 import { CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress";
@@ -8,6 +9,7 @@ import { API_BASE_URL } from "@/config/api"
 import ActionsGallery from "@/components/ui/actionsGallery"
 import ActionsDocuments from "@/components/ui/actionsDocuments"
 import ActionsBalance from "@/components/ui/actionsBalance"
+import { Suspense } from "react"
 
 interface Action {
   type: string;
@@ -18,17 +20,20 @@ interface Action {
 }
 
 export default function ActionDetail() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const acaoId = searchParams.get("action_id")
-  const [action, setAction] = useState<Action | null>(null)
-  const [activeTab, setActiveTab] = useState("gallery");
-  const [hoveredCard, setHoveredCard] = useState(false);
+  return(
+    <Suspense fallback={<p className="p-4">Carregando...</p>}>
+      <SearchParamsWrapper>
+        {(searchParams) => {
+    const router = useRouter()
+    const acaoId = searchParams.get("action_id")
+    const [action, setAction] = useState<Action | null>(null)
+    const [activeTab, setActiveTab] = useState("gallery");
+    const [hoveredCard, setHoveredCard] = useState(false);
 
-  if (!acaoId) {
-    router.push("/")
-    return null
-  }
+    if (!acaoId) {
+      router.push("/")
+      return null
+    }
 
   useEffect(() => {
     if (acaoId) {
@@ -158,4 +163,8 @@ export default function ActionDetail() {
       </div>
     </main>
   )
+          }}
+      </SearchParamsWrapper>
+    </Suspense>
+    )
 }

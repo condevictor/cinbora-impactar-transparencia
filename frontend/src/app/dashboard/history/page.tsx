@@ -105,16 +105,16 @@ const HistoryPage: React.FC = () => {
   const groupLogsByDate = (logsData: Log[]): GroupedLogs =>
     logsData.reduce((acc, log) => {
       const d = new Date(log.timestamp);
-      const dateKey = `${d.getDate()} de ${[
+      const dateKey = `${d.getUTCDate()} de ${[
         "janeiro","fevereiro","março","abril","maio","junho",
-        "julho","agosto","setembro","outubro","novembro","dezembro"][d.getMonth()]} de ${d.getFullYear()}`;
+        "julho","agosto","setembro","outubro","novembro","dezembro"][d.getUTCMonth()]} de ${d.getUTCFullYear()}`;
       (acc[dateKey] = acc[dateKey] || []).push(log);
       return acc;
     }, {} as GroupedLogs);
 
   const formatTime = (timestamp: string) => {
     const d = new Date(timestamp);
-    return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+    return `${d.getUTCHours().toString().padStart(2, "0")}:${d.getUTCMinutes().toString().padStart(2, "0")}`;
   };
 
   const formatChangesForDisplay = (log: Log): string[] => {
