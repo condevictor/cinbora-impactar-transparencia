@@ -21,14 +21,14 @@ export default function Footer() {
           <div className="flex flex-col items-start gap-8">
             <h3 className="font-bold text-2xl">Portal</h3>
             <ul className="space-y-4">
-              {["Início", "Parceiros"].map((item, index) => {
-                const link = item === "Parceiros" ? "/partners" : "#";
+              {["Início"].map((item, index) => {
+                const link = item === "#";
                 return (
                   <li
                     key={index}
                     className="text-lg transition-transform duration-300 hover:scale-110 hover:text-[#d4dbf0] cursor-pointer"
                   >
-                    <a href={link} className="hover:underline">{item}</a>
+                    <a className="hover:underline">{item}</a>
                   </li>
                 );
               })}
