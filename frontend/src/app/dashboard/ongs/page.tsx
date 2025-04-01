@@ -439,23 +439,33 @@ const updateSlideImage = async (slideId: string): Promise<void> => {
       return;
     }
 
-    const updatedImage = await response.json();
+    // After successful PUT, fetch the updated action to get the new image
+    const getResponse = await fetch(`${API_BASE_URL}/ongs/actions/${slideId}`, {
+      headers: { 
+        Authorization: `Bearer ${token}` 
+      }
+    });
+    
+    if (!getResponse.ok) {
+      console.log("Erro ao recuperar a ação atualizada:", getResponse.statusText);
+      return;
+    }
+    
+    const updatedAction = await getResponse.json();
+    const timestamp = Date.now();
+    const imageUrlWithTimestamp = `${updatedAction.action.aws_url}?t=${timestamp}`;
 
     setImageUrls((prevUrls) => ({
       ...prevUrls,
-      [slideId]: updatedImage.aws_url,
-    }));
-
-    setEditingSlide((prev) => ({
-      ...prev,
-      aws_url: updatedImage.aws_url,
+      [slideId]: imageUrlWithTimestamp,
     }));
     
-    await fetchActions(true);
+   
   } catch (error) {
     console.log("Erro ao atualizar a imagem:", error);
+    toast.error("Erro ao atualizar a imagem. Tente novamente.");
   }
-};
+}
 
 const showCategoryChangeNotification = () => {
   if (!categoryNotificationShown) {
@@ -551,7 +561,7 @@ const handleSave = async () => {
     
 
     if (isUpdate && slideId && imageFile) {
-      await updateSlideImage(slideId);
+      updateSlideImage(slideId);
     }
 
     toast.success("Ação salva com sucesso!");
@@ -647,7 +657,7 @@ const handleSave = async () => {
                         {/* Container da Imagem */}
                         <div className="relative w-full h-[180px] overflow-hidden rounded-t-[16px]">
                           <Image
-                            src={imageUrls[slide.id || ''] || capa.src}
+                            src={(imageUrls[slide.id || ''] && `${imageUrls[slide.id || '']}${imageUrls[slide.id || ''].includes('?') ? '&' : '?'}refresh=${Date.now()}`) || capa.src}
                             alt="Imagem da ação"
                             layout="fill"
                             objectFit="cover"
