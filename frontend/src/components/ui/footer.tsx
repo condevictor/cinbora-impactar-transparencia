@@ -21,7 +21,10 @@ export default function Footer() {
           <div className="flex flex-col items-start gap-8">
             <h3 className="font-bold text-2xl">Portal</h3>
             <ul className="space-y-4">
-              {[{text: "Início", href: "/"}].map((item, index) => (
+              {[
+                {text: "Início", href: "/#"},
+                {text: "Ongs", href: "/#searchOngs"}
+              ].map((item, index) => (
                 <li
                   key={index}
                   className="text-lg transition-transform duration-300 hover:scale-110 hover:text-[#d4dbf0] cursor-pointer"

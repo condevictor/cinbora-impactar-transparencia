@@ -607,9 +607,9 @@ const handleSave = async () => {
         <HelpCircle className="w-6 h-6" />
       </button>
 
-      <h1 className="text-center text-5xl font-bold text-[#2E4049] mt-20 max-xl:text-3xl max-sm:text-2xl">{ngoName}</h1>
+      <h1 title={ngoName} className="text-4xl text-center font-bold whitespace-nowrap overflow-hidden text-ellipsis w-[90%] m-auto max-xl:text-3xl max-sm:text-xl mt-20">{ngoName}</h1>
       {lastUpdated && (
-        <div className="absolute top-6 right-10 text-gray-600 text-lg">
+        <div className="absolute top-6 right-10 text-gray-600 text-lg max-sm:p-2">
           Dados atualizados pela última vez em: <strong>{lastUpdated}</strong>
         </div>
       )}
@@ -640,7 +640,7 @@ const handleSave = async () => {
         }
  
         return (
-          <Carousel opts={{ align: "start" }} className="w-[100%] mt-16 p-4">
+          <Carousel opts={{ align: "start" }} className="w-[100%] mt-16 p-4 max-w-[3000px]">
             <CarouselContent>
               {(displaySlides.reverse()).map((slide, index) => (
                 <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 w-full border-none border-t shadow-none">

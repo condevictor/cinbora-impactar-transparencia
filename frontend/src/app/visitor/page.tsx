@@ -93,7 +93,7 @@ export default function VisitorPage() {
 
           return (
             <main className="relative flex flex-col items-center min-h-screen py-10">
-              <h1 className="text-center text-5xl font-bold text-[#2E4049] mt-20 max-xl:text-3xl max-sm:text-xl">
+              <h1 title={ngoName} className="text-4xl text-center font-bold mt-10 whitespace-nowrap overflow-hidden text-ellipsis w-[90%] m-auto max-xl:text-3xl max-sm:text-xl mt-20">
                 {ngoName}
               </h1>
 
@@ -122,7 +122,7 @@ export default function VisitorPage() {
                   {searchTerm && filteredSlides.length === 0 ? (
                     <div className="mt-10 text-red-600">ação não encontrada</div>
                   ) : filteredSlides.length > 0 ? (
-                    <Carousel opts={{ align: "start" }} className="w-[100%] mt-16 p-4">
+                    <Carousel opts={{ align: "start" }} className="w-[100%] mt-16 p-4 max-w-[3000px]">
                       <CarouselContent>
                         {filteredSlides.slice().reverse().map((slide, index) => (
                           <CarouselItem

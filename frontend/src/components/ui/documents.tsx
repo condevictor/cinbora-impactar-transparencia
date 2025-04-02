@@ -214,7 +214,11 @@ export default function Documents() {
             alt="toggle"
           />
         </div>
-        {isNotasFiscaisOpen && (
+        <div 
+          className={`overflow-hidden transition-all duration-500 ease-in-out ${
+            isNotasFiscaisOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
           <div className="mb-8">
             <h1 className="text-center font-bold text-2xl mb-2">Notas Fiscais</h1>
             <div className="h-full w-full border border-black rounded-[64px] p-10 mb-16 max-[1600px]:border-none max-[1600px]:p-0">
@@ -223,7 +227,7 @@ export default function Documents() {
               </div>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Relatórios */}
         <div
@@ -237,7 +241,11 @@ export default function Documents() {
             alt="toggle"
           />
         </div>
-        {isRelatoriosOpen && (
+        <div 
+          className={`overflow-hidden transition-all duration-500 ease-in-out ${
+            isRelatoriosOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
           <div className="mb-8">
             <h1 className="text-center font-bold text-2xl mb-2">Relatórios</h1>
             <div className="h-full w-full border border-black rounded-[64px] p-12 mb-16 max-[1600px]:border-none max-[1600px]:p-0">
@@ -246,7 +254,7 @@ export default function Documents() {
               </div>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Outros documentos */}
         <div
@@ -260,7 +268,11 @@ export default function Documents() {
             alt="toggle"
           />
         </div>
-        {isOutrosOpen && (
+        <div 
+          className={`overflow-hidden transition-all duration-500 ease-in-out ${
+            isOutrosOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
           <div className="mb-8">
             <h1 className="text-center font-bold text-2xl mb-2">Outros documentos</h1>
             <div className="h-full w-full border border-black rounded-[64px] p-10 mb-16 max-[1600px]:border-none max-[1600px]:p-0">
@@ -269,7 +281,7 @@ export default function Documents() {
               </div>
             </div>
           </div>
-        )}
+        </div>
 
         <input
           type="file"
