@@ -195,6 +195,9 @@ export default function ActionsPage() {
       await fetchActions();
     }
   
+    // Always reset the selectedCategory when opening modal
+    setSelectedCategory(null);
+    
     if (slide?.id) {
       setEditingSlide({
         id: slide.id,

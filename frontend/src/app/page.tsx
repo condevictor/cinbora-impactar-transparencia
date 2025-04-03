@@ -51,10 +51,9 @@ export default function Ongs() {
 
   return (
     <div>
-      <FloatingHearts />
       <div className="flex mt-10 justify-between">
         <div className="flex flex-col w-3/5 text-[#294BB6] p-12 max-xl:p-3">
-          <AnimatedTitle text="PORTAL DA TRANSPARÊNCIA" />
+          <h1 className="font-bold text-5xl max-lg:text-4xl max-md:text-3xl max-sm:text-xs text-[#294BB6]">PORTAL DA TRANSPARÊNCIA</h1>
 
           <TypedHeader />
         </div>
@@ -72,11 +71,11 @@ export default function Ongs() {
         </div>
       </div>
 
-      <div className="text-center mb-12 mt-32">
+      <div className="text-center mb-12 mt-16">
         <span id="searchOngs" className="inline-block px-4 py-2 bg-[#009FE350] text-[#294BB6] text-lg font-semibold rounded-full">
           ONGs em Destaque
         </span>
-        <p className="mt-4 text-gray-700 text-lg">Selecione uma ONG abaixo para conhecer seu trabalho.</p>
+        <p className="mt-4 text-gray-700 text-lg px-4">Selecione uma ONG abaixo para conhecer seu trabalho.</p>
       </div>
 
       <div className="relative w-full max-w-2xl mx-auto mb-20 px-4">

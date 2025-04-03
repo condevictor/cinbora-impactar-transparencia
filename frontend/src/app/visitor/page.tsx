@@ -98,7 +98,7 @@ export default function VisitorPage() {
               </h1>
 
               {lastUpdated && (
-                <div className="absolute top-6 right-10 text-gray-600 text-lg">
+                <div className="absolute top-6 right-10 text-gray-600 text-lg max-sm:p-2">
                   Dados atualizados pela última vez em: <strong>{lastUpdated}</strong>
                 </div>
               )}

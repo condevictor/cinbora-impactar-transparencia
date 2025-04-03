@@ -621,10 +621,8 @@ export default function Gallery() {
                             <div
                               className="absolute z-0 transition-transform duration-300"
                               style={{
-                                width: 'calc(100% + 11px)',
-                                height: 'calc(100% + 11px)',
                                 borderRadius: '24px',
-                                background: `conic-gradient(from -90deg, #3b82f6 ${progress}%, transparent ${progress}%)`,
+                                background: `conic-gradient(from -90deg, #1f51ff ${progress}%, transparent ${progress}%)`,
                                 transform: isCenter ? `scale(${zoom})` : "scale(1)",
                                 zIndex: 1,
                               }}
