@@ -35,6 +35,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
+import InfoTooltipModal from "@/components/ui/HelpTooltip";
 
 
 type EditingSlideType = {
@@ -841,10 +842,94 @@ const handleSave = async () => {
         <ModalPortal>
           <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in z-50">
             <div className="bg-white border border-gray-200 rounded-3xl shadow-xl p-8 w-[500px] max-h-[85vh] overflow-y-auto">
-              <h2 className="text-2xl font-semibold text-gray-900">
-                {editingSlide?.id ? "Editar Ação" : "Nova Ação"}
-              </h2>
-              <p className="text-gray-500 text-sm mb-4">Preencha os detalhes da ação</p>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-2xl font-semibold text-gray-900">
+                    {editingSlide?.id ? "Editar Ação" : "Nova Ação"}
+                  </h2>
+                  <p className="text-gray-500 text-sm mb-4">Preencha os detalhes da ação</p>
+                </div>
+
+                {modalTab === "detalhes" && (
+                  <InfoTooltipModal>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-gray-700 text-[15px]">
+                    {/* 1. Título */}
+                    <div className="group p-4 rounded-2xl hover:bg-[#F4F7FF] transition-all border">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-blue-600 font-bold text-xl">1</span>
+                        <h3 className="font-semibold text-[#2E4049]">Título</h3>
+                      </div>
+                      <p>Nome claro da ação. Ex: <strong>Campanha do Agasalho</strong>, <strong>Mutirão de Limpeza</strong>.</p>
+                    </div>
+
+                    {/* 2. Tipo */}
+                    <div className="group p-4 rounded-2xl hover:bg-[#F5FFF6] transition-all border">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-green-600 font-bold text-xl">2</span>
+                        <h3 className="font-semibold text-[#2E4049]">Tipo</h3>
+                      </div>
+                      <p>Categoria geral da ação. Ex: <strong>Alimento</strong>, <strong>Educação</strong>, <strong>Vacinação</strong>.</p>
+                    </div>
+
+                    {/* 3. Meta */}
+                    <div className="group p-4 rounded-2xl hover:bg-[#FFF5F7] transition-all border">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-pink-600 font-bold text-xl">3</span>
+                        <h3 className="font-semibold text-[#2E4049]">Meta (R$)</h3>
+                      </div>
+                      <p>Valor total esperado para arrecadação da ação.</p>
+                    </div>
+
+                    {/* 4. Arrecadado */}
+                    <div className="group p-4 rounded-2xl hover:bg-[#FFFCEB] transition-all border">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-yellow-600 font-bold text-xl">4</span>
+                        <h3 className="font-semibold text-[#2E4049]">Arrecadado (R$)</h3>
+                      </div>
+                      <p>Valor arrecadado até o momento. Atualize conforme for recebendo novos recursos.</p>
+                    </div>
+
+                    {/* 5. Categorias de Despesas */}
+                    <div className="group p-4 rounded-2xl hover:bg-[#E9F6FF] transition-all border col-span-1 sm:col-span-2">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-sky-600 font-bold text-xl">5</span>
+                        <h3 className="font-semibold text-[#2E4049]">Categorias de Despesas</h3>
+                      </div>
+                      <ul className="list-disc pl-5 mt-2 space-y-1">
+                        <li>Classificações para os gastos: <strong>Transporte</strong>, <strong>Alimentação</strong>, <strong>Material</strong>.</li>
+                        <li>Você pode adicionar categorias novas a qualquer momento.</li>
+                        <li><strong>Atenção:</strong> Excluir uma categoria remove todos os registros vinculados a ela.</li>
+                        <li>Todos os valores por categoria são somados automaticamente e refletem no total de gastos e nos gráficos mensais.</li>
+                      </ul>
+                    </div>
+
+                    {/* 6. Imagem */}
+                    <div className="group p-4 rounded-2xl hover:bg-[#F9F5FF] transition-all border col-span-1 sm:col-span-2">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-purple-600 font-bold text-xl">6</span>
+                        <h3 className="font-semibold text-[#2E4049]">Imagem da Ação</h3>
+                      </div>
+                      <ul className="list-disc pl-5 mt-2 space-y-1">
+                        <li>Escolha uma imagem que represente bem a ação.</li>
+                        <li>Formatos aceitos: <strong>.jpg</strong>, <strong>.png</strong>, <strong>.jpeg</strong>.</li>
+                        <li>Obrigatória na criação da ação, mas pode ser trocada depois.</li>
+                      </ul>
+                    </div>
+
+                    {/* OBS final */}
+                    <div className="col-span-1 sm:col-span-2 text-gray-600 text-sm mt-2 px-2">
+                      <strong>OBS:</strong> Use <code className="bg-gray-100 px-1 py-0.5 rounded">.</code> (ponto) para separar centavos. Ex: <strong>5000.50</strong>
+                    </div>
+                  </div>
+                </InfoTooltipModal>
+
+                )}
+
+
+
+
+              </div>
+
 
               <div className="flex pb-2">
                 <button

@@ -71,7 +71,7 @@ class ActionRepository {
   async create(data: Omit<Action, 'id'> & { categorysExpenses: Record<string, number> }): Promise<Action> {
     try {
         const date = new Date();
-        const year = date.getFullYear();
+        const year = date.getFullYear() + 1;
         const month = date.getMonth() + 1;
         const day = date.getDate();
 

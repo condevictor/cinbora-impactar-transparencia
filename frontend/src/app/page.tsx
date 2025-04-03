@@ -10,8 +10,10 @@ import dateIcon from "../assets/date_icon.svg";
 import phoneIcon from "../assets/phone_icon.svg";
 import shareButton from "../assets/share.svg";
 import Link from "next/link";
+import AnimatedTitle from "@/components/ui/AnimatedTitle";
 import { Button } from "@/components/ui/button";
 import ModalPortal from "@/components/ui/modalPortal";
+import FloatingHearts from "@/components/ui/FloatingHearts";
 import { Search } from "lucide-react";
 import TypedHeader from "@/components/ui/typedHeader";
 
@@ -49,11 +51,11 @@ export default function Ongs() {
 
   return (
     <div>
+      <FloatingHearts />
       <div className="flex mt-10 justify-between">
         <div className="flex flex-col w-3/5 text-[#294BB6] p-12 max-xl:p-3">
-          <h1 className="font-semibold text-5xl max-lg:text-4xl max-md:text-3xl max-sm:text-xl">
-            Portal da Transparência
-          </h1>
+          <AnimatedTitle text="PORTAL DA TRANSPARÊNCIA" />
+
           <TypedHeader />
         </div>
         <div className="flex flex-col">
