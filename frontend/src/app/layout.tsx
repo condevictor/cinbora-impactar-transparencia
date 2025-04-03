@@ -26,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ToastProvider />
         <Header />
         <main className="flex-grow" style={{ 
+          background: "linear-gradient(to bottom, #ffffff, #f2faff)"
         }}>
           {children}
         </main>

@@ -93,7 +93,7 @@ export default function VisitorPage() {
 
           return (
             <main className="relative flex flex-col items-center min-h-screen py-10">
-              <h1 title={ngoName} className="text-4xl text-center font-bold mt-10 whitespace-nowrap overflow-hidden text-ellipsis w-[90%] m-auto max-xl:text-3xl max-sm:text-xl mt-20">
+              <h1 title={ngoName} className="text-4xl text-center font-bold whitespace-nowrap overflow-hidden text-ellipsis w-[90%] m-auto max-xl:text-3xl max-sm:text-xl mt-20">
                 {ngoName}
               </h1>
 

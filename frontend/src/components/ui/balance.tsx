@@ -124,17 +124,23 @@ export default function Balance() {
         const expensesByMonth: { [month: string]: any } = {};
         const lastRecordedMonth: { [key: string]: number } = {};
   
+        // Initialize month structure with no action values
         for (let i = 0; i < 12; i++) {
           expensesByMonth[monthNames[i]] = { month: monthNames[i] };
+          // Initialize all actions with null to avoid carrying over values
+          actionsToDisplay.forEach(action => {
+            expensesByMonth[monthNames[i]][action] = null;
+          });
         }
   
-        expensesByAction.forEach((yearData) => {
-          const yearStr = yearData.year.toString();
-          allYears.add(yearStr);
-  
-          if (yearStr !== selectedYear) return;
-  
-          yearData.months.forEach((monthData) => {
+        // Find the current year's data only
+        const currentYearData = expensesByAction.find(
+          yearData => yearData.year.toString() === selectedYear
+        );
+
+        // Process only the selected year's data
+        if (currentYearData) {
+          currentYearData.months.forEach((monthData) => {
             const monthIndex = monthData.month - 1;
             const monthName = monthNames[monthIndex];
   
@@ -142,7 +148,7 @@ export default function Balance() {
               Object.entries(record.expensesByAction).forEach(([action, value]) => {
                 if (!actionsToDisplay.includes(action)) return;
   
-                if (!expensesByMonth[monthName][action]) {
+                if (expensesByMonth[monthName][action] === null) {
                   expensesByMonth[monthName][action] = 0;
                 }
   
@@ -151,11 +157,12 @@ export default function Balance() {
               });
             });
           });
-        });
+        }
   
+        // Set values to 0 for months that should show a value (up to last recorded month)
         Object.entries(expensesByMonth).forEach(([monthName, monthData], index) => {
           actionsToDisplay.forEach((action) => {
-            if (!(action in monthData)) {
+            if (monthData[action] === null) {
               monthData[action] = index <= (lastRecordedMonth[action] || 0) ? 0 : null;
             }
           });
@@ -164,6 +171,11 @@ export default function Balance() {
         const formattedData = Object.values(expensesByMonth);
         setData(formattedData);
   
+        // Process colors and visibility settings as before
+        expensesByAction.forEach(yearData => {
+          allYears.add(yearData.year.toString());
+        });
+
         const initialVisibility: { [key: string]: boolean } = {};
         const newColors: { [key: string]: string } = {};
         const usedColors = new Set<string>();
