@@ -24,7 +24,6 @@ import InfoTooltipModal from "./HelpTooltip";
 import { HelpCircle, Target, UploadCloud } from "lucide-react";
 import { FiChevronDown } from "react-icons/fi";
 
-// Add TypeScript interfaces for API response
 interface DailyRecord {
   day: number;
   expensesByAction: { [key: string]: number };
