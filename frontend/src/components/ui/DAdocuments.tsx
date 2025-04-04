@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import arrowDown from "../../assets/downArrow.svg";
 import download from "../../assets/Documents.svg";
-import { UploadCloud, Trash2 } from "lucide-react";
+import { UploadCloud, Trash2, Info } from "lucide-react";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api"
 import {
@@ -190,6 +190,11 @@ export default function DADocuments() {
   return (
     <div className="w-9/12 m-auto mb-20 mt-10 max-[1600px]:w-11/12">
       <div className="flex flex-col">
+      <p className="text-sm text-gray-500 mb-2 flex items-center gap-1 text-center">
+          <Info className="w-4 h-4 text-blue-500" />
+          Máximo de 10MB por arquivo
+        </p>
+  
         {/* Notas Fiscais */}
         <div
           onClick={() => setIsNotasFiscaisOpen(!isNotasFiscaisOpen)}

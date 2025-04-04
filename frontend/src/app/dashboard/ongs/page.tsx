@@ -360,47 +360,65 @@ export default function ActionsPage() {
     }
   };
   
-const fetchActionDetails = async (actionId: string): Promise<void> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/ongs/actions/${actionId}`);
-    if (!response.ok) throw new Error("Erro ao buscar detalhes da ação.");
-
-    const data = await response.json();
-
-    // Objeto para armazenar a soma total de cada categoria
-    let aggregatedExpenses: Record<string, number> = {};
-
-    // Percorre todos os registros diários e soma os valores de cada categoria
-    data?.actionGrafic?.[0]?.categorysExpenses?.forEach((year: any) => {
-      year.months.forEach((month: any) => {
-        month.dailyRecords.forEach((record: any) => {
-          Object.entries(record.categorysExpenses).forEach(([category, value]) => {
-            aggregatedExpenses[category] = (aggregatedExpenses[category] || 0) + (typeof value === 'number' ? value : 0);
+  const fetchActionDetails = async (actionId: string): Promise<void> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/ongs/actions/${actionId}`);
+      if (!response.ok) throw new Error("Erro ao buscar detalhes da ação.");
+  
+      const data = await response.json();
+  
+      let monthlyTotal: Record<string, number[]> = {};
+  
+      data?.actionGrafic?.[0]?.categorysExpenses?.forEach((year: any) => {
+        year.months.forEach((month: any) => {
+          const monthIndex = month.month - 1;
+  
+          month.dailyRecords.forEach((record: any) => {
+            Object.entries(record.categorysExpenses).forEach(([category, value]) => {
+              if (!monthlyTotal[category]) {
+                monthlyTotal[category] = Array(12).fill(null);
+              }
+              monthlyTotal[category][monthIndex] =
+                (monthlyTotal[category][monthIndex] || 0) + Number(value);
+            });
           });
         });
       });
-    });
-
-    setOriginalCategorysExpenses(aggregatedExpenses);
-    
-    const awsUrl = data.action.aws_url || "";
-    
-    setEditingSlide((prev) => ({
-      ...prev,
-      ...data.action,
-      aws_url: awsUrl,
-      categorysExpenses: aggregatedExpenses,
-      spent: calculateSpent(aggregatedExpenses),
-    }));
-    
-
-
-    setImagePreview(awsUrl ?? null);
-  } catch (error) {
-    console.error("Erro ao carregar detalhes da ação:", error);
-    toast.error("Erro ao carregar detalhes da ação.");
-  }
-};
+  
+      let aggregatedExpenses: Record<string, number> = {};
+      Object.entries(monthlyTotal).forEach(([category, months]) => {
+        let last = 0;
+        aggregatedExpenses[category] = 0;
+  
+        months.forEach((val) => {
+          if (val !== null && val !== undefined) {
+            aggregatedExpenses[category] += val - last;
+            last = val;
+          }
+        });
+      });
+  
+  
+      setOriginalCategorysExpenses(aggregatedExpenses);
+      
+      const awsUrl = data.action.aws_url || "";
+      
+      setEditingSlide((prev) => ({
+        ...prev,
+        ...data.action,
+        aws_url: awsUrl,
+        categorysExpenses: aggregatedExpenses,
+        spent: calculateSpent(aggregatedExpenses),
+      }));
+      
+  
+  
+      setImagePreview(awsUrl ?? null);
+    } catch (error) {
+      console.error("Erro ao carregar detalhes da ação:", error);
+      toast.error("Erro ao carregar detalhes da ação.");
+    }
+  };
   
   
   const validateAndFixCategories = () => {

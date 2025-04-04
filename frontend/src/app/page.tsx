@@ -52,6 +52,7 @@ export default function Ongs() {
   return (
     <div>
       <div className="flex mt-10 justify-between max-md:hidden">
+        <FloatingHearts/>
         <div className="flex flex-col w-3/5 text-[#294BB6] p-12 max-xl:p-3">
           <h1 className="font-bold text-5xl max-lg:text-4xl max-md:text-3xl max-sm:text-xs text-[#294BB6]">PORTAL DA TRANSPARÊNCIA</h1>
 
@@ -73,6 +74,7 @@ export default function Ongs() {
       </div>
 
       <div className="hidden max-md:block">
+        <FloatingHearts/>
         <div className="flex flex-col items-center justify-center mt-10 mb-4">
           <h1 className="font-bold text-2xl mb-20 text-[#294BB6] max-sm:text-xl">PORTAL DA TRANSPARÊNCIA</h1>
           <Image

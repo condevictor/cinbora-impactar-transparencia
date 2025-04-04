@@ -76,13 +76,10 @@ export default function Balance() {
   const [visibleLines, setVisibleLines] = useState<{ [key: string]: boolean }>({});
   const [actionColors, setActionColors] = useState<{ [key: string]: string }>({});
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
-  // Add a refresh key to force re-renders when needed
   const [refreshKey, setRefreshKey] = useState<number>(0);
 
-  // Add an event listener to refresh data when requested
   useEffect(() => {
     const handleRefreshBalance = () => {
-      // Force the component to refetch data
       setRefreshKey(Date.now());
     };
     
@@ -100,82 +97,138 @@ export default function Balance() {
     fetch(`${API_BASE_URL}/ongs/${ngoId}?nocache=${Date.now()}`)
       .then((res) => res.json())
       .then((response: NgoData) => {
-
-        
         if (!response?.ngoGrafic?.expensesByAction?.length) return;
   
         const { expensesByAction } = response.ngoGrafic;
-  
-        const lastYearData = expensesByAction.reduce((acc, curr) =>
-          curr.year > acc.year ? curr : acc
-        );
-  
-        const lastMonthData = lastYearData.months.reduce((acc, curr) =>
-          curr.month > acc.month ? curr : acc
-        );
-  
-        const lastDayRecord = lastMonthData.dailyRecords.reduce((acc, curr) =>
-          curr.day > acc.day ? curr : acc
-        );
-  
         setTotalExpenses(response.ngoGrafic?.totalExpenses || 0);
-        const actionsToDisplay = Object.keys(lastDayRecord.expensesByAction || {});
-        const allYears = new Set<string>();
-        const expensesByMonth: { [month: string]: any } = {};
-        const lastRecordedMonth: { [key: string]: number } = {};
   
-        // Initialize month structure with no action values
+        const allYears = new Set<string>();
+        expensesByAction.forEach((y) => allYears.add(y.year.toString()));
+        const sortedYears = Array.from(allYears).sort().reverse();
+        setAvailableYears(sortedYears);
+  
+        if (!selectedYear && sortedYears.length > 0) {
+          setSelectedYear(sortedYears[0]);
+          return;
+        }
+  
+        const selectedYearNumber = Number(selectedYear);
+        const currentYearData = expensesByAction.find((y) => y.year === selectedYearNumber);
+        const previousYearData = expensesByAction.find((y) => y.year === selectedYearNumber - 1);
+  
+        if (!currentYearData) {
+          setData([]);
+          return;
+        }
+  
+        const lastValuesFromPreviousYear: { [action: string]: number } = {};
+        if (previousYearData?.months?.length) {
+          const lastMonth = previousYearData.months.reduce((a, b) =>
+            a.month > b.month ? a : b
+          );
+  
+          if (lastMonth.dailyRecords?.length) {
+            const lastDayRecord = lastMonth.dailyRecords.reduce((a, b) =>
+              a.day > b.day ? a : b
+            );
+            Object.entries(lastDayRecord.expensesByAction).forEach(([action, value]) => {
+              lastValuesFromPreviousYear[action] = Number(value);
+            });
+          }
+        }
+  
+        const currentYearLastValues: { [action: string]: number } = {};
+        if (currentYearData.months?.length) {
+          const lastMonth = currentYearData.months.reduce((a, b) =>
+            a.month > b.month ? a : b
+          );
+  
+          if (lastMonth.dailyRecords?.length) {
+            const lastDay = lastMonth.dailyRecords.reduce((a, b) =>
+              a.day > b.day ? a : b
+            );
+            Object.entries(lastDay.expensesByAction).forEach(([action, value]) => {
+              currentYearLastValues[action] = Number(value);
+            });
+          }
+        }
+  
+        const actionsToDisplay = Object.entries(currentYearLastValues)
+          .filter(([action, value]) => {
+            const previous = lastValuesFromPreviousYear[action] || 0;
+            return value !== previous;
+          })
+          .map(([action]) => action);
+  
+        const expensesByMonth: { [month: string]: any } = {};
         for (let i = 0; i < 12; i++) {
           expensesByMonth[monthNames[i]] = { month: monthNames[i] };
-          // Initialize all actions with null to avoid carrying over values
-          actionsToDisplay.forEach(action => {
-            expensesByMonth[monthNames[i]][action] = null;
-          });
         }
   
-        // Find the current year's data only
-        const currentYearData = expensesByAction.find(
-          yearData => yearData.year.toString() === selectedYear
-        );
-
-        // Process only the selected year's data
-        if (currentYearData) {
-          currentYearData.months.forEach((monthData) => {
-            const monthIndex = monthData.month - 1;
-            const monthName = monthNames[monthIndex];
+        const monthlyTotals: { [action: string]: number[] } = {};
+        actionsToDisplay.forEach((action) => {
+          monthlyTotals[action] = Array(12).fill(null);
+        });
   
-            monthData.dailyRecords.forEach((record) => {
-              Object.entries(record.expensesByAction).forEach(([action, value]) => {
-                if (!actionsToDisplay.includes(action)) return;
+        currentYearData.months.forEach((monthData) => {
+          const monthIndex = monthData.month - 1;
+          const dailySum: { [action: string]: number } = {};
   
-                if (expensesByMonth[monthName][action] === null) {
-                  expensesByMonth[monthName][action] = 0;
-                }
-  
-                expensesByMonth[monthName][action] += Number(value);
-                lastRecordedMonth[action] = monthIndex;
-              });
+          monthData.dailyRecords.forEach((record) => {
+            Object.entries(record.expensesByAction).forEach(([action, value]) => {
+              if (!actionsToDisplay.includes(action)) return;
+              dailySum[action] = (dailySum[action] || 0) + Number(value);
             });
           });
+  
+          Object.entries(dailySum).forEach(([action, total]) => {
+            monthlyTotals[action][monthIndex] = total;
+          });
+        });
+  
+        // Calcula a diferença mês a mês
+        const previousTotals: { [action: string]: number } = {};
+        actionsToDisplay.forEach((action) => {
+          previousTotals[action] = lastValuesFromPreviousYear[action] || 0;
+        });
+  
+        for (let i = 0; i < 12; i++) {
+          const monthName = monthNames[i];
+          actionsToDisplay.forEach((action) => {
+            const current = monthlyTotals[action][i];
+            if (current !== null && current !== undefined) {
+              const diff = current - previousTotals[action];
+              expensesByMonth[monthName][action] = diff;
+              previousTotals[action] = current;
+            }
+          });
         }
   
-        // Set values to 0 for months that should show a value (up to last recorded month)
-        Object.entries(expensesByMonth).forEach(([monthName, monthData], index) => {
+        // Preeche os meses seguintes com 0 (depois do primeiro registro), e antes como null
+        const firstValidMonthIndex: { [key: string]: number } = {};
+        actionsToDisplay.forEach((action) => {
+          for (let i = 0; i < 12; i++) {
+            const monthName = monthNames[i];
+            if (expensesByMonth[monthName][action] !== undefined) {
+              firstValidMonthIndex[action] = i;
+              break;
+            }
+          }
+        });
+  
+        Object.entries(expensesByMonth).forEach(([monthName, monthData]) => {
           actionsToDisplay.forEach((action) => {
-            if (monthData[action] === null) {
-              monthData[action] = index <= (lastRecordedMonth[action] || 0) ? 0 : null;
+            if (!(action in monthData)) {
+              monthData[action] = 0;
             }
           });
         });
+        
+        
   
         const formattedData = Object.values(expensesByMonth);
         setData(formattedData);
   
-        // Process colors and visibility settings as before
-        expensesByAction.forEach(yearData => {
-          allYears.add(yearData.year.toString());
-        });
-
         const initialVisibility: { [key: string]: boolean } = {};
         const newColors: { [key: string]: string } = {};
         const usedColors = new Set<string>();
@@ -189,13 +242,10 @@ export default function Balance() {
   
         setVisibleLines(initialVisibility);
         setActionColors((prev) => ({ ...prev, ...newColors }));
-  
-        const sortedYears = Array.from(allYears).sort().reverse();
-        setAvailableYears(sortedYears);
-        if (!selectedYear) setSelectedYear(sortedYears[0]);
       })
-      .catch(error => console.error("Error fetching NGO data:", error));
-}, [selectedYear, refreshKey]);
+      .catch((error) => console.error("Erro ao buscar dados da ONG:", error));
+  }, [selectedYear, refreshKey]);
+  
 
   
 
@@ -271,7 +321,7 @@ export default function Balance() {
         </div>
         <div className="flex justify-between items-center mb-16">
           <div className="text-left">
-            <p className="text-gray-500 text-xl">Total gasto</p>
+            <p className="text-gray-500 text-xl mb-2">Total gasto em todos os anos</p>
             <p className="text-4xl font-bold text-gray-800">
               {totalExpenses.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </p>
