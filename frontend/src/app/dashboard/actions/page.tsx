@@ -161,26 +161,48 @@ export default function DashboardAction() {
 
       const data = await response.json();
 
-      // Objeto para armazenar a soma total de cada categoria
-      let aggregatedExpenses: Record<string, number> = {};
+      // Initialize category totals
+      let categoryTotals: Record<string, number> = {};
 
-      // Percorre todos os registros diários e soma os valores de cada categoria
-      data?.actionGrafic?.[0]?.categorysExpenses?.forEach((year: Year) => {
-        year.months.forEach((month: Month) => {
-          month.dailyRecords.forEach((record: DailyRecord) => {
-            Object.entries(record.categorysExpenses).forEach(([category, value]) => {
-              aggregatedExpenses[category] = (aggregatedExpenses[category] || 0) + value;
+      // Use the action's categorysExpenses directly if available - this is the source of truth
+      if (data.action?.categorysExpenses) {
+        categoryTotals = { ...data.action.categorysExpenses };
+      } 
+      // Only fall back to calculating from actionGrafic if necessary
+      else if (data?.actionGrafic?.[0]?.categorysExpenses) {
+        // Instead of summing all records, create a map of the latest value for each category
+        const categoryLatestValues: Record<string, number> = {};
+        
+        // Get most recent data
+        const mostRecentData = data.actionGrafic[0];
+        
+        // Find the latest values across all time periods without adding them together
+        mostRecentData.categorysExpenses.forEach((year: Year) => {
+          year.months.forEach((month: Month) => {
+            month.dailyRecords.forEach((record: DailyRecord) => {
+              // For each category in this record, update its latest value (overwrite, don't add)
+              Object.entries(record.categorysExpenses).forEach(([category, value]) => {
+                categoryLatestValues[category] = Number(value);
+              });
             });
           });
         });
-      });
+        
+        // Use the latest values
+        categoryTotals = categoryLatestValues;
+      }
 
-      setOriginalCategorysExpenses(aggregatedExpenses);
+      setOriginalCategorysExpenses(categoryTotals);
+      
+      // Use the correct spent value from the action data
+      const spentValue = data.action.spent || Object.values(categoryTotals).reduce((acc, val) => acc + Number(val), 0);
+      
       setEditingAction((prev) => ({
         ...prev!,
         ...data.action,
         aws_url: data.action.aws_url || "",
-        categorysExpenses: {...aggregatedExpenses}, // Make a copy to ensure reference changes
+        categorysExpenses: {...categoryTotals}, // Make a copy to ensure reference changes
+        spent: spentValue,
       }));
 
       setImagePreview(data.action.aws_url || null);
@@ -234,17 +256,21 @@ export default function DashboardAction() {
     let updatedCategories: Record<string, number> = { ...editingAction.categorysExpenses };
   
     Object.keys(updatedCategories).forEach((category) => {
-      const currentValue = updatedCategories[category];
+      const currentValue = Number(updatedCategories[category]);
 
-      if (currentValue === null || currentValue === undefined) {
+      if (isNaN(currentValue) || currentValue === null || currentValue === undefined) {
         updatedCategories[category] = 0;
+      } else {
+        // Ensure the value is stored as a number
+        updatedCategories[category] = currentValue;
       }
-    
     });
   
     setEditingAction((prev) => ({
       ...prev!,
       categorysExpenses: updatedCategories,
+      // Update spent amount immediately with the corrected values
+      spent: Object.values(updatedCategories).reduce((acc, val) => acc + Number(val), 0),
     }));
   
     return updatedCategories;
@@ -252,20 +278,25 @@ export default function DashboardAction() {
 
   const updateCategoryExpenses = async (actionId: number | string, categorysExpenses: Record<string, number>) => {
     try {
+      // Convert any string values to numbers
+      const normalizedCategories: Record<string, number> = {};
+      Object.entries(categorysExpenses).forEach(([category, value]) => {
+        normalizedCategories[category] = Number(value);
+      });
+
       const response = await fetch(`${API_BASE_URL}/ongs/actions/${actionId}/grafic`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ categorysExpenses }),
+        body: JSON.stringify({ categorysExpenses: normalizedCategories }),
       });
     
       if (!response.ok) {
         throw new Error(`Erro ao atualizar categorias: ${response.statusText}`);
       }
     
-      // Removed the success toast from here as it was creating duplicate notifications
       return true;
     } catch (error) {
       console.error("Erro ao atualizar categorias de despesas:", error);
