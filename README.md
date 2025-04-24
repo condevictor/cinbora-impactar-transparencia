@@ -10,6 +10,7 @@
 - [Instalação e Configuração](#instalação-e-configuração)
 - [Backend](#backend)
 - [Frontend](#frontend)
+- [Testes Automatizados](#testes-automatizados)
 - [Acesso à Plataforma](#-acesso-à-plataforma)
 
 ## Sobre o Projeto
@@ -112,6 +113,52 @@ npm install
 ### Estados e Gerenciamento de Dados
 
 Utilizamos Redux para gerenciamento de estado global e Context API para estados específicos de componentes.
+
+## Testes Automatizados
+
+### Testes de Backend
+
+#### Testes Unitários e de Integração
+- **Controllers**: Testes para todas as APIs e endpoints
+  - UserController: testes para criação, edição, exclusão e listagem de usuários
+  - OngController: testes para gerenciamento de ONGs e suas informações
+  - ActionController: testes para as ações sociais e seus recursos
+  - FileController: testes para upload, listagem e exclusão de arquivos
+  - AuthController: testes para autenticação e autorização
+
+#### Como executar os testes do backend
+```bash
+cd backend
+npm run test
+```
+
+Para executar com cobertura:
+```bash
+cd backend
+npm run test:coverage
+```
+
+### Testes de Frontend
+
+#### Testes E2E com Cypress
+Testes de ponta a ponta que simulam o comportamento do usuário na aplicação:
+- Fluxo de login de usuário
+- Edição de informações da ONG
+- Navegação entre abas (Galeria, Balanço de Gastos, Documentos)
+- Gerenciamento de ações sociais
+- Visualização de histórico e informações da ONG
+
+#### Como executar os testes do frontend
+```bash
+cd frontend
+npm run cypress:open
+```
+
+Para executar em modo headless:
+```bash
+cd frontend
+npm run cypress:run
+```
 
 ## 🌐 Acesso à Plataforma
 
