@@ -1,7 +1,6 @@
 # Cinbora - Impactar Transparência
 
 ![Versão](https://img.shields.io/badge/versão-1.0.0-blue)
-![Licença](https://img.shields.io/badge/licença-MIT-green)
 
 ## Índice
 
