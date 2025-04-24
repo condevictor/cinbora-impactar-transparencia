@@ -1,4 +1,4 @@
-# Cinbora - Impactar Transparência
+# Cinbora Transparecer
 
 ![Versão](https://img.shields.io/badge/versão-1.0.0-blue)
 
@@ -15,7 +15,7 @@
 
 ## Sobre o Projeto
 
-O **Cinbora Impactar Transparência** é uma plataforma que visa promover a transparência e acessibilidade de dados das ONGs, permitindo que cidadãos acessem informações relevantes de forma clara e intuitiva.
+O **Cinbora Transparecer** é uma plataforma que visa promover a transparência e acessibilidade de dados das ONGs, permitindo que cidadãos acessem informações relevantes de forma clara e intuitiva.
 
 A plataforma é fruto de uma parceria entre o CIN/UFPE e a Prefeitura do Recife, estando integrada ao projeto 'Bora Impactar', que visa ajudar as ONGs do Recife.
 
@@ -171,4 +171,4 @@ Nossa iniciativa faz parte do projeto "Bora Impactar" da prefeitura, criado espe
 Estamos comprometidos em transformar a maneira como as pessoas interagem com dados públicos, tornando-os mais compreensíveis e úteis para todos.
 
 
-Desenvolvido com ❤️ pela equipe Cinbora Transparecer.
+Desenvolvido com ❤️ pela equipe do Cinbora Transparecer.
