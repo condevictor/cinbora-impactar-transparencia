@@ -12,7 +12,6 @@
 - [Backend](#backend)
 - [Frontend](#frontend)
 - [Acesso à Plataforma](#-acesso-à-plataforma)
-- [Licença](#licença)
 
 ## Sobre o Projeto
 
@@ -125,10 +124,5 @@ Nossa iniciativa faz parte do projeto "Bora Impactar" da prefeitura, criado espe
 
 Estamos comprometidos em transformar a maneira como as pessoas interagem com dados públicos, tornando-os mais compreensíveis e úteis para todos.
 
-## 📝 Licença
 
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE.md](LICENSE.md) para detalhes.
-
----
-
-Desenvolvido com ❤️ pela equipe Cinbora Transparecer, com o apoio da Prefeitura através do projeto "Bora Impactar".
+Desenvolvido com ❤️ pela equipe Cinbora Transparecer.
